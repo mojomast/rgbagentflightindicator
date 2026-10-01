@@ -38,6 +38,11 @@ DEFAULT_FRAME_LEN = 1032
 BLOCK = 126
 B_START, G_START, R_START = 29, 155, 281
 
+# Col08's feature report is 382 bytes, and 4 + 126 * 3 = 382: a short header
+# followed by one interleaved RGB triple per key. Unconfirmed - see docs.
+RGB_FRAME_LEN = 382
+RGB_HEADER = bytes([0x06, 0x09, 0xBC, 0x00])
+
 HEADER_PERKEY_1 = bytes([0x06, 0x09, 0xBC, 0x00, 0x40, 0x00, 0x00, 0x00])
 HEADER_PERKEY_2 = bytes([0x06, 0x09, 0xC0, 0x00, 0x40, 0x00, 0x00, 0x00])
 MODE_COMMIT = bytes([0x06, 0x03, 0xB6, 0x00, 0x00, 0x00, 0x00, 0x00])
@@ -124,6 +129,25 @@ def frame(header: bytes, colours: dict[int, tuple[int, int, int]],
     return out
 
 
+def frame_rgb(header: bytes, colours: dict[int, tuple[int, int, int]],
+              length: int = RGB_FRAME_LEN) -> bytearray:
+    """Interleaved R,G,B per slot - the layout Col08's size implies.
+
+    4 + 126 * 3 = 382, which is exactly Col08's feature report length, so this
+    is a hypothesis about that interface and not a recovered fact.
+    """
+    out = bytearray(length)
+    out[0:len(header)] = header[:length]
+    for slot, (r, g, b) in colours.items():
+        base = 4 + slot * 3
+        if slot >= BLOCK or base + 3 > length:
+            continue
+        out[base] = r
+        out[base + 1] = g
+        out[base + 2] = b
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--caps", action="store_true",
@@ -139,6 +163,12 @@ def main() -> int:
     ap.add_argument("--bank", choices=("1", "2", "both"), default="both",
                     help="which LED bank to paint (1 = header 06 09 BC, "
                          "2 = header 06 09 C0)")
+    ap.add_argument("--layout", choices=("planar", "rgb"), default="planar",
+                    help="planar = B/G/R blocks (Col06); rgb = one interleaved "
+                         "triple per key (Col08, unconfirmed)")
+    ap.add_argument("--once", action="store_true",
+                    help="write a single frame and stop - safer on a board whose "
+                         "firmware is unknown, and it cannot drop keystrokes")
     ap.add_argument("--pace", type=float, default=0.0, metavar="MS",
                     help="milliseconds to wait between writes (the driver uses 13)")
     ap.add_argument("--send", help="raw hex bytes to write instead of painting")
@@ -182,7 +212,13 @@ def main() -> int:
         print("\nCol05/Col06 not both present; nothing written")
         return 1
 
-    print(f"\nwriting through {target['col']}, frame {args.frame_len} bytes")
+    # The frame has to be exactly as long as the report the firmware declares,
+    # or it refuses the write: Col06 takes 1032 and rejects 382.
+    frame_len = {"rgb": RGB_FRAME_LEN}.get(args.layout, args.frame_len)
+    if args.frame_len != DEFAULT_FRAME_LEN and args.layout != "rgb":
+        frame_len = args.frame_len
+    print(f"\nwriting through {target['col']}, frame {frame_len} bytes "
+          f"({args.layout})")
     cmd_handle = hid.device()
     data_handle = hid.device()
     cmd_handle.open_path(cmd["raw"])
@@ -209,9 +245,14 @@ def main() -> int:
                         colours if args.bank == "2" else {}))
         return out
 
+    def build_frame(header, colours):
+        if args.layout == "rgb":
+            return frame_rgb(header, colours)
+        return frame(header, colours, args.frame_len)
+
     try:
         send(cmd_handle, UNLOCK, "unlock   ")
-        send(data_handle, frame(MODE_COMMIT, {}, args.frame_len), "commit   ")
+        send(data_handle, build_frame(MODE_COMMIT, {}), "commit   ")
         colours: dict[int, tuple[int, int, int]] = {}
         for name, slots in wanted:
             for slot in slots:
@@ -225,16 +266,16 @@ def main() -> int:
         elif colours:
             for index in range(max(1, args.repeat)):
                 for label, header, payload_colours in banks(colours):
-                    send(data_handle,
-                         frame(header, payload_colours, args.frame_len),
+                    send(data_handle, build_frame(header, payload_colours),
                          f"{label} {index + 1}")
                 if index + 1 < args.repeat:
                     time.sleep(args.delay)
+            if args.once:
+                print("  (--once: single frame written, stopping)")
             deadline = time.time() + max(0.0, args.hold)
             while time.time() < deadline:
                 for label, header, payload_colours in banks(colours):
-                    send(data_handle,
-                         frame(header, payload_colours, args.frame_len),
+                    send(data_handle, build_frame(header, payload_colours),
                          f"hold {label}")
                 time.sleep(0.1)
     finally:
