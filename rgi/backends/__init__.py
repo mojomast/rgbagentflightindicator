@@ -35,6 +35,11 @@ def _registry():
         out["evision"] = EvisionBackend
     except Exception:                       # pragma: no cover - optional module
         pass
+    try:
+        from .qmk import QmkBackend
+        out["qmk"] = QmkBackend
+    except Exception:                       # pragma: no cover - optional module
+        pass
     return out
 
 

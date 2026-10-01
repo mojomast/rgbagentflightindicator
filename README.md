@@ -85,6 +85,8 @@ Behind one interface, `rgi` speaks several very different protocols:
 | `sinowealth` | Sinowealth 258A:0049 boards (many white-label "gaming keyboards") | Win/Linux/macOS via hidapi | **verified on hardware** |
 | `openrgb` | hundreds of keyboards, mice, cases — anything [OpenRGB](https://openrgb.org) supports | where OpenRGB runs | implemented to the documented SDK; needs a device to confirm per-board labels |
 | `sysfs` | Linux LED-class devices: laptops with a keyboard backlight, boards exposing `:rgb:` LEDs | Linux | implemented, untested on hardware here |
+| `evision` | EVision/SONiX boards: Magic Refiner, Redragon, Husky, EvoFox, Kreo, VGN/ATK and many others | Win/Linux/macOS via hidapi | **verified on hardware** (Magic Refiner MK 17, 320F:501D) |
+| `qmk` | any QMK keyboard: **per-key** on Vial firmware, one colour on stock QMK+VIA | Win/Linux/macOS via hidapi | protocol implemented to QMK/VIA source; **not yet run against a board** |
 | `dummy` | nothing — a fake panel for tests, demos and dry runs | everywhere | used by the test suite |
 
 `rgi detect` reports what is present. If none of them fit your board,

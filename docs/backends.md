@@ -136,10 +136,12 @@ If you have to go this far, this is the path that worked here:
 |---|---|---|---|
 | Sinowealth `258A:0049` (white-label "Gaming Keyboard", READSON, many rebrands) | vendor HID feature reports, planar B/G/R blocks | `sinowealth` | yes, on hardware |
 | EVision/SONiX `320F:501D` (Magic Refiner MK 17) and siblings | 64-byte command protocol on usage page `0xFF1C` | `evision` | yes, on hardware |
-| Other EVision boards (Redragon, Husky, EvoFox, Kreo, VGN/ATK�) | same protocol, v1 or v2 | `evision` (v2) / OpenRGB | protocol family confirmed; per-board maps differ |
+| Other EVision boards (Redragon, Husky, EvoFox, Kreo, VGN/ATK�) | same protocol, v1 or v2 | `evision` (v2) / OpenRGB | protocol family confirmed; per-board maps differ |
 | Any OpenRGB-supported keyboard | OpenRGB SDK over TCP | `openrgb` | SDK implemented + unit tested; not yet against a board |
 | HID LampArray keyboards | USB HID usage page `0x59` feature reports | `lamparray` (planned) | protocol documented here |
-| QMK / VIA boards | raw HID, VIA protocol | not yet | easy first contribution |
+| QMK on Vial firmware (`VIALRGB_ENABLE`) | raw HID `0xFF60`/`0x61`, VialRGB per-LED HSV | `qmk` | protocol to source; needs a board to confirm |
+| QMK on stock VIA firmware | same channel, VIA rgb_matrix = one colour | `qmk` (single colour) | protocol to source; needs a board to confirm |
+| QMK with the OpenRGB or SignalRGB module | their own raw HID protocols | not driven — use that project's host, or flash Vial | detected and reported only |
 | Logitech G LIGHTSYNC | Logi LED SDK | not yet | — |
 | SteelSeries | GameSense HTTP | not yet | easiest of the vendor SDKs |
 | Laptop backlights | Linux LED class | `sysfs` | implemented, untested here |

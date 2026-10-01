@@ -243,6 +243,76 @@ for the seller, and the MCU is a SONiX `SN32F248` (`VS11K09A`), which is also
 QMK-portable via [SonixQMK](https://sonixqmk.github.io/SonixDocs/) if you are
 willing to open the case.
 
+## QMK and VIA
+
+Every QMK keyboard with raw HID enabled exposes the same channel: usage page
+`0xFF60`, usage `0x61`, 32-byte reports (64 on boards built with the OpenRGB
+module). That channel defaults are overridable per keyboard in `config.h`, so
+detection probes rather than trusting a VID/PID table.
+
+What you can *do* over it depends entirely on the firmware:
+
+| firmware | per-key? | how |
+|---|---|---|
+| **Vial** with `VIALRGB_ENABLE=yes` | **yes** | VialRGB direct mode - HSV per LED, plus an LED map |
+| **stock QMK + VIA** | no | VIA rgb_matrix: brightness, effect, colour for the whole board |
+| OpenRGB QMK module | yes | its own protocol, 64-byte endpoint, rev 0x09-0x0E |
+| SignalRGB community module | yes | `STREAM_RGB_DATA`, 32-byte endpoint |
+
+### VialRGB (the good one)
+
+Framing is a 32-byte report; the host writes 33 bytes with a leading `0x00` report
+id and reads 32 back. Requests are `[command, subcommand, args…]`:
+
+```
+0x08 0x40            get_info        -> version, max brightness
+0x07 0x41 mode speed h s v           set the effect (mode 1 = direct)
+0x08 0x43            get_number_leds -> LED count
+0x08 0x44 <index>    get_led_info    -> x y flags row col   (the LED map)
+0x07 0x42 first_lo first_hi count (h s v)*count    direct_fastset
+```
+
+Up to **nine LEDs per packet** (32 − 2 − 2 − 1 = 27 bytes, three per LED), contiguously
+indexed, HSV in QMK's scale: hue 0-255 is 0-360°, saturation and value 0-255 with
+value clamped to the board's maximum. Blinking is host-side - there is no
+device-side blink for individual LEDs.
+
+The LED map is what makes lanes meaningful: `get_led_info` gives each LED's
+matrix position, row and column, which is how a host finds the key it wants
+without guessing indices.
+
+### Stock QMK + VIA (one colour)
+
+Report `[command, channel, value_id, data…]`, channels `1` backlight, `2` rgblight,
+`3` rgb_matrix:
+
+| value_id | set payload |
+|---|---|
+| `1` brightness | 1 byte, 0-255 |
+| `2` effect | 1 byte; `1` is solid colour, `0` disables |
+| `3` speed | 1 byte |
+| `4` colour | 2 bytes: hue, saturation |
+
+Set the effect first (it enables the matrix), then brightness, then colour. There
+is **no per-LED command in stock QMK at all** - so `rgi`'s QMK backend reports
+`per_lamp = False` on these boards and the daemon shows the most urgent lane as a
+single colour, rather than pretending to have twelve addressable lamps. Blinking
+is brightness toggling, which necessarily blinks the whole board.
+
+### Detection, and what is deliberately not implemented
+
+Detection uses **read-only** probes and never writes: `0x01` (VIA version),
+`0xFE 0x00` (Vial identity, with a byte that says whether VialRGB is compiled in),
+`0x08 0x40` (VialRGB info), `0x22` (SignalRGB version), and `0x08 0x03 0x04` (VIA
+rgb_matrix colour). `0x07`/`0x09`/`0x0A`/`0x0B` - set, save, EEPROM reset,
+bootloader jump - are never sent while detecting, and `save` is never sent at all.
+
+The OpenRGB and SignalRGB QMK routes are **detected and reported, not driven**.
+Both need custom firmware flashed to the board; shipping packet builders for
+firmware this project cannot test would be a guess dressed up as support. If your
+board runs one of them, use that project's own host software - or flash Vial
+instead and get per-key control through this backend.
+
 ## Other routes, briefly
 
 - **SteelSeries GameSense** — HTTP JSON on `localhost:27301`. Easiest vendor API

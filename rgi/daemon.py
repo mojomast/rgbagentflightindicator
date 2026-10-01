@@ -531,6 +531,8 @@ def build_backend(name: str, args: argparse.Namespace) -> Backend:
         kwargs = {"include": args.lamp or None}
     elif name == "evision":
         kwargs = {"leds": args.leds, "verbose": args.verbose}
+    elif name == "qmk":
+        kwargs = {"leds": args.leds, "verbose": args.verbose, "count": args.count}
     return load(name)(**kwargs)
 
 
