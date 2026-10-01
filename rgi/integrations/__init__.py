@@ -24,6 +24,7 @@ ADAPTERS: dict[str, str] = {
     "langgraph": "rgi.integrations.langgraph",
     "crewai": "rgi.integrations.crewai",
     "ms-agent": "rgi.integrations.ms_agent",
+    "zoo-cli": "rgi.integrations.zoo_cli",
     "home-assistant": "rgi.integrations.home_assistant",
 }
 

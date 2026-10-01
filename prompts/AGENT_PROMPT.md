@@ -229,12 +229,12 @@ the plugin's log records what the host reports.
 
 ### If your runtime has an integration, use it
 
-Claude Code, Gemini CLI, Pi, the GitHub Copilot SDK, the Python agent frameworks
-(OpenAI Agents SDK, Pydantic AI, LangGraph, CrewAI, Microsoft Agent Framework)
-and the ChatGPT/Codex MCP adapter all report through the same shared client, so
-lanes, waits counted by id, event ordering and cleanup are handled for you. The
-index - with the supported version of each upstream - is published at
-`GET /files/integrations.md` and lives in the repository at
+Claude Code, Gemini CLI, Pi, the GitHub Copilot SDK, the Zoo Code CLI, the Python
+agent frameworks (OpenAI Agents SDK, Pydantic AI, LangGraph, CrewAI, Microsoft
+Agent Framework) and the ChatGPT/Codex MCP adapter all report through the same
+shared client, so lanes, waits counted by id, event ordering and cleanup are
+handled for you. The index - with the supported version of each upstream - is
+published at `GET /files/integrations.md` and lives in the repository at
 `docs/integrations.md`. If your runtime is not there, this page is the contract
 to follow by hand.
 

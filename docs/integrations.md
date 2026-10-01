@@ -25,6 +25,7 @@ than speaking HTTP on its own, so they all behave the same way:
 | Gemini CLI | hooks / extension | `gemini-cli:` | [gemini-cli.md](gemini-cli.md) |
 | Pi | event-API extension | `pi:` | [pi.md](pi.md) |
 | GitHub Copilot SDK | application adapter | `copilot:` | [copilot-sdk.md](copilot-sdk.md) |
+| Zoo Code CLI | NDJSON event stream | `zoo:` | [zoo-code.md](zoo-code.md) |
 | OpenAI Agents SDK | runner hooks | `openai-agents:` | [openai-agents.md](openai-agents.md) |
 | Pydantic AI | run/event hooks | `pydantic-ai:` | [pydantic-ai.md](pydantic-ai.md) |
 | LangGraph | stream interrupts | `langgraph:` | [langgraph.md](langgraph.md) |
@@ -48,6 +49,7 @@ panel itself — the keyboards, the OpenCode watcher and the plugin.
 | Gemini CLI | `@google/gemini-cli` | 0.62.0 | mock panel, documented payload shapes |
 | Pi | `@earendil-works/pi-coding-agent` | 0.99.2 | structural tests + `node --check`; in-memory fetch stub |
 | Copilot SDK | `github-copilot-sdk` (Python), `@github/copilot-sdk` (Node) | 1.0.16 | mock panel, fake emitter |
+| Zoo Code CLI | `@roo-code/cli` (binary `roo`), extension 3.84.0 | 0.1.17 / 3.84.0 | mock panel, recorded NDJSON stream; **no live CLI run** |
 | OpenAI Agents SDK | `openai-agents` | 0.22.3 | mock panel, fake hooks/results |
 | Pydantic AI | `pydantic-ai` | 2.52.0 | mock panel, fake events |
 | LangGraph | `langgraph` (+ `langchain-core` 1.6.6) | 1.2.12 | mock panel, fake chunks/callbacks |

@@ -134,6 +134,7 @@ same way, and none of them needs a framework installed to import:
 | Gemini CLI | hooks in settings, or packaged as an extension | [docs/gemini-cli.md](docs/gemini-cli.md) |
 | Pi | a small event-API extension | [docs/pi.md](docs/pi.md) |
 | GitHub Copilot SDK | an adapter for sessions your application owns | [docs/copilot-sdk.md](docs/copilot-sdk.md) |
+| Zoo Code CLI | the NDJSON stream a headless `roo --print --output-format stream-json` run prints | [docs/zoo-code.md](docs/zoo-code.md) |
 | OpenAI Agents SDK | runner boundaries and lifecycle callbacks | [docs/openai-agents.md](docs/openai-agents.md) |
 | Pydantic AI | run/event hooks, approvals vs background tools | [docs/pydantic-ai.md](docs/pydantic-ai.md) |
 | LangGraph | interrupts, resumption, thread correlation | [docs/langgraph.md](docs/langgraph.md) |
@@ -181,7 +182,7 @@ rgi status --follow   # reprint on every change
 ```
 
 ```
-rbgafi 0.5.1  http://127.0.0.1:8730
+rgbafi 0.5.1  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
