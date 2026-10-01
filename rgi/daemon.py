@@ -39,6 +39,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .backends import OFF, RGB, Backend, BackendUnavailable, load, available_backends
+from .config import resolve_token               # noqa: F401  (re-exported)
 from .files import published_files, read_published
 
 PALETTE: dict[str, RGB] = {
@@ -637,21 +638,6 @@ class Handler(BaseHTTPRequestHandler):
 def make_server(host: str, port: int, daemon: Daemon, token: str) -> ThreadingHTTPServer:
     handler = type("BoundHandler", (Handler,), {"daemon": daemon, "token": token})
     return ThreadingHTTPServer((host, port), handler)
-
-
-def resolve_token(explicit: str | None) -> str | None:
-    """Token from --token, env, or ~/.config/rgi/token. None = no auth."""
-    if explicit:
-        return explicit
-    env = os.environ.get("RGI_TOKEN")
-    if env:
-        return env
-    try:
-        with open(DEFAULT_TOKEN_FILE, encoding="utf-8") as fh:
-            value = fh.read().strip()
-        return value or None
-    except OSError:
-        return None
 
 
 def build_backend(name: str, args: argparse.Namespace) -> Backend:

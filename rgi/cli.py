@@ -19,31 +19,27 @@ import urllib.request
 from . import __version__
 from .backends import available_backends, load
 from .backends.base import BackendUnavailable
+from .config import DEFAULT_URL, resolve_url     # noqa: F401  (public surface)
 
-DEFAULT_URL = "http://127.0.0.1:8730"
-URL_FILE = os.path.join(os.path.expanduser("~"), ".config", "rgi", "url")
+def cmd_mcp(args: argparse.Namespace) -> int:
+    import asyncio
+    from .mcp_server import PanelClient, serve
 
-
-def resolve_url(explicit: str | None = None) -> str:
-    """URL from --url, RGI_URL/LEDD_URL, ~/.config/rgi/url, or localhost.
-
-    The file exists so a machine does not need the address in its environment: a
-    running OpenCode cannot acquire a new variable, and a shell started before the
-    export does not have it.
-    """
-    if explicit:
-        return explicit.rstrip("/")
-    env = os.environ.get("RGI_URL") or os.environ.get("LEDD_URL")
-    if env:
-        return env.rstrip("/")
     try:
-        with open(URL_FILE, encoding="utf-8") as fh:
-            value = fh.read().strip()
-        if value:
-            return value.rstrip("/")
-    except OSError:
+        client = PanelClient(args.url, namespace=args.namespace, timeout=args.timeout)
+        asyncio.run(serve(client))
+    except ModuleNotFoundError as exc:
+        if exc.name != "mcp":
+            raise
+        print("Install MCP support with: python -m pip install -e '.[openai]'",
+              file=sys.stderr)
+        return 1
+    except ValueError as exc:
+        print(f"rgi mcp: {exc}", file=sys.stderr)
+        return 2
+    except KeyboardInterrupt:
         pass
-    return DEFAULT_URL
+    return 0
 
 
 def _add_backend_args(ap: argparse.ArgumentParser) -> None:
@@ -168,6 +164,14 @@ def cmd_daemon(args: argparse.Namespace) -> int:
     from .daemon import run
     args.backend = pick_backend(args.backend)
     return run(args)
+
+
+def cmd_hook(args: argparse.Namespace) -> int:
+    from . import hooks
+
+    if getattr(args, "debug", False):
+        os.environ["RGI_HOOK_DEBUG"] = "1"
+    return hooks.run(args.harness)
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
@@ -390,6 +394,20 @@ def build_parser() -> argparse.ArgumentParser:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--version", action="version", version=f"rgi {__version__}")
     sub = ap.add_subparsers(dest="command", required=True)
+
+    mc = sub.add_parser("mcp", help="private stdio MCP tools for ChatGPT and Codex")
+    mc.add_argument("--url", default=os.environ.get("RGI_URL", DEFAULT_URL),
+                    help="local panel origin; loopback IP only")
+    mc.add_argument("--namespace", default=os.environ.get("RGI_MCP_NAMESPACE", "private"),
+                    help="session namespace; use one per private tunnel")
+    mc.add_argument("--timeout", type=float, default=2.0, help="local API timeout, 0.1-10 seconds")
+    mc.set_defaults(func=cmd_mcp)
+
+    hk = sub.add_parser("hook", help="one lifecycle hook for a harness (JSON on stdin)")
+    hk.add_argument("harness", help="which harness to speak for, e.g. claude-code, "
+                                    "gemini-cli (see docs/integrations.md)")
+    hk.add_argument("--debug", action="store_true", help="log decisions to stderr")
+    hk.set_defaults(func=cmd_hook)
 
     d = sub.add_parser("detect", help="show what backends and lamps are visible")
     _add_backend_args(d)

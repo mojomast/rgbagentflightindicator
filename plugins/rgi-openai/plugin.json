@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "rgi-panel",
+  "version": "0.1.0",
+  "description": "Private RGB keyboard status tools for ChatGPT and Codex.",
+  "author": {"name": "mojomast"},
+  "license": "MIT",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "RGB Agent Flight Indicator",
+        "shortDescription": "Read and control your private RGB status panel",
+        "developerName": "mojomast",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "defaultPrompt": ["Show my RGB panel status", "Test a lane on my RGB keyboard"]
+      }
+    }
+  }
+}

@@ -118,6 +118,14 @@ in [docs/opencode.md](docs/opencode.md). Doing this **on other machines** — wi
 the install, update and verification steps, and what to say to the agent that does
 it — is [docs/machines.md](docs/machines.md).
 
+## Private ChatGPT and Codex testing
+
+Install the optional MCP adapter with `pip install -e '.[openai]'`. It exposes
+panel status and session tools through `python -m rgi mcp`. Use OpenAI Secure MCP
+Tunnel to reach a workstation behind NAT from ChatGPT developer mode, or use a
+local stdio plugin in Codex. The private plugin packager and complete connection,
+testing, and cleanup steps are in [docs/openai.md](docs/openai.md).
+
 ## Wiring up agents
 
 Give any agent [prompts/AGENT_PROMPT.md](prompts/AGENT_PROMPT.md) — or

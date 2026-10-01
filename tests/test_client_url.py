@@ -12,7 +12,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from rgi import cli
+from rgi import cli, config
 
 NO_URL_ENV = {k: v for k, v in os.environ.items() if k not in ("RGI_URL", "LEDD_URL")}
 
@@ -36,7 +36,7 @@ class ResolveUrlTest(unittest.TestCase):
             path = os.path.join(tmp, "url")
             with open(path, "w", encoding="utf-8") as fh:
                 fh.write("http://file:4/\n")
-            with mock.patch.object(cli, "URL_FILE", path):
+            with mock.patch.object(config, "URL_FILE", path):
                 with mock.patch.dict(os.environ, NO_URL_ENV, clear=True):
                     self.assertEqual(cli.resolve_url(None), "http://file:4")
                 with mock.patch.dict(os.environ, {"RGI_URL": "http://env:1"}, clear=False):
@@ -46,13 +46,13 @@ class ResolveUrlTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "url")
             open(path, "w").close()
-            with mock.patch.object(cli, "URL_FILE", path):
+            with mock.patch.object(config, "URL_FILE", path):
                 with mock.patch.dict(os.environ, NO_URL_ENV, clear=True):
                     self.assertEqual(cli.resolve_url(None), cli.DEFAULT_URL)
 
     def test_a_missing_file_is_no_file(self):
         missing = os.path.join(tempfile.gettempdir(), "rgi-url-that-is-not-there")
-        with mock.patch.object(cli, "URL_FILE", missing):
+        with mock.patch.object(config, "URL_FILE", missing):
             with mock.patch.dict(os.environ, NO_URL_ENV, clear=True):
                 self.assertEqual(cli.resolve_url(None), cli.DEFAULT_URL)
 

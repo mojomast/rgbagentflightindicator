@@ -26,12 +26,13 @@ classifiers = [
 sinowealth = ["hidapi>=0.14"]
 lamparray = ["hidapi>=0.14"]
 all = ["hidapi>=0.14"]
+openai = ["mcp>=1.30,<2"]
 
 [project.scripts]
 rgi = "rgi.cli:main"
 
 [tool.setuptools]
-packages = ["rgi", "rgi.backends", "rgi.watchers"]
+packages = ["rgi", "rgi.backends", "rgi.watchers", "rgi.integrations"]
 
 [tool.setuptools.package-data]
 rgi = ["../prompts/*.md", "../plugin/*"]
