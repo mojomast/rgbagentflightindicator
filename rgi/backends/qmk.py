@@ -189,7 +189,7 @@ class QmkBackend(Backend):
             count = self.forced_leds or self._vialrgb_led_count() or 0
             if not count:
                 raise BackendUnavailable("VialRGB did not report an LED count")
-            self._lamps = [Lamp(index=i, label=f"led{i}", group="unmapped")
+            self._lamps = [Lamp(index=i, label=str(i), group="unmapped")
                            for i in range(count)]
             self._enter_vialrgb_direct()
         else:

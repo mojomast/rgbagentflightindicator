@@ -28,7 +28,7 @@ you can see the whole fleet before deciding what to do.
 ```
 POST /session/start
 {"agent": "hermes", "sessionID": "<unique id>", "label": "<short label>", "host": "<machine>"}
--> {"slot": 2, "key": "led2", "devices": ["evision"]}
+-> {"slot": 2, "key": "2", "devices": ["evision"]}
 ```
 
 `sessionID` is yours for the task; `label` is what the human reads (keep it under
@@ -64,9 +64,9 @@ rgi status                      # add --url http://<panel-host>:8730 if remote
 rbgafi 0.3.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
-  lane  0  done      Greeting                           [workstation]  evision=led0  ses_agent0003
-  lane  1  done      QMK host-side RGB control protocol [workstation]  evision=led1  ses_agent0002
-  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=led2  ses_agent0001
+  lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
+  lane  1  done      QMK host-side RGB control protocol [workstation]  evision=1  ses_agent0002
+  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=2  ses_agent0001
 ```
 
 `--json` prints the raw `/status` for scripting, `--follow` reprints whenever
@@ -82,11 +82,11 @@ GET /session/<id>        just your own lane (404 if you do not hold one)
 
 ```json
 {"devices": [{"label": "evision", "lamps": 126, "per_lamp": true,
-              "lanes": ["led0", "led1", "led2"]}],
+              "lanes": ["0", "1", "2"]}],
  "lanes": 12,
  "free": [3, 4, 5],
  "sessions": {
-   "job-123": {"slot": 2, "key": "led2", "agent": "hermes", "label": "nightly sync",
+   "job-123": {"slot": 2, "key": "2", "agent": "hermes", "label": "nightly sync",
                "host": "kimi", "state": "working", "age": 12.3}}}
 ```
 

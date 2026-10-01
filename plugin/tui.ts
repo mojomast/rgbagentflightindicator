@@ -267,9 +267,13 @@ export default {
       for (const l of all) {
         const here = sessionID && l.id === sessionID
         const mark = MARKS[l.state ?? "idle"] ?? "?"
-        // collapsed: key, state, label. Who/where it is stays folded away until
-        // the human asks for it.
-        lines.push(`${here ? "\u25B8" : " "} ${String(l.key ?? "?").padStart(2)} ${mark} ${name(l)}`)
+        // 0name(mark)task - the lamp number, who it is, how it is doing, what it
+        // is doing. A lamp named "7" stays "7": the index is the identifier.
+        const lamp = String(l.key ?? "?").replace(/^led(?=\d)/, "")
+        const who = l.ident || l.agent || ""
+        lines.push(
+          `${here ? "\u25B8" : " "}${lamp}${who}(${mark})${trim(sessionTitle(l.id) ?? l.label ?? "", 22)}`,
+        )
         if (expanded()) lines.push(...detailLines(l, "    "))
       }
       if (expanded()) lines.push(`    (alt+l or /lanes to collapse)`)

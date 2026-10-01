@@ -17,9 +17,9 @@ rgi status --follow              # reprint whenever anything changes
 rbgafi 0.3.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
-  lane  0  done      Greeting                           [workstation]  evision=led0  ses_agent0003
-  lane  1  done      QMK host-side RGB control protocol [workstation]  evision=led1  ses_agent0002
-  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=led2  ses_agent0001
+  lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
+  lane  1  done      QMK host-side RGB control protocol [workstation]  evision=1  ses_agent0002
+  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=2  ses_agent0001
 ```
 
 The same data is on the API (`GET /status`, `GET /slots`, `GET /session/<id>`), so

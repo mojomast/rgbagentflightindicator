@@ -22,7 +22,7 @@ one-byte refresh (command 0x12, offset 18) - without it the board drifts back to
 its own effect.
 
 Lamp *identity* is unknown: the protocol addresses LEDs by index, and the vendor
-key map is not published for this board. Lamps are therefore labelled led0..ledN
+key map is not published for this board. Lamps are therefore labelled 0..ledN
 and `rgi map` is the way to find which index sits under which key.
 """
 
@@ -141,7 +141,7 @@ class EvisionBackend(Backend):
                   f" interface {chosen.get('interface_number')} capabilities: {shown}")
             print(f"[evision] {self.count} lamps")
 
-        self._lamps = [Lamp(index=i, label=f"led{i}", group="unmapped")
+        self._lamps = [Lamp(index=i, label=str(i), group="unmapped")
                        for i in range(self.count)]
         self._start_keepalive()
 

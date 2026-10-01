@@ -4,7 +4,7 @@
     rgi daemon --backend evision    just that one
 
 A lane is a logical slot (0, 1, 2 …). Each connected device maps those slots onto
-its own lamps, so one session can appear as `1` on one keyboard and `led7` on
+its own lamps, so one session can appear as `1` on one keyboard and `7` on
 another - and a device that cannot do per-key colour shows the most urgent state
 across all lanes as one colour instead of lying about it.
 

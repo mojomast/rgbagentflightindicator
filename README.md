@@ -45,12 +45,12 @@ no `--backend` needed:
 
 ```
 [rgi] sinowealth: 126 lamps; lanes on `, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, -, =
-[rgi] evision: 126 lamps; lanes on led0, led1, led2, led3, …
+[rgi] evision: 126 lamps; lanes on 0, 1, 2, 3, …
 [rgi] listening on http://127.0.0.1:8730
 ```
 
 A session is one *lane*, and each device maps lanes onto its own lamps — so the
-same session can be key `1` on one board and `led7` on another.
+same session can be key `1` on one board and `7` on another.
 
 If a device can only show **one colour at a time** (a keyboard whose firmware only
 exposes VIA's effect controls, or a laptop backlight), the panel does not pretend
@@ -137,8 +137,8 @@ rgi status --follow   # reprint on every change
 rbgafi 0.3.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
-  lane  0  done      Greeting                           [workstation]  evision=led0  ses_agent0003
-  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=led2  ses_agent0001
+  lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
+  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=2  ses_agent0001
 ```
 
 ## The HTTP API

@@ -109,7 +109,7 @@ state mark. The editor shows all of this when a lane is uncollapsed (`alt+l`, or
 {
   "devices": [
     {"label": "evision", "backend": "evision", "lamps": 126, "per_lamp": true,
-     "lanes": ["led0", "led1", "led2"]},
+     "lanes": ["0", "1", "2"]},
     {"label": "sinowealth", "backend": "sinowealth", "lamps": 126, "per_lamp": true,
      "lanes": ["`", "1", "2"]}
   ],
@@ -118,7 +118,7 @@ state mark. The editor shows all of this when a lane is uncollapsed (`alt+l`, or
   "lanes": 12,
   "free": [2, 4, 5],
   "sessions": {
-    "job-123": {"slot": 1, "key": "led1", "agent": "hermes", "label": "nightly sync",
+    "job-123": {"slot": 1, "key": "1", "agent": "hermes", "label": "nightly sync",
                 "host": "kimi", "state": "working", "age": 12.3}
   }
 }
@@ -141,10 +141,10 @@ is carrying, so you can compare layouts across devices.
   "device": "evision",
   "free": [2],
   "slots": [
-    {"slot": 0, "key": "led0", "group": "unmapped", "lane": 0, "free": false,
+    {"slot": 0, "key": "0", "group": "unmapped", "lane": 0, "free": false,
      "sessionID": "job-123", "agent": "hermes", "label": "nightly sync",
      "host": "kimi", "state": "working", "age": 12.3},
-    {"slot": 1, "key": "led1", "group": "unmapped", "lane": 1, "free": true}
+    {"slot": 1, "key": "1", "group": "unmapped", "lane": 1, "free": true}
   ]
 }
 ```
