@@ -100,6 +100,10 @@ function copyToClipboard(text: string): { ok: boolean; why?: string } {
 // /lanes toggles them; RGI_EXPAND=1 starts expanded.
 const START_EXPANDED = process.env.RGI_EXPAND === "1"
 
+// How wide the block aims to stay when a full task wraps: continuation lines use
+// this as their budget, and the name's line gets what is left of it.
+const TASK_WRAP = 44
+
 function compact(value: unknown): string {
   const n = typeof value === "number" ? value : Number(value)
   if (!isFinite(n) || n === 0) return "-"
@@ -202,6 +206,27 @@ type Lane = {
 function trim(text: string, max: number): string {
   const clean = text.replace(/\s+/g, " ").trim()
   return clean.length > max ? clean.slice(0, max - 1) + "\u2026" : clean
+}
+
+// Wrap a task across lines without cutting words. The first line has a smaller
+// budget because the lamp, the name and the mark sit on it; the rest get `rest`.
+// A single word longer than the budget is left whole rather than split.
+function wrapTask(text: string, first: number, rest: number): string[] {
+  const lines: string[] = []
+  let line = ""
+  let budget = first
+  for (const word of text.split(" ").filter(Boolean)) {
+    const candidate = line ? `${line} ${word}` : word
+    if (line && candidate.length > budget) {
+      lines.push(line)
+      line = word
+      budget = rest
+    } else {
+      line = candidate
+    }
+  }
+  if (line) lines.push(line)
+  return lines
 }
 
 export default {
@@ -384,6 +409,32 @@ export default {
       }
     }
 
+    // The lamps say in flight / complete / needs a human in green, white and red.
+    // The block is only text, so it says the same three things in the same
+    // colours: before this, the digit was the only coloured thing on a lane.
+    const dimFg = (): string => {
+      try {
+        const t = context.theme?.text
+        return t?.muted ?? t?.subtle ?? t?.dim ?? "#8b949e"
+      } catch {
+        return "#8b949e"
+      }
+    }
+
+    const stateFg = (state?: string): string => {
+      switch (state) {
+        case "working":
+          return "#3fb950"                   // in flight
+        case "blocked":
+        case "error":
+          return "#f85149"                   // needs a human
+        case "done":
+          return themeFg()                   // complete, like the white lamp
+        default:
+          return dimFg()                     // idle: nothing claimed
+      }
+    }
+
     // One clickable row. OpenTUI delivers mouse events to the topmost cell and
     // bubbles them, so a box containing the text is the clickable unit; the text
     // itself is made non-selectable or it swallows the click as a selection.
@@ -427,7 +478,8 @@ export default {
       return jsxFn("box", props)
     }
 
-    const textRow = (get: () => string, onClick?: () => void) => row(() => [get()], onClick)
+    const textRow = (get: () => string, onClick?: () => void, fg?: string) =>
+      row(() => [{ text: get(), fg: fg ?? themeFg() }], onClick)
 
     const sidebar = (sessionID?: string) => {
       if (!jsxFn) return null
@@ -449,23 +501,42 @@ export default {
           const here = !!sessionID && l.id === sessionID
           const mark = MARKS[l.state ?? "idle"] ?? "?"
           const lamp = String(l.key ?? "?").replace(/^led(?=\d)/, "")
-          // Collapsed: just who is flying - the name the human told the agent to
-          // use. Expanded: what it is doing, on the same line, and the harness
-          // gets its own line in the detail because it is not the name.
-          const who = l.ident || l.agent || "?"
-          const task = isOpen(l) ? trim(sessionTitle(l.id) ?? l.label ?? "", 40) : ""
-          const rest = `${here ? "\u25B8" : " "}| ${who}(${mark})${task ? " " + task : ""}`
-          rows.push(
-            row(() => [{ text: lamp, fg: digitFg() }, rest], () => toggleLane(l.id)),
-          )
-          if (isOpen(l)) {
+          const open = isOpen(l)
+          // The name is the ident the human told the agent to use; the harness is
+          // a different thing and gets its own line in the detail.
+          const who = trim(l.ident || l.agent || "?", 14)
+          const task = (sessionTitle(l.id) ?? l.label ?? "").replace(/\s+/g, " ").trim()
+          const lead = `${here ? "\u25B8" : " "}| `
+          const name = `${who}(${mark})`
+          const toggle = () => toggleLane(l.id)
+          const headed = (tail: string) => () => [
+            { text: lamp, fg: digitFg() },
+            { text: lead, fg: dimFg() },
+            { text: name, fg: stateFg(l.state) },
+            { text: tail ? ` ${tail}` : "", fg: themeFg() },
+          ]
+          if (!open) {
+            // collapsed: the name, and the task abbreviated onto the same line
+            const short = task.length > 24 ? task.slice(0, 23) + "\u2026" : task
+            rows.push(row(headed(short), toggle))
+          } else {
+            // expanded: the whole task, starting on the name's line and wrapping
+            // beneath it, then the detail lines
+            const firstBudget = Math.max(16, TASK_WRAP - lamp.length - lead.length - name.length - 1)
+            const wrapped = task ? wrapTask(task, firstBudget, TASK_WRAP - 4) : []
+            rows.push(row(headed(wrapped[0] ?? ""), toggle))
+            for (const extra of wrapped.slice(1)) {
+              rows.push(textRow(() => `    ${extra}`, toggle))
+            }
             for (const detail of detailLines(l, "    ")) {
-              rows.push(textRow(() => detail))
+              const waiting = detail.trimStart().startsWith("WAITING ON")
+              rows.push(textRow(() => detail, undefined, waiting ? "#f85149" : dimFg()))
             }
           }
         }
         rows.push(textRow(() => (allOpen() ? "    (click the title to collapse all, a lane to collapse one)"
-                                           : "    (click a lane for detail, the title for all)")))
+                                           : "    (click a lane for detail, the title for all)"),
+                          undefined, dimFg()))
         // the handover button, at the bottom where it is least in the way
         rows.push(
           row(

@@ -97,8 +97,8 @@ sidebar should show a block like:
 
 ```
 ⌨ rbgafi v0.4
-▸0| hermes(▶)
- 2| opencode(✔)
+▸0| hermes(▶) Fetch and follow the panel…
+ 2| opencode(✔) Keyboard status: LED upd…
 ```
 
 If the log says `could not install OpenTUI runtime support` or

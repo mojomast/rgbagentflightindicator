@@ -88,25 +88,28 @@ plugin is not a 20-line file.
 
 ## Uncollapsing a lane
 
-A collapsed lane is one line: the lamp, the name the agent was told to use, and
-the state mark. The name is the agent's `ident` — what the human told it to call
-itself — never the harness it runs in:
+A collapsed lane is one line: the lamp, the name the agent was told to use, the
+state mark and an abbreviated task. The name is the agent's `ident` — what the
+human told it to call itself — never the harness it runs in. The name and the
+mark carry the lamps' colours: green in flight, white complete, red for needs a
+human, dim for idle.
 
 ```
 ⌨ rbgafi v0.4
-▸0| opencode(▶)
- 7| hermes-3(!)
- 3| opencode(✔)
+▸0| opencode(▶) Keyboard status: LED daemon…
+ 7| hermes-3(!) Verify the nightly artifacts
+ 3| opencode(✔) OpenCode2 updates and n…
     (click a lane for detail, the title for all)
 ⧉ copy install/update prompt + token
 ```
 
-Uncollapsing puts the task on the same line as the name and adds the detail
-lines, where the harness and the machine appear on their own line because neither
-is the agent's name:
+Uncollapsing shows the whole task, wrapped across as many lines as it needs
+without cutting words, then the detail lines, where the harness and the machine
+appear on their own line because neither is the agent's name:
 
 ```
-▸7| hermes-3(!) nightly sync
+▸7| hermes-3(!) Verify the nightly artifacts, rebuild
+    the index and republish
     harness hermes · host kimi
     repo vam @ main
     idle 12m

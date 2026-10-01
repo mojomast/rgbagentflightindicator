@@ -130,16 +130,17 @@ Success looks like this in the sidebar:
 
 ```
 ⌨ rbgafi v0.4
-▸1| hermes(▶)
- 2| opencode(✔)
+▸1| hermes(▶) Verify the nightly artifacts
+ 2| opencode(✔) Keyboard status: LED upd…
     (click a lane for detail, the title for all)
 ⧉ copy install/update prompt + token
 ```
 
 A collapsed lane is the lamp, the agent's own `ident` (what the human told it to
-call itself) and the state mark. Clicking it puts the task on the same line and
-adds the detail lines, where the harness it runs in and the machine appear on
-their own line.
+call itself), the state mark and an abbreviated task, coloured like the lamps:
+green in flight, white complete, red needs a human. Clicking a lane shows the
+whole task wrapped across lines, then the detail lines, where the harness it runs
+in and the machine appear on their own line.
 
 And this in `~/.config/rgi/plugin.log`:
 
