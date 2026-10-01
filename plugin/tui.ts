@@ -27,6 +27,7 @@ import { createSignal } from "solid-js"
 import { appendFileSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
+import { spawnSync } from "node:child_process"
 
 const HOME = homedir()
 const CONFIG = join(HOME, ".config", "rgi")
@@ -37,6 +38,45 @@ const LOG = join(CONFIG, "plugin.log")
 // What the sidebar block calls itself. Keep in step with VERSION_LABEL in
 // rgi/__init__.py and the version in pyproject.toml.
 const VERSION_LABEL = "rbgafi v0.4"
+
+// A paste-ready handover: whichever prompt fits the machine, with the token, so
+// the human does not have to assemble it under pressure.
+function handoverText(): string {
+  return [
+    "Register with the rbgafi status panel.",
+    "",
+    "If this machine has no plugin yet:",
+    `  Fetch and follow ${PANEL}/files/PLUGIN_SETUP_PROMPT.md`,
+    "If it already has one:",
+    `  Fetch and follow ${PANEL}/files/PLUGIN_UPDATE_PROMPT.md`,
+    "",
+    `In both cases send the header: X-LED-Token: ${TOKEN || "<token missing>"}`,
+    "",
+    "Do not edit the panel's files locally; take changes from the panel.",
+  ].join("\n")
+}
+
+// The TUI has no clipboard API exposed to plugins, so use the platform's tool.
+function copyToClipboard(text: string): { ok: boolean; why?: string } {
+  const attempts: Array<[string, string[]]> =
+    process.platform === "win32"
+      ? [["clip", []]]
+      : process.platform === "darwin"
+        ? [["pbcopy", []]]
+        : [["wl-copy", []], ["xclip", ["-selection", "clipboard"]], ["xsel", ["-ib"]]]
+  for (const [command, args] of attempts) {
+    try {
+      const result = spawnSync(command, args, { input: text })
+      if (!result.error && (result.status === 0 || result.status === null)) {
+        return { ok: true }
+      }
+      if (result.error) continue
+    } catch {
+      /* try the next one */
+    }
+  }
+  return { ok: false, why: `no clipboard tool of ${attempts.map((a) => a[0]).join(", ")}` }
+}
 
 // Details are hidden by default so the block stays one line per lane. Alt+L or
 // /lanes toggles them; RGI_EXPAND=1 starts expanded.
@@ -157,6 +197,7 @@ export default {
     // Detail is per lane and toggled by clicking it; alt+l (or /lanes) does all.
     const [openLanes, setOpenLanes] = createSignal<string[]>([])
     const [allOpen, setAllOpen] = createSignal(START_EXPANDED)
+    const [copied, setCopied] = createSignal<"idle" | "ok" | "failed">("idle")
 
     const isOpen = (lane: Lane) => allOpen() || openLanes().includes(lane.id)
     const repaint = () => {
@@ -358,6 +399,28 @@ export default {
           row(
             () => [online() ? `\u2328 ${VERSION_LABEL}` : `\u2328 ${VERSION_LABEL} \u00b7 offline`],
             () => toggleDetails(),
+          ),
+        )
+        // the handover button: one click, the prompt and the token on the clipboard
+        rows.push(
+          row(
+            () => {
+              const state = copied()
+              if (state === "ok") return ["\u2713 copied \u2014 paste it to the agent"]
+              if (state === "failed") return ["\u2716 could not use the clipboard (see plugin.log)"]
+              return ["\u29c9 copy install/update prompt + token"]
+            },
+            () => {
+              const result = copyToClipboard(handoverText())
+              log(result.ok ? "handover copied to the clipboard"
+                            : `clipboard copy failed: ${result.why}`)
+              setCopied(result.ok ? "ok" : "failed")
+              repaint()
+              setTimeout(() => {
+                setCopied("idle")
+                repaint()
+              }, 4000)
+            },
           ),
         )
         const all = lanes()
