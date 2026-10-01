@@ -32,18 +32,29 @@ rgi status 2>&1 | head -5        # does the client work, and can it see the pane
   (a second `rgi watch` now refuses to start, and says who holds it)
 - a directory called `keyboard-status`: the old plugin, retire it in step 3
 
-### 2. Update the client, if you use it
+### 2. Update the watcher, and the client if you have one
 
-The package is not on PyPI yet, so there is no `pip install` that works from
-outside the panel's own network. If you have a checkout, pull it:
+**The watcher is one file and needs nothing but Python 3.** The panel publishes
+the current one, so any machine can run it without installing anything:
+
+```sh
+curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/rgi-watch.py" -o /tmp/rgi-watch.py
+python3 /tmp/rgi-watch.py          # step 5 says how to keep it running
+```
+
+Running the current watcher is what puts tokens, context, subagents and running
+shells into your lanes; older watchers only send the lane state.
+
+The `rgi` client is separate and still not on PyPI, so there is no `pip install`
+that works from outside the panel's own network. If you have a checkout, pull it:
 
 ```sh
 git -C <your checkout> pull
 ```
 
-If you do not have one, skip this step: the client is optional. The plugin
-(step 3) and the `curl` examples below cover reporting and reading; `rgi ...`
-commands exist only on machines where the client is installed.
+If you do not have one, that is fine: the plugin (step 3) and the `curl` examples
+below cover reporting and reading, and `rgi ...` commands exist only on machines
+where the client is installed.
 
 ### 3. Install the current plugin
 
@@ -96,14 +107,20 @@ acquire a new environment variable, and the plugin (and the `rgi` client) read
 this file after `RGI_URL` and before localhost. New terminals carry `RGI_URL`;
 the file covers everything already running.
 
-### 5. Restart the watcher, if you run one
+### 5. Run the current watcher
 
-Restart it the same way it was started before, with the panel URL it used. Check
+Use the file from step 2:
+
+```sh
+python3 /tmp/rgi-watch.py           # or: --url "$BASE" --stale 7200
+```
+
+Restart it the way the old one ran (systemd unit, tmux, scheduled task). Check
 for a `--hold` flag: that came from an early build that freed each lamp 45 seconds
-after every turn. Remove it, or use `--stale 7200`. The watcher now finds the
-token itself (`--token`, then `RGI_TOKEN`, then `~/.config/rgi/token`), so a
-token-protected panel no longer needs it passed by hand - and if the panel refuses
-a lane it says so in `~/.config/rgi/watcher.log` instead of failing silently.
+after every turn. Remove it, or use `--stale 7200`. The watcher finds the panel
+address and token by itself (`RGI_URL` then `~/.config/rgi/url`; `RGI_TOKEN` then
+`~/.config/rgi/token`), and if the panel refuses a lane it says so in
+`~/.config/rgi/watcher.log` instead of failing silently.
 
 The plugin usually reloads when its files change; restart OpenCode if not.
 
@@ -114,15 +131,15 @@ Success looks like this in the sidebar:
 ```
 ⌨ rbgafi v0.4
 ▸1| hermes(▶)
-    nightly sync
  2| opencode(✔)
-    some other session
     (click a lane for detail, the title for all)
 ⧉ copy install/update prompt + token
 ```
 
-The name on a lane is the agent's own `ident`; the machine it runs on appears in
-the detail lines, not on the collapsed one.
+A collapsed lane is the lamp, the agent's own `ident` (what the human told it to
+call itself) and the state mark. Clicking it puts the task on the same line and
+adds the detail lines, where the harness it runs in and the machine appear on
+their own line.
 
 And this in `~/.config/rgi/plugin.log`:
 

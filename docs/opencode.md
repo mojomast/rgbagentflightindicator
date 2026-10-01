@@ -88,22 +88,29 @@ plugin is not a 20-line file.
 
 ## Uncollapsing a lane
 
-The block is **two lines per lane**: the name line, then the task. The name line
-reads `number|who(mark)`, with the number in its own colour so it is easy to pick
-out, and `who` is what the agent calls itself — its `ident` if it set one,
-otherwise the agent kind it claimed with. The machine is part of the detail lines,
-not the name:
+A collapsed lane is one line: the lamp, the name the agent was told to use, and
+the state mark. The name is the agent's `ident` — what the human told it to call
+itself — never the harness it runs in:
 
 ```
 ⌨ rbgafi v0.4
 ▸0| opencode(▶)
-    Keyboard status: LED daemon + opencode plugin
  7| hermes-3(!)
-    nightly sync
  3| opencode(✔)
-    OpenCode2 updates and new features
     (click a lane for detail, the title for all)
 ⧉ copy install/update prompt + token
+```
+
+Uncollapsing puts the task on the same line as the name and adds the detail
+lines, where the harness and the machine appear on their own line because neither
+is the agent's name:
+
+```
+▸7| hermes-3(!) nightly sync
+    harness hermes · host kimi
+    repo vam @ main
+    idle 12m
+    tokens 2.6M in / 1.0M out · $4.55
 ```
 
 Rows are **clickable**: clicking a lane uncollapses just that lane; clicking the

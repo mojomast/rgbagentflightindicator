@@ -98,14 +98,27 @@ sidebar should show a block like:
 ```
 ⌨ rbgafi v0.4
 ▸0| hermes(▶)
-    nightly sync
  2| opencode(✔)
-    some other session
 ```
 
 If the log says `could not install OpenTUI runtime support` or
 `jsx() failed: No renderer found`, report those exact lines - the plugin will
 have fallen back to rendering nothing rather than breaking the TUI.
+
+### 6. Run the watcher
+
+Lanes exist only while something claims them. The panel publishes the watcher as
+one runnable file — no installation, Python 3 and nothing else:
+
+```sh
+curl -sS -H "X-LED-Token: <token>" "<panel-host>/files/rgi-watch.py" -o /tmp/rgi-watch.py
+python3 /tmp/rgi-watch.py
+```
+
+Keep it running the way this machine keeps services. The current watcher is what
+reports tokens, context, subagents and running shells; older ones only send the
+lane state. It finds the panel address (`RGI_URL`, then `~/.config/rgi/url`) and
+the token (`RGI_TOKEN`, then `~/.config/rgi/token`) by itself.
 
 ### Rules
 

@@ -299,12 +299,14 @@ export default {
       const lines: string[] = []
       const info = l.info ?? {}
 
-      const who = [
-        l.ident ? `id ${trim(l.ident, 18)}` : "",
+      // The harness is the tool the lane runs in, and it is not the agent's name:
+      // the name is on the lane's own line, so this gets a line of its own, shared
+      // only with the machine it runs on.
+      const harness = [
+        l.agent ? `harness ${trim(l.agent, 12)}` : "",
         l.host ? `host ${trim(l.host, HOST_W)}` : "",
-        l.agent ? `agent ${trim(l.agent, 10)}` : "",
       ].filter(Boolean)
-      if (who.length) lines.push(`${prefix}${who.join(" · ")}`)
+      if (harness.length) lines.push(`${prefix}${harness.join(" · ")}`)
 
       const where = [info.repo, info.branch].filter(Boolean).join(" @ ")
       if (where) lines.push(`${prefix}repo ${trim(where, 30)}`)
@@ -447,20 +449,15 @@ export default {
           const here = !!sessionID && l.id === sessionID
           const mark = MARKS[l.state ?? "idle"] ?? "?"
           const lamp = String(l.key ?? "?").replace(/^led(?=\d)/, "")
-          // The name is what the agent calls itself - its ident - and never the
-          // machine: the host belongs to the detail lines, where it cannot push
-          // the name out of view. The agent kind is only a fallback.
+          // Collapsed: just who is flying - the name the human told the agent to
+          // use. Expanded: what it is doing, on the same line, and the harness
+          // gets its own line in the detail because it is not the name.
           const who = l.ident || l.agent || "?"
+          const task = isOpen(l) ? trim(sessionTitle(l.id) ?? l.label ?? "", 40) : ""
+          const rest = `${here ? "\u25B8" : " "}| ${who}(${mark})${task ? " " + task : ""}`
           rows.push(
-            row(
-              () => [{ text: lamp, fg: digitFg() }, `${here ? "\u25B8" : " "}| ${who}(${mark})`],
-              () => toggleLane(l.id),
-            ),
+            row(() => [{ text: lamp, fg: digitFg() }, rest], () => toggleLane(l.id)),
           )
-          // The task gets its own line: sharing one with the name, a long task
-          // pushed the name out of view and the lane stopped being identifiable.
-          const task = trim(sessionTitle(l.id) ?? l.label ?? "", 34)
-          if (task) rows.push(textRow(() => `    ${task}`, () => toggleLane(l.id)))
           if (isOpen(l)) {
             for (const detail of detailLines(l, "    ")) {
               rows.push(textRow(() => detail))

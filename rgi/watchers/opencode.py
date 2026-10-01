@@ -1,6 +1,7 @@
 """Watch OpenCode sessions and report them as lanes.
 
     rgi watch --url http://127.0.0.1:8730 --token <token>
+    python rgi-watch.py --url http://panel:8730      # standalone, as published
 
 OpenCode's HTTP API is reached through its own CLI (``opencode api get ...``),
 which handles authentication, so no credentials are read or stored here.
@@ -21,6 +22,7 @@ Everything it decides is appended to ``~/.config/rgi/watcher.log``.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shutil
@@ -36,8 +38,11 @@ DONE_GRACE = 3.0         # a stop this short is not a finished turn
 STALE_DEFAULT = 2 * 3600
 HEARTBEAT = 10.0          # seconds between reports for a lane that is busy
 
-LOG_PATH = os.path.join(os.path.expanduser("~"), ".config", "rgi", "watcher.log")
-LOCK_PATH = os.path.join(os.path.expanduser("~"), ".config", "rgi", "watcher.lock")
+STATE_DIR = os.path.join(os.path.expanduser("~"), ".config", "rgi")
+LOG_PATH = os.path.join(STATE_DIR, "watcher.log")
+LOCK_PATH = os.path.join(STATE_DIR, "watcher.lock")
+URL_PATH = os.path.join(STATE_DIR, "url")
+TOKEN_PATH = os.path.join(STATE_DIR, "token")
 
 
 def _pid_alive(pid: int) -> bool:
@@ -622,3 +627,63 @@ class Watcher:
                 self.free(sid, f"idle > {self.stale / 60:.0f} min")
 
             time.sleep(ACTIVE_POLL)
+
+
+def _env_url() -> str:
+    """The panel address, the same way the plugin and the client resolve it."""
+    env = os.environ.get("RGI_URL") or os.environ.get("LEDD_URL")
+    if env:
+        return env.rstrip("/")
+    try:
+        with open(URL_PATH, encoding="utf-8") as fh:
+            value = fh.read().strip()
+        if value:
+            return value.rstrip("/")
+    except OSError:
+        pass
+    return DEFAULT_URL
+
+
+def _env_token() -> str | None:
+    env = os.environ.get("RGI_TOKEN") or os.environ.get("LEDD_TOKEN")
+    if env:
+        return env
+    try:
+        with open(TOKEN_PATH, encoding="utf-8") as fh:
+            value = fh.read().strip()
+        return value or None
+    except OSError:
+        return None
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the watcher with no package around it.
+
+    The panel publishes this file at /files/rgi-watch.py, so a machine can report
+    its sessions with nothing but Python 3: no install, no checkout, no
+    dependencies. That matters because the tokens, context, subagents and running
+    shells a lane can show all come from here, and an old watcher only sends the
+    lane state.
+    """
+    ap = argparse.ArgumentParser(description="report OpenCode sessions to the panel")
+    ap.add_argument("--url", default=None,
+                    help="panel address (default: RGI_URL, then ~/.config/rgi/url, "
+                         "then " + DEFAULT_URL + ")")
+    ap.add_argument("--token", default=None,
+                    help="shared secret (default: RGI_TOKEN, then ~/.config/rgi/token)")
+    ap.add_argument("--include-subagents", action="store_true")
+    ap.add_argument("--stale", type=float, default=STALE_DEFAULT,
+                    help="seconds of inactivity before a lamp is reused")
+    args = ap.parse_args(argv)
+    watcher = Watcher(
+        url=args.url or _env_url(),
+        token=args.token or _env_token(),
+        include_subagents=args.include_subagents,
+        stale=args.stale,
+    )
+    watcher.run()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

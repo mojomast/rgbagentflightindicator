@@ -23,6 +23,9 @@ PUBLISHED: dict[str, str] = {
     "HERMES_PROMPT.md": os.path.join(ROOT, "prompts", "HERMES_PROMPT.md"),
     "PLUGIN_SETUP_PROMPT.md": os.path.join(ROOT, "prompts", "PLUGIN_SETUP_PROMPT.md"),
     "PLUGIN_UPDATE_PROMPT.md": os.path.join(ROOT, "prompts", "PLUGIN_UPDATE_PROMPT.md"),
+    # the watcher: one file, standard library only, runnable on a machine that has
+    # installed nothing - which is how a remote machine reports tokens and context
+    "rgi-watch.py": os.path.join(ROOT, "rgi", "watchers", "opencode.py"),
 }
 
 
