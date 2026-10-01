@@ -61,6 +61,47 @@ DONE_BLINKS = 10         # white blinks when a session lands, then hold
 BLOCK_BLINKS = 0         # 0 = blink until the agent says otherwise
 
 DEFAULT_TOKEN_FILE = os.path.join(os.path.expanduser("~"), ".config", "rgi", "token")
+DEFAULT_LANE_MAP = os.path.join(os.path.expanduser("~"), ".config", "rgi", "lanes.json")
+
+
+def load_lane_map(path: str | None = None) -> dict[str, int]:
+    """Agent identity -> lane, so an agent always lands on the same key.
+
+    Keys are matched against the agent's `ident` first and its `agent` name
+    second, so `{"hermes-3": 5}` and `{"opencode": 1}` both work. A policy is
+    advice, not a fence: if the lane is taken the session gets a free one rather
+    than being refused.
+    """
+    candidates = [path] if path else [DEFAULT_LANE_MAP]
+    for candidate in candidates:
+        try:
+            with open(candidate, encoding="utf-8") as fh:
+                data = json.load(fh)
+        except OSError:
+            continue
+        except ValueError as exc:
+            print(f"[rgi] {candidate}: not valid JSON ({exc}); ignoring the lane map")
+            return {}
+        if not isinstance(data, dict):
+            print(f"[rgi] {candidate}: expected an object of name -> lane; ignoring it")
+            return {}
+        policy: dict[str, int] = {}
+        for key, value in data.items():
+            try:
+                policy[str(key)] = int(value)
+            except (TypeError, ValueError):
+                print(f"[rgi] {candidate}: lane for {key!r} is not a number; ignored")
+        return policy
+    return {}
+
+
+def lane_for(policy: dict[str, int], agent: str, ident: str | None) -> int | None:
+    """The configured lane for an agent, if any."""
+    if ident and ident in policy:
+        return policy[ident]
+    if agent in policy:
+        return policy[agent]
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -107,7 +148,14 @@ class Lanes:
             return [s for s in range(self.count) if s not in used]
 
     def claim(self, sid: str, agent: str, label: str | None, host: str | None,
-              want: int | None = None, ident: str | None = None) -> int | None:
+              want: int | None = None, ident: str | None = None,
+              prefer: int | None = None) -> int | None:
+        """Give a session a lane.
+
+        `want` is an explicit request and is refused if unavailable; `prefer` is
+        a configured default for this agent and quietly falls back to any free
+        lane, because a policy should never be the reason work cannot start.
+        """
         with self.lock:
             if sid in self.slot:
                 return self.slot[sid]
@@ -116,6 +164,8 @@ class Lanes:
                 if want not in free:
                     return None
                 slot = want
+            elif prefer is not None and prefer in free:
+                slot = prefer
             else:
                 if not free:
                     return None
@@ -285,12 +335,14 @@ class Device:
 
 class Daemon:
     def __init__(self, devices: list[Device], lanes: Lanes,
-                 quiet: bool = True, quiet_ms: int = 900, verbose: bool = False):
+                 quiet: bool = True, quiet_ms: int = 900, verbose: bool = False,
+                 lane_map: dict[str, int] | None = None):
         self.devices = devices
         self.lanes = lanes
         self.quiet = quiet
         self.quiet_ms = quiet_ms
         self.verbose = verbose
+        self.lane_map = dict(lane_map or {})
 
     def snapshot(self) -> dict:
         """Slot -> state, plus the blink timestamps, taken under the lane lock."""
@@ -410,6 +462,7 @@ class Handler(BaseHTTPRequestHandler):
                     "backend": self._primary().backend.name,
                     "lamps": len(self._primary().backend.lamps()),
                     "lanes": lanes.count,
+                    "lane_map": self.daemon.lane_map,
                     "free": lanes.free(),
                     "sessions": {sid: self._lane(sid, slot)
                                  for sid, slot in lanes.slot.items()},
@@ -487,15 +540,19 @@ class Handler(BaseHTTPRequestHandler):
                     return
             host = data.get("host") or self.client_address[0]
             ident = data.get("ident") or data.get("identifier")
+            prefer = None
+            if want is None:
+                prefer = lane_for(getattr(self.daemon, "lane_map", {}),
+                                  data.get("agent", "agent"), ident)
             slot = lanes.claim(sid, data.get("agent", "agent"), data.get("label"),
-                               host, want, ident)
+                               host, want, ident, prefer)
             if slot is None and want is None:
                 # Everything is taken and nothing specific was asked for: retire
                 # the least recently used lane. An explicit slot request is never
                 # resolved by evicting someone else - that gets an honest 409.
                 if lanes.evict_lru() is not None:
                     slot = lanes.claim(sid, data.get("agent", "agent"),
-                                       data.get("label"), host, want, ident)
+                                       data.get("label"), host, want, ident, prefer)
             if slot is None:
                 free = lanes.free()
                 reason = (f"slot {want} is not available" if want is not None
@@ -652,8 +709,9 @@ def run(args: argparse.Namespace) -> int:
         return 1
 
     lanes = Lanes(count=args.count)
+    lane_map = load_lane_map(getattr(args, "lane_map", None))
     daemon = Daemon(devices, lanes, quiet=not args.no_quiet,
-                    quiet_ms=args.quiet_ms, verbose=args.verbose)
+                    quiet_ms=args.quiet_ms, verbose=args.verbose, lane_map=lane_map)
 
     token = resolve_token(args.token)
     server = make_server(args.host, args.port, daemon, token or "")

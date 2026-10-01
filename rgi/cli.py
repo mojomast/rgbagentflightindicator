@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 import urllib.request
@@ -200,6 +201,40 @@ def _render_status(data: dict, url: str) -> str:
     return "\n".join(out)
 
 
+def cmd_lane_map(args: argparse.Namespace) -> int:
+    """Which agent gets which lane: read it, or change it."""
+    from .daemon import DEFAULT_LANE_MAP, load_lane_map
+
+    path = args.file or DEFAULT_LANE_MAP
+    policy = load_lane_map(path)
+    changed = False
+
+    for pair in args.set or []:
+        name, _, lane = pair.partition("=")
+        if not name or not lane.strip().lstrip("-").isdigit():
+            print(f"  expected name=lane, got {pair!r}")
+            return 1
+        policy[name] = int(lane)
+        changed = True
+    for name in args.unset or []:
+        if policy.pop(name, None) is not None:
+            changed = True
+
+    if changed:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(policy, fh, indent=2, sort_keys=True)
+        print(f"  wrote {path}")
+
+    if policy:
+        print(f"  lane map ({path}):")
+        for name in sorted(policy, key=lambda k: policy[k]):
+            print(f"    lane {policy[name]:>3}  {name}")
+    else:
+        print(f"  no lane map at {path} - every agent takes the first free lane")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     """Show every lane and every device - the observable side of the panel."""
     from .daemon import resolve_token
@@ -289,6 +324,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--token", default=None, help="shared secret; also RGI_TOKEN")
     s.add_argument("--count", type=int, default=12, help="how many lanes to offer")
     s.add_argument("--lanes", nargs="*", default=None, help="explicit lamp indices")
+    s.add_argument("--lane-map", default=None,
+                   help="JSON file mapping agent name or ident -> lane "
+                        "(default ~/.config/rgi/lanes.json)")
     s.add_argument("--no-quiet", action="store_true",
                    help="do not freeze the frame while the human types")
     s.add_argument("--quiet-ms", type=int, default=900)
@@ -302,6 +340,13 @@ def build_parser() -> argparse.ArgumentParser:
     st.add_argument("--follow", action="store_true", help="keep watching, print on change")
     st.add_argument("--interval", type=float, default=2.0)
     st.set_defaults(func=cmd_status)
+
+    lm = sub.add_parser("lane-map", help="which agent gets which lane")
+    lm.add_argument("--file", default=None, help="default ~/.config/rgi/lanes.json")
+    lm.add_argument("--set", action="append", metavar="NAME=LANE",
+                    help="e.g. --set hermes-3=5 (repeatable; NAME is an ident or agent)")
+    lm.add_argument("--unset", action="append", metavar="NAME", help="remove a mapping")
+    lm.set_defaults(func=cmd_lane_map)
 
     w = sub.add_parser("watch", help="report OpenCode sessions to the panel")
     w.add_argument("--url", default=DEFAULT_URL)

@@ -173,6 +173,45 @@ Full details, including the states and the error codes, are in
 | `--lanes` | backend default | explicit lamp indices for the *primary* device's lanes |
 | `--device` / `--leds` | `0` / detected | OpenRGB device index, lamp count override |
 | `--no-quiet` | off | do not freeze the frame while you type (see below) |
+| `--lane-map` | `~/.config/rgi/lanes.json` | which agent gets which lane |
+
+### Which agent gets which lane
+
+By default a session takes the first free lane. To make an agent land on the same
+key every time, map it:
+
+```sh
+rgi lane-map --set hermes-3=5 --set opencode=1      # then restart the daemon
+rgi lane-map                                        # show the map
+rgi lane-map --unset hermes-3
+```
+
+Keys are matched against an agent's **`ident`** first and its agent name second,
+so it works whether the agent names itself or not. A mapping is *advice*, not a
+fence: if the lane is taken the session gets a free one rather than being refused,
+and an explicit `"slot"` in `/session/start` still wins (or fails honestly with
+`409` if it is taken).
+
+Agents identify themselves - `"ident"` at claim time, or through
+`POST /session/info` - and that is what the mapping matches on:
+
+```sh
+curl -sS -X POST http://127.0.0.1:8730/session/start \
+  -H "Content-Type: application/json" -H "X-LED-Token: $TOKEN" \
+  -d '{"agent":"hermes","sessionID":"job-1","label":"nightly sync",
+       "host":"kimi","ident":"hermes-3"}'
+```
+
+The panel reports the map in `/status`, so an agent can see the policy it is
+subject to rather than guessing.
+
+### Keeping a fleet in step
+
+The panel publishes the plugin and the prompts at `GET /files`, with hashes, and
+the prompts tell agents to **update from there rather than editing their local
+copies** — a hand-edited plugin diverges from every other machine and is silently
+overwritten by the next update. If you have agents on other machines, that rule is
+in their prompts; see [docs/machines.md](docs/machines.md).
 
 ## Things that bite
 

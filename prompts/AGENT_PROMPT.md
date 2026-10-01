@@ -158,6 +158,16 @@ Invoke-RestMethod -Method Post -Uri "$BASE/session/start" -Headers $h `
 3. **Always release.** A leaked claim is a lamp the human cannot use.
 4. **`blocked` is a promise.** Send it only when you genuinely cannot proceed.
 5. **Transitions only.**
+6. **Never edit the panel's own files on this machine.** The OpenCode plugin, the
+   watcher and the daemon are published by the panel and updated by fetching them:
+   `GET <panel>/files` for the current copies, and `PLUGIN_UPDATE_PROMPT.md` for
+   the procedure. A hand-edited local copy diverges from every other machine and
+   is silently overwritten by the next update. If something needs to change, tell
+   the human rather than patching it locally.
+7. **To change which lane you get**, ask the human. It is their configuration -
+   `rgi lane-map` on the panel's machine maps an `ident` (or agent name) to a
+   lane. You can *request* one with `"slot"` on `/session/start`, but the map is
+   what makes it stick across runs.
 
 ### 4. Detail the human can see when a lane is uncollapsed
 

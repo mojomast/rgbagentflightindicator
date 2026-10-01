@@ -121,6 +121,14 @@ interrupted for everything.
 4. **Release your lane** with `/session/end` when you are done.
 5. **Read `/status` rather than guessing** which lamps exist: devices differ, and
    one lane can be a different key on each keyboard.
+6. **Never edit the panel's files on this machine.** The plugin, the watcher and
+   the daemon come from the panel: fetch the current copies from
+   `GET <panel>/files` and follow `prompts/PLUGIN_UPDATE_PROMPT.md` to update.
+   A hand-edited local copy diverges from every other machine and is overwritten
+   by the next update. Ask the human if something needs to change.
+7. **Your lane can be pinned.** The human maps an agent's `ident` (or agent name)
+   to a lane with `rgi lane-map`; send a stable `ident` at claim time so the
+   mapping has something to match.
 
 ### Publishing detail others can read
 
