@@ -352,7 +352,14 @@ export default {
       if (!jsxFn) return null
       const build = () => {
         const rows: unknown[] = []
-        rows.push(textRow(() => (online() ? `\u2328 ${VERSION_LABEL}` : `\u2328 ${VERSION_LABEL} \u00b7 offline`)))
+        // the header is the "all of them" toggle: the keymap API is not
+        // registering commands in this build, so the mouse is the reliable path
+        rows.push(
+          row(
+            () => (online() ? `\u2328 ${VERSION_LABEL}` : `\u2328 ${VERSION_LABEL} \u00b7 offline`),
+            () => toggleDetails(),
+          ),
+        )
         const all = lanes()
         if (!all.length) {
           rows.push(textRow(() => "  no lanes claimed"))
@@ -375,8 +382,8 @@ export default {
             }
           }
         }
-        rows.push(textRow(() => (allOpen() ? "    (click a lane, alt+l or /lanes to collapse)"
-                                           : "    (click a lane, alt+l or /lanes for detail)")))
+        rows.push(textRow(() => (allOpen() ? "    (click the title to collapse all, a lane to collapse one)"
+                                           : "    (click a lane for detail, the title for all)")))
         return rows
       }
       // built inside the getter so every signal read stays tracked
@@ -473,6 +480,33 @@ export default {
       claimKeymap()
       return null
     })
+
+    // One-shot self-diagnosis of the keymap, because "the shortcut does nothing"
+    // has three different causes and they need different fixes: the layer never
+    // compiled, the command compiled but the key never reaches it, or the command
+    // runs and the panel does not repaint. Ask the host directly.
+    const diagnoseKeymap = () => {
+      try {
+        const commands = context.keymap?.commands?.() ?? []
+        const mine = commands.filter((c: any) => c && c.id === "rgi.details")
+        log(`keymap diag: ${commands.length} command(s) visible, mine=${mine.length}`)
+        const shortcuts = context.keymap?.shortcuts?.("rgi.details") ?? []
+        log(`keymap diag: shortcuts for rgi.details = ${JSON.stringify(shortcuts)}`)
+        const before = allOpen()
+        const dispatched = context.keymap?.dispatch?.("rgi.details")
+        const after = allOpen()
+        log(`keymap diag: dispatch returned ${dispatched === undefined ? "undefined" : typeof dispatched}, state changed: ${before !== after}`)
+        if (before !== after) {
+          context.keymap?.dispatch?.("rgi.details")     // put it back
+          log("keymap diag: state restored")
+        }
+        const palette = commands.filter((c: any) => c && c.palette).map((c: any) => c.id)
+        log(`keymap diag: palette entries = ${JSON.stringify(palette.slice(0, 8))}`)
+      } catch (err: any) {
+        log(`keymap diag failed: ${err?.message ?? err}`)
+      }
+    }
+    setTimeout(diagnoseKeymap, 4000)
 
     return () => {
       clearInterval(timer)
