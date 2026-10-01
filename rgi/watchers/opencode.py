@@ -78,6 +78,7 @@ class Watcher:
         self.updated: dict[str, float] = {}
         self.last_meta = 0.0
         self.warned = False
+        self.last_error = ""
 
     # -- HTTP -------------------------------------------------------------
     def headers(self) -> dict:
@@ -101,8 +102,14 @@ class Watcher:
         try:
             with urllib.request.urlopen(req, timeout=5) as resp:
                 return json.loads(resp.read() or b"{}")
+        except urllib.error.HTTPError as exc:
+            self.last_error = f"HTTP {exc.code}"
+            if exc.code == 401:
+                self.last_error = "HTTP 401 - the panel wants X-LED-Token"
+            return {"error": self.last_error}
         except Exception as exc:
-            return {"error": str(exc)}
+            self.last_error = str(exc)
+            return {"error": self.last_error}
 
     # -- OpenCode ---------------------------------------------------------
     def cli(self, path: str, timeout: float = 25.0):
@@ -257,9 +264,14 @@ class Watcher:
                                        "ignored": True, "stopped_at": None, "done_at": None}
                     continue
                 info = self.bind(sid)
-                self.bound[sid] = info or {"slot": None, "key": None, "state": None,
-                                           "ignored": True, "stopped_at": None, "done_at": None}
-                if info and self.set_state(sid, "working"):
+                if info is None:
+                    # never silent: a refused lane is usually a missing token or a
+                    # full panel, and both are worth knowing about
+                    say(f"[warn] could not claim a lane for {sid[-12:]} "
+                        f"(panel refused it: {self.last_error or 'no free lanes'})")
+                    continue
+                self.bound[sid] = info
+                if self.set_state(sid, "working"):
                     info["state"] = "working"
                     say(f"[bind] {sid[-12:]} -> {info.get('key')}  (in flight)")
 

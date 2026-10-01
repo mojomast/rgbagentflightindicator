@@ -147,8 +147,12 @@ def cmd_daemon(args: argparse.Namespace) -> int:
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
+    from .daemon import resolve_token
     from .watchers.opencode import Watcher
-    watcher = Watcher(url=args.url, token=args.token,
+
+    # the panel requires a token as soon as it is not localhost-only, and the
+    # watcher has to find it the same way the daemon does or every call is a 401
+    watcher = Watcher(url=args.url, token=resolve_token(args.token),
                       include_subagents=args.include_subagents, stale=args.stale)
     try:
         watcher.run()
