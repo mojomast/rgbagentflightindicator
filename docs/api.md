@@ -70,6 +70,33 @@ Releases the lamp. Always idempotent, always `200 {"ok": true}`.
 
 Releases every lamp. For a human cleaning up, not for agents.
 
+## POST /session/info
+
+Detail for a lane: never painted, never a repaint, only what `/status` and the
+editor sidebar show. Send it when it changes.
+
+```json
+{"sessionID": "job-123",
+ "info": {"repo": "rgbagentflightindicator", "branch": "main",
+          "tokens": {"input": 2400000, "output": 940000, "cache_read": 800000000,
+                     "cost": 4.12},
+          "context": {"entries": 473, "compactions": 3, "percent": 42.5, "limit": 128000},
+          "blocked_on": {"action": "bash", "resources": ["rm -rf /tmp"],
+                         "message": "delete the build directory?"},
+          "children": [{"id": "ses_child", "label": "subagent task",
+                        "state": "working", "tokens": 6710}]}}
+```
+
+`200 {"ok": true}`, `404` if the session holds no lane, `400` if there is nothing
+to record. Fields merge recursively one level, so a partial update keeps the rest;
+sending `null` deletes a field. Loose top-level fields work too
+(`{"sessionID": "job-123", "repo": "x"}`) for agents in a hurry.
+
+`children` is how subagents are shown: a child session should not claim its own
+lamp, but listing it here puts it under its parent's lane, indented, with its own
+state mark. The editor shows all of this when a lane is uncollapsed (`alt+l`, or
+`/lanes`).
+
 ## GET /status
 
 ```json

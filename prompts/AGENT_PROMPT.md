@@ -159,4 +159,38 @@ Invoke-RestMethod -Method Post -Uri "$BASE/session/start" -Headers $h `
 4. **`blocked` is a promise.** Send it only when you genuinely cannot proceed.
 5. **Transitions only.**
 
+### 4. Detail the human can see when a lane is uncollapsed
+
+The lane line is deliberately terse. Everything else goes through a second call,
+which never repaints hardware — it only changes what `/status` and the editor
+sidebar show:
+
+```
+POST /session/info
+{"sessionID": "<unique id>", "info": { ... }}
+```
+
+Send it when the detail changes, not on a timer. Known fields, all optional:
+
+| field | example | shown as |
+|---|---|---|
+| `repo` | `"rgbagentflightindicator"` | which project this lane is working on |
+| `branch` | `"main"` | `repo @ branch` |
+| `directory` | `"D:\\vam"` | used when there is no repo |
+| `tokens` | `{"input": 2400000, "output": 940000, "cache_read": 800000000, "cost": 4.12}` | token and spend line |
+| `context` | `{"entries": 473, "compactions": 3, "percent": 42.5, "limit": 128000}` | context pressure |
+| `blocked_on` | `{"action": "bash", "resources": ["rm -rf /tmp"], "message": "…"}` | **WAITING ON …** |
+| `children` | `[{"id": "ses_x", "label": "subagent task", "state": "working", "tokens": 6710}]` | the subagent lines |
+
+Anything else you send is stored and returned by `/status`, so a custom field is
+not lost — it simply has no line of its own. Partial updates merge: sending
+`{"tokens": {"output": 999}}` updates that number and leaves the rest alone.
+
+**Subagents belong here.** A child session should not claim its own lamp — lamps
+are scarce. List it under its parent's `children` instead, with its own `state`,
+and it appears indented when the human uncollapses that lane.
+
+Where the human sees it: **`alt+l`** in OpenCode toggles lane details, and
+`/lanes` does the same from the command palette.
+
 ## PASTE TO HERE

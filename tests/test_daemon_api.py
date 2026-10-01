@@ -215,5 +215,72 @@ class TestRendering(PanelCase):
         self.assertEqual(self.frame()[1], (255, 255, 255))
 
 
+class TestLaneInfo(PanelCase):
+    """The detail behind an uncollapsed lane: repository, tokens, children, blocking."""
+
+    def test_info_lands_and_shows_in_status(self):
+        self.call("/session/start", {"sessionID": "s", "label": "nightly"})
+        status, body = self.call("/session/info", {
+            "sessionID": "s",
+            "info": {"repo": "rgbagentflightindicator", "branch": "main",
+                     "blocked_on": {"action": "bash", "resources": ["rm -rf /tmp"]},
+                     "tokens": {"input": 1234, "output": 56},
+                     "children": [{"id": "ses_kid", "label": "child task",
+                                   "state": "working"}]}})
+        self.assertEqual(status, 200)
+        _, body = self.call("/session/s")
+        self.assertEqual(body["info"]["repo"], "rgbagentflightindicator")
+        self.assertEqual(body["info"]["blocked_on"]["action"], "bash")
+        self.assertEqual(body["info"]["children"][0]["label"], "child task")
+        self.assertEqual(body["info"]["tokens"]["input"], 1234)
+
+    def test_partial_info_merges_instead_of_replacing(self):
+        self.call("/session/start", {"sessionID": "s"})
+        self.call("/session/info", {"sessionID": "s",
+                                    "info": {"repo": "r", "tokens": {"input": 10, "output": 1}}})
+        self.call("/session/info", {"sessionID": "s", "info": {"tokens": {"output": 99}}})
+        _, body = self.call("/session/s")
+        self.assertEqual(body["info"]["repo"], "r")               # kept
+        self.assertEqual(body["info"]["tokens"]["input"], 10)     # kept
+        self.assertEqual(body["info"]["tokens"]["output"], 99)    # updated
+
+    def test_top_level_fields_are_accepted_too(self):
+        self.call("/session/start", {"sessionID": "s"})
+        status, _ = self.call("/session/info", {"sessionID": "s", "repo": "shorthand"})
+        self.assertEqual(status, 200)
+        _, body = self.call("/session/s")
+        self.assertEqual(body["info"]["repo"], "shorthand")
+
+    def test_empty_info_is_refused_and_unknown_lane_is_404(self):
+        self.call("/session/start", {"sessionID": "s"})
+        status, _ = self.call("/session/info", {"sessionID": "s"})
+        self.assertEqual(status, 400)
+        status, _ = self.call("/session/info", {"sessionID": "nobody", "info": {"repo": "x"}})
+        self.assertEqual(status, 404)
+
+    def test_lane_carries_timings_for_flight_and_idle(self):
+        self.call("/session/start", {"sessionID": "s"})
+        self.call("/session/state", {"sessionID": "s", "state": "working"})
+        _, body = self.call("/session/s")
+        self.assertIsInstance(body["in_flight_s"], float)
+        self.assertIsInstance(body["idle_s"], float)
+        self.assertLess(body["in_flight_s"], 5)
+        self.assertLess(body["idle_s"], 5)
+
+    def test_info_never_changes_the_painted_state(self):
+        """Detail is for reading: it must not make the panel repaint."""
+        self.call("/session/start", {"sessionID": "s", "slot": 0})
+        self.call("/session/state", {"sessionID": "s", "state": "working"})
+        before = self.frame()
+        self.call("/session/info", {"sessionID": "s", "info": {"repo": "x", "tokens": {"input": 1}}})
+        self.assertEqual(self.frame(), before)
+
+    def test_releasing_a_lane_drops_its_info(self):
+        self.call("/session/start", {"sessionID": "s"})
+        self.call("/session/info", {"sessionID": "s", "info": {"repo": "x"}})
+        self.call("/session/end", {"sessionID": "s"})
+        self.assertNotIn("s", self.lanes.info)
+
+
 if __name__ == "__main__":
     unittest.main()

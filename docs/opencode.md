@@ -80,6 +80,43 @@ plugin is not a 20-line file.
    and renders `null` rather than a string if that fails, so a missing renderer
    costs you a blank panel instead of a dead plugin.
 
+## Uncollapsing a lane
+
+The block is one line per lane by default. **`alt+l`** (or `/lanes` from the
+command palette) uncollapses it, showing, per lane:
+
+```
+⌨ rbgafi v0.4
+▸  0 ▶ workstation  Keyboard status: LED da…
+     repo vam @ main
+     in flight 19s · idle 19s
+     tokens 2.5M in / 951k out · $4.12
+     context 473 entries · 3 compactions
+     2 subagents:
+       ▶ OpenCode v2 plugin UI API surface 6.7k
+       ✔ QMK host-side RGB control protocol
+    (alt+l or /lanes to collapse)
+```
+
+- **repository and branch** — which project the lane is actually working in,
+  derived from the session's directory.
+- **in flight / idle** — how long the current state has lasted, and how long since
+  the lane last reported anything. The two numbers that answer "is it stuck?".
+- **tokens and spend** — input/output, cache reads, reasoning, and the session's
+  cost.
+- **context** — how many context entries and how many compactions. OpenCode
+  exposes no context *limit*, so a percentage appears only when one is configured:
+  set `RGI_CONTEXT_LIMIT` in tokens (e.g. `128000`) and the line becomes
+  `context 42.5% of 128k`.
+- **WAITING ON …** — for a lane in `blocked`, *what* it wants: the permission
+  action and its resources, or the agent's own `blocked_on` message.
+- **subagents** — the child sessions, indented, each with its own state mark and
+  output tokens. They do not consume lanes of their own.
+
+All of that comes from `POST /session/info`, which agents (and the watcher) send
+separately from state changes: detail never triggers a hardware repaint. Start
+expanded with `RGI_EXPAND=1` if you prefer it that way.
+
 ## Verifying it loaded
 
 ```sh

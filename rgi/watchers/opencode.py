@@ -76,9 +76,16 @@ class Watcher:
         self.parents: dict[str, str | None] = {}
         self.titles: dict[str, str] = {}
         self.updated: dict[str, float] = {}
+        self.records: dict[str, dict] = {}          # sessionID -> record from /api/session
+        self.children: dict[str, list[str]] = {}     # parentID -> child session ids
         self.last_meta = 0.0
         self.warned = False
         self.last_error = ""
+        self._repo_cache: dict[str, dict] = {}
+        self._context_cache: dict[str, tuple[float, dict]] = {}
+        self._info_sent: dict[str, str] = {}
+        self._running: set[str] = set()
+        self._attention_detail: dict[str, dict] = {}
 
     # -- HTTP -------------------------------------------------------------
     def headers(self) -> dict:
@@ -115,7 +122,9 @@ class Watcher:
     def cli(self, path: str, timeout: float = 25.0):
         try:
             proc = subprocess.run([OPENCODE, "api", "get", path],
-                                  capture_output=True, text=True, timeout=timeout)
+                                  capture_output=True, text=True,
+                                  encoding="utf-8", errors="replace",
+                                  timeout=timeout)
         except Exception as exc:
             return None, f"{type(exc).__name__}: {exc}"
         if proc.returncode != 0:
@@ -173,6 +182,8 @@ class Watcher:
     def free(self, sid: str, reason: str) -> None:
         self.post("/session/end", {"sessionID": sid})
         info = self.bound.pop(sid, None)
+        self._info_sent.pop(sid, None)
+        self._context_cache.pop(sid, None)
         if info:
             say(f"[free] {sid[-12:]} -> {info.get('key')}  ({reason})")
 
@@ -182,6 +193,7 @@ class Watcher:
             if not self.warned:
                 say(f"[warn] could not read /api/session: {err}")
             return
+        self.children = {}
         for s in data.get("data", []):
             sid = s.get("id")
             if not sid:
@@ -189,13 +201,169 @@ class Watcher:
             self.parents[sid] = s.get("parentID")
             self.titles[sid] = s.get("title")
             self.updated[sid] = ((s.get("time") or {}).get("updated") or 0) / 1000.0
+            self.records[sid] = s
+            parent = s.get("parentID")
+            if parent:
+                self.children.setdefault(parent, []).append(sid)
+
+    # -- the detail the sidebar shows when a lane is uncollapsed ----------
+    def _repo(self, directory: str | None) -> dict:
+        """Repository name and branch for a session's working directory.
+
+        Cached per directory: this reads two small files, and sessions in the
+        same project share the answer.
+        """
+        if not directory:
+            return {}
+        if directory in self._repo_cache:
+            return self._repo_cache[directory]
+
+        info: dict = {"directory": directory}
+        try:
+            config = open(os.path.join(directory, ".git", "config"),
+                          encoding="utf-8", errors="replace").read()
+            match = None
+            for line in config.splitlines():
+                line = line.strip()
+                if line.startswith("url = "):
+                    match = line[6:].strip()
+                    break
+            if match:
+                name = match.rstrip("/").split("/")[-1]
+                info["repo"] = name[:-4] if name.endswith(".git") else name
+                info["remote"] = match
+        except OSError:
+            pass
+        info.setdefault("repo", os.path.basename(directory.rstrip("\\/")) or directory)
+        try:
+            head = open(os.path.join(directory, ".git", "HEAD"),
+                        encoding="utf-8", errors="replace").read().strip()
+            if head.startswith("ref: refs/heads/"):
+                info["branch"] = head[len("ref: refs/heads/"):]
+        except OSError:
+            pass
+        self._repo_cache[directory] = info
+        return info
+
+    def _context(self, sid: str, now: float) -> dict:
+        """Compaction count, and a percentage if a context limit is configured.
+
+        OpenCode exposes no context limit anywhere in its API, so a percentage
+        needs RGI_CONTEXT_LIMIT (in tokens). Without it we report the pressure
+        signal we do have: how many times this session has been compacted.
+        """
+        cached = self._context_cache.get(sid)
+        if cached and now - cached[0] < 60:
+            return cached[1]
+
+        context: dict = {}
+        data, _ = self.cli(f"/api/session/{sid}/context", timeout=15)
+        if isinstance(data, dict):
+            events = data.get("data") or []
+            if isinstance(events, list):
+                # this endpoint lists context entries; only count the compactions,
+                # and report the total separately so neither number misleads
+                context["entries"] = len(events)
+                context["compactions"] = sum(
+                    1 for e in events if isinstance(e, dict) and e.get("type") == "compaction")
+        limit = os.environ.get("RGI_CONTEXT_LIMIT")
+        if limit and limit.isdigit():
+            context["limit"] = int(limit)
+            used = self._last_prompt_tokens(sid)
+            if used:
+                context["used"] = used
+                context["percent"] = round(100.0 * used / int(limit), 1)
+        self._context_cache[sid] = (now, context)
+        return context
+
+    def _last_prompt_tokens(self, sid: str) -> int | None:
+        """Prompt size of the most recent assistant turn, if we can read it."""
+        data, _ = self.cli(f"/api/session/{sid}/message", timeout=20)
+        if not isinstance(data, dict):
+            return None
+        messages = data.get("data") or []
+        if not isinstance(messages, list):
+            return None
+        for message in reversed(messages):
+            if message.get("type") != "assistant":
+                continue
+            tokens = message.get("tokens") or {}
+            try:
+                return int(tokens.get("input") or 0) or None
+            except (TypeError, ValueError):
+                return None
+        return None
+
+    def _lane_info(self, sid: str, now: float) -> dict:
+        record = self.records.get(sid) or {}
+        directory = (record.get("location") or {}).get("directory")
+        tokens = record.get("tokens") or {}
+
+        info: dict = {}
+        info.update(self._repo(directory))
+        info["tokens"] = {
+            "input": tokens.get("input"),
+            "output": tokens.get("output"),
+            "reasoning": tokens.get("reasoning"),
+            "cache_read": (tokens.get("cache") or {}).get("read"),
+            "cost": record.get("cost"),
+        }
+        info["context"] = self._context(sid, now)
+
+        kids = []
+        for child in self.children.get(sid, []):
+            child_record = self.records.get(child) or {}
+            kids.append({
+                "id": child,
+                "label": (child_record.get("title") or child)[:40],
+                "state": ("working" if child in self._running else "idle"),
+                "tokens": ((child_record.get("tokens") or {}).get("output")),
+            })
+        if kids:
+            info["children"] = kids
+
+        blocked = self._attention_detail.get(sid)
+        if blocked:
+            info["blocked_on"] = blocked
+        return info
+
+    def push_info(self, running: set[str]) -> None:
+        """Send lane detail to the panel when it changes - never on a timer."""
+        now = time.time()
+        self._running = running
+        for sid, lane in list(self.bound.items()):
+            if lane.get("ignored"):
+                continue
+            try:
+                info = self._lane_info(sid, now)
+            except Exception as exc:                 # detail must never break lanes
+                say(f"[warn] could not build detail for {sid[-12:]}: {exc}")
+                continue
+            signature = json.dumps(info, sort_keys=True)
+            if self._info_sent.get(sid) == signature:
+                continue
+            self._info_sent[sid] = signature
+            self.post("/session/info", {"sessionID": sid, "info": info})
 
     def attention(self) -> set[str]:
-        """Sessions with an unanswered permission prompt (OpenCode's own API)."""
+        """Sessions with an unanswered permission prompt, and what they wait on."""
         data, _ = self.cli("/api/permission/request")
         if data is None:
             return set()
-        return {item.get("sessionID") for item in (data.get("data") or []) if item.get("sessionID")}
+        ids: set[str] = set()
+        details: dict[str, dict] = {}
+        for item in data.get("data") or []:
+            sid = item.get("sessionID")
+            if not sid:
+                continue
+            ids.add(sid)
+            details[sid] = {
+                "action": item.get("action"),
+                "resources": (item.get("resources") or [])[:3],
+                "message": (item.get("message") or "")[:120] or None,
+            }
+        self._attention_detail = details
+        return ids
 
     def stale_sessions(self) -> list[str]:
         now = time.time()
@@ -255,6 +423,7 @@ class Watcher:
 
             running = set((active.get("data") or {}).keys())
             attention = self.attention()
+            self.push_info(running)
 
             for sid in sorted(running):
                 if sid in self.bound:

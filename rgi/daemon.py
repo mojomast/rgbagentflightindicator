@@ -95,6 +95,7 @@ class Lanes:
         self.agent: dict[str, str] = {}
         self.label: dict[str, str] = {}
         self.host: dict[str, str] = {}
+        self.info: dict[str, dict] = {}          # free-form per lane, never painted
         self.since: dict[str, float] = {}
         self.changed: dict[str, float] = {}
         self.updated: dict[str, float] = {}
@@ -147,8 +148,27 @@ class Lanes:
     def release(self, sid: str) -> None:
         with self.lock:
             for table in (self.slot, self.state, self.agent, self.label, self.host,
-                          self.since, self.changed, self.updated):
+                          self.info, self.since, self.changed, self.updated):
                 table.pop(sid, None)
+
+    def set_info(self, sid: str, fields: dict) -> bool:
+        """Merge free-form detail into a lane.
+
+        Detail is for reading, not painting: it changes what /status and the
+        editor sidebar show, and never causes a frame write.
+        """
+        with self.lock:
+            if sid not in self.slot:
+                return False
+            current = self.info.setdefault(sid, {})
+            for key, value in fields.items():
+                if value is None:
+                    current.pop(key, None)
+                elif isinstance(value, dict) and isinstance(current.get(key), dict):
+                    current[key].update(value)
+                else:
+                    current[key] = value
+            return True
 
     def clear(self) -> None:
         with self.lock:
@@ -347,6 +367,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def _lane(self, sid: str, slot: int) -> dict:
         lanes = self.daemon.lanes
+        changed = lanes.changed.get(sid)
+        updated = lanes.updated.get(sid)
         return {
             "slot": slot,
             "key": self._primary().key_name(slot),
@@ -355,6 +377,11 @@ class Handler(BaseHTTPRequestHandler):
             "host": lanes.host.get(sid),
             "state": lanes.state.get(sid),
             "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
+            # how long the current state has lasted, and how long since this lane
+            # last reported anything - the two numbers that answer "is it stuck?"
+            "in_flight_s": round(time.monotonic() - changed, 1) if changed else None,
+            "idle_s": round(time.time() - updated, 1) if updated else None,
+            "info": lanes.info.get(sid) or {},
         }
 
     # -- routes -----------------------------------------------------------
@@ -480,6 +507,22 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(400, {"error": f"unknown state {state!r}", "known": sorted(STATES)})
                 return
             ok = lanes.set_state(sid.strip(), state)
+            self._send(200 if ok else 404, {"ok": ok})
+            return
+
+        if path == "/session/info":
+            sid = data.get("sessionID")
+            if not isinstance(sid, str) or not sid.strip():
+                self._send(400, {"error": "sessionID is required and must be a non-empty string"})
+                return
+            # accept {"info": {...}} or loose top-level fields, because agents in
+            # a hurry send both
+            fields = dict(data.get("info") or {})
+            fields.update({k: v for k, v in data.items() if k not in ("sessionID", "info")})
+            if not fields:
+                self._send(400, {"error": "nothing to record: send an info object or fields"})
+                return
+            ok = lanes.set_info(sid.strip(), fields)
             self._send(200 if ok else 404, {"ok": ok})
             return
 
