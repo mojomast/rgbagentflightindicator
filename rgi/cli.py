@@ -198,7 +198,9 @@ def _render_status(data: dict, url: str) -> str:
 
 def cmd_status(args: argparse.Namespace) -> int:
     """Show every lane and every device - the observable side of the panel."""
-    token = args.token or None
+    from .daemon import resolve_token
+
+    token = resolve_token(args.token)
     if args.follow:
         last = None
         while True:
@@ -232,9 +234,12 @@ def cmd_push(args: argparse.Namespace) -> int:
     payload = {"agent": args.agent, "sessionID": args.session, "label": args.label}
     if args.slot is not None:
         payload["slot"] = args.slot
+    from .daemon import resolve_token
+
+    token = resolve_token(args.token)
     headers = {"Content-Type": "application/json"}
-    if args.token:
-        headers["X-LED-Token"] = args.token
+    if token:
+        headers["X-LED-Token"] = token
 
     def call(path: str, body: dict) -> dict:
         req = urllib.request.Request(args.url + path, data=json.dumps(body).encode(),
