@@ -53,6 +53,10 @@ ALLOW = [
     "0.0.0.0",
     "http://panel:8730",
     "<panel-host>",
+    # documentation placeholders, obviously not a real tailnet: the point of this
+    # check is to catch the machine's own names, not to make examples unwritable
+    "example.ts.net",
+    "tailnet.ts.net",
     "<token>",
     "$TOKEN",
     "your token",
