@@ -275,6 +275,29 @@ class TestLaneInfo(PanelCase):
         self.call("/session/info", {"sessionID": "s", "info": {"repo": "x", "tokens": {"input": 1}}})
         self.assertEqual(self.frame(), before)
 
+    def test_ident_is_first_class_and_can_be_set_alone(self):
+        """An agent naming itself is a complete request, not 'nothing to record'."""
+        self.call("/session/start", {"sessionID": "s", "host": "kimi"})
+        status, _ = self.call("/session/info", {"sessionID": "s", "identifier": "hermes-3"})
+        self.assertEqual(status, 200)
+        _, body = self.call("/session/s")
+        self.assertEqual(body["ident"], "hermes-3")
+        self.assertNotIn("ident", body["info"])        # not duplicated into detail
+
+    def test_ident_can_be_given_when_claiming(self):
+        self.call("/session/start", {"sessionID": "s", "ident": "hermes-3", "host": "kimi"})
+        _, body = self.call("/session/s")
+        self.assertEqual(body["ident"], "hermes-3")
+        self.assertEqual(body["host"], "kimi")
+
+    def test_info_without_ident_still_works(self):
+        self.call("/session/start", {"sessionID": "s"})
+        status, _ = self.call("/session/info", {"sessionID": "s", "info": {"repo": "r"}})
+        self.assertEqual(status, 200)
+        _, body = self.call("/session/s")
+        self.assertEqual(body["info"]["repo"], "r")
+        self.assertEqual(body["ident"], "")
+
     def test_releasing_a_lane_drops_its_info(self):
         self.call("/session/start", {"sessionID": "s"})
         self.call("/session/info", {"sessionID": "s", "info": {"repo": "x"}})

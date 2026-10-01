@@ -76,7 +76,7 @@ Detail for a lane: never painted, never a repaint, only what `/status` and the
 editor sidebar show. Send it when it changes.
 
 ```json
-{"sessionID": "job-123",
+{"sessionID": "job-123", "ident": "hermes-3",
  "info": {"repo": "rgbagentflightindicator", "branch": "main",
           "tokens": {"input": 2400000, "output": 940000, "cache_read": 800000000,
                      "cost": 4.12},
@@ -91,6 +91,12 @@ editor sidebar show. Send it when it changes.
 to record. Fields merge recursively one level, so a partial update keeps the rest;
 sending `null` deletes a field. Loose top-level fields work too
 (`{"sessionID": "job-123", "repo": "x"}`) for agents in a hurry.
+
+`ident` is special: it is *who the agent is*, so it may also be sent when claiming
+the lane (`{"sessionID": …, "ident": "hermes-3"}`), it is stored as a first-class
+field rather than loose detail, and setting only it is a valid request. It is shown
+in the lane's first detail line, next to the host - and the host itself is only
+visible when a lane is uncollapsed.
 
 `children` is how subagents are shown: a child session should not claim its own
 lamp, but listing it here puts it under its parent's lane, indented, with its own

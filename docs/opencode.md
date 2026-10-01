@@ -87,7 +87,8 @@ command palette) uncollapses it, showing, per lane:
 
 ```
 ⌨ rbgafi v0.4
-▸  0 ▶ workstation  Keyboard status: LED da…
+▸  0 ▶ Keyboard status: LED da…
+     id hermes-3 · host workstation · agent opencode
      repo vam @ main
      in flight 19s · idle 19s
      tokens 2.5M in / 951k out · $4.12
@@ -97,6 +98,10 @@ command palette) uncollapses it, showing, per lane:
        ✔ QMK host-side RGB control protocol
     (alt+l or /lanes to collapse)
 ```
+
+The collapsed line is deliberately just the key, the state and the label: **which
+machine a lane is on is only visible once you uncollapse it**, next to the agent's
+own identifier (`id hermes-3 · host workstation`).
 
 - **repository and branch** — which project the lane is actually working in,
   derived from the session's directory.

@@ -176,6 +176,7 @@ Send it when the detail changes, not on a timer. Known fields, all optional:
 |---|---|---|
 | `repo` | `"rgbagentflightindicator"` | which project this lane is working on |
 | `branch` | `"main"` | `repo @ branch` |
+| `ident` | `"hermes-3"` | the agent's own identifier — also accepted when you claim the lane |
 | `directory` | `"D:\\vam"` | used when there is no repo |
 | `tokens` | `{"input": 2400000, "output": 940000, "cache_read": 800000000, "cost": 4.12}` | token and spend line |
 | `context` | `{"entries": 473, "compactions": 3, "percent": 42.5, "limit": 128000}` | context pressure |

@@ -95,6 +95,7 @@ class Lanes:
         self.agent: dict[str, str] = {}
         self.label: dict[str, str] = {}
         self.host: dict[str, str] = {}
+        self.ident: dict[str, str] = {}           # the agent's own identifier
         self.info: dict[str, dict] = {}          # free-form per lane, never painted
         self.since: dict[str, float] = {}
         self.changed: dict[str, float] = {}
@@ -106,7 +107,7 @@ class Lanes:
             return [s for s in range(self.count) if s not in used]
 
     def claim(self, sid: str, agent: str, label: str | None, host: str | None,
-              want: int | None = None) -> int | None:
+              want: int | None = None, ident: str | None = None) -> int | None:
         with self.lock:
             if sid in self.slot:
                 return self.slot[sid]
@@ -125,6 +126,7 @@ class Lanes:
             self.agent[sid] = agent
             self.label[sid] = label or sid
             self.host[sid] = host or ""
+            self.ident[sid] = ident or ""
             self.since[sid] = now
             self.changed[sid] = time.monotonic()
             self.updated[sid] = now
@@ -148,8 +150,16 @@ class Lanes:
     def release(self, sid: str) -> None:
         with self.lock:
             for table in (self.slot, self.state, self.agent, self.label, self.host,
-                          self.info, self.since, self.changed, self.updated):
+                          self.ident, self.info, self.since, self.changed, self.updated):
                 table.pop(sid, None)
+
+    def set_ident(self, sid: str, ident: str) -> bool:
+        """The agent's own identifier: who it is, not which machine it is on."""
+        with self.lock:
+            if sid not in self.slot:
+                return False
+            self.ident[sid] = ident.strip()
+            return True
 
     def set_info(self, sid: str, fields: dict) -> bool:
         """Merge free-form detail into a lane.
@@ -375,6 +385,7 @@ class Handler(BaseHTTPRequestHandler):
             "agent": lanes.agent.get(sid),
             "label": lanes.label.get(sid),
             "host": lanes.host.get(sid),
+            "ident": lanes.ident.get(sid),
             "state": lanes.state.get(sid),
             "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
             # how long the current state has lasted, and how long since this lane
@@ -475,14 +486,16 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(400, {"error": "slot must be an integer"})
                     return
             host = data.get("host") or self.client_address[0]
-            slot = lanes.claim(sid, data.get("agent", "agent"), data.get("label"), host, want)
+            ident = data.get("ident") or data.get("identifier")
+            slot = lanes.claim(sid, data.get("agent", "agent"), data.get("label"),
+                               host, want, ident)
             if slot is None and want is None:
                 # Everything is taken and nothing specific was asked for: retire
                 # the least recently used lane. An explicit slot request is never
                 # resolved by evicting someone else - that gets an honest 409.
                 if lanes.evict_lru() is not None:
                     slot = lanes.claim(sid, data.get("agent", "agent"),
-                                       data.get("label"), host, want)
+                                       data.get("label"), host, want, ident)
             if slot is None:
                 free = lanes.free()
                 reason = (f"slot {want} is not available" if want is not None
@@ -519,11 +532,25 @@ class Handler(BaseHTTPRequestHandler):
             # a hurry send both
             fields = dict(data.get("info") or {})
             fields.update({k: v for k, v in data.items() if k not in ("sessionID", "info")})
-            if not fields:
-                self._send(400, {"error": "nothing to record: send an info object or fields"})
+            if fields.get("identifier"):
+                fields["ident"] = fields.pop("identifier")
+
+            # the identifier is a first-class field, so setting only that is a
+            # perfectly good request and must not be answered with "nothing to record"
+            recorded = False
+            if isinstance(fields.get("ident"), str):
+                recorded = lanes.set_ident(sid.strip(), fields.pop("ident")) or recorded
+            if fields:
+                recorded = lanes.set_info(sid.strip(), fields) or recorded
+
+            if not recorded:
+                if sid.strip() not in lanes.slot:
+                    self._send(404, {"error": "no lane held by that sessionID"})
+                else:
+                    self._send(400, {"error": "nothing to record: send an info object, "
+                                              "an ident, or both"})
                 return
-            ok = lanes.set_info(sid.strip(), fields)
-            self._send(200 if ok else 404, {"ok": ok})
+            self._send(200, {"ok": True})
             return
 
         if path == "/session/end":

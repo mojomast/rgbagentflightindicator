@@ -125,6 +125,7 @@ type Lane = {
   agent?: string
   label?: string
   host?: string
+  ident?: string
   state?: string
   in_flight_s?: number
   idle_s?: number
@@ -197,16 +198,21 @@ export default {
       }
     }
 
-    const name = (l: Lane) => trim(sessionTitle(l.id) ?? l.label ?? l.agent ?? l.id, 14)
+    const name = (l: Lane) => trim(sessionTitle(l.id) ?? l.label ?? l.agent ?? l.id, 24)
     const HOST_W = 12
-    const host = (l: Lane) =>
-      l.host ? trim(l.host, HOST_W).padEnd(HOST_W) : " ".repeat(HOST_W)
 
-    // What an uncollapsed lane shows: repository, timings, tokens, context, what
-    // it is blocked on, and the subagents it has spawned.
+    // What an uncollapsed lane shows: who and where it is, then repository,
+    // timings, tokens, context, what it is blocked on, and its subagents.
     const detailLines = (l: Lane, prefix: string): string[] => {
       const lines: string[] = []
       const info = l.info ?? {}
+
+      const who = [
+        l.ident ? `id ${trim(l.ident, 18)}` : "",
+        l.host ? `host ${trim(l.host, HOST_W)}` : "",
+        l.agent ? `agent ${trim(l.agent, 10)}` : "",
+      ].filter(Boolean)
+      if (who.length) lines.push(`${prefix}${who.join(" · ")}`)
 
       const where = [info.repo, info.branch].filter(Boolean).join(" @ ")
       if (where) lines.push(`${prefix}repo ${trim(where, 30)}`)
@@ -261,9 +267,9 @@ export default {
       for (const l of all) {
         const here = sessionID && l.id === sessionID
         const mark = MARKS[l.state ?? "idle"] ?? "?"
-        lines.push(
-          `${here ? "\u25B8" : " "} ${String(l.key ?? "?").padStart(2)} ${mark} ${host(l)} ${name(l)}`,
-        )
+        // collapsed: key, state, label. Who/where it is stays folded away until
+        // the human asks for it.
+        lines.push(`${here ? "\u25B8" : " "} ${String(l.key ?? "?").padStart(2)} ${mark} ${name(l)}`)
         if (expanded()) lines.push(...detailLines(l, "    "))
       }
       if (expanded()) lines.push(`    (alt+l or /lanes to collapse)`)
