@@ -4,6 +4,14 @@ Symptoms first, causes second. Nearly every entry here cost hours to find.
 
 ## The keyboard
 
+**Nothing lights up at all, and the keyboard is showing its own effect.**
+Something else took the device out from under the daemon — most often another
+program opening the same HID interfaces (`rgi detect --open`, `rgi map`, a vendor
+app, or a second daemon). The daemon keeps a handle the firmware no longer
+honours, so its writes go nowhere while still appearing to succeed. Restart the
+daemon. `rgi detect` is read-only for exactly this reason; only `--open`, `map`
+and `daemon` claim the device.
+
 **Nothing lights up at all.**
 Check the backend: `rgi detect`. If it reports no lamps, the device is not
 visible — for USB boards, check the cable and that the keyboard is on **wired

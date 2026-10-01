@@ -48,6 +48,18 @@ class TestFrames(unittest.TestCase):
         self.assertEqual(bytes(frame[:29]), HEADER_PERKEY_1 + bytes(21))
         self.assertEqual(bytes(frame[407:]), bytes(FRAME_LEN - 407))
 
+    def test_detect_can_describe_the_board_without_claiming_it(self):
+        """Opening sends the unlock and the mode commit, which would take the
+        device away from a daemon already driving it - so lamps() must work on a
+        backend that was never opened."""
+        backend = SinowealthBackend()
+        self.assertIsNone(backend.cmd)
+        self.assertIsNone(backend.data)
+        lamps = backend.lamps()
+        self.assertEqual(len(lamps), BLOCK)
+        self.assertEqual(lamps[1].label, "1")
+        self.assertEqual(lamps[1].group, "number-row")
+
     def test_number_row_is_the_indicator_pool(self):
         lamps = [
             type("L", (), {"index": i, "label": "", "group": "number-row" if i < 13 else "u"})()

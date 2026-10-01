@@ -80,8 +80,17 @@ class SinowealthBackend(Backend):
         self.product_id = product_id
         self.cmd = None
         self.data = None
-        self._lamps: list[Lamp] = []
         self._last_write = 0.0
+        # Built here, not in open(), on purpose: `rgi detect` must be able to
+        # describe the board without claiming it. Opening sends the unlock and
+        # the mode commit, which takes the device away from a daemon that is
+        # already driving it - and the daemon is left holding a handle the
+        # firmware no longer honours, so the panel silently stops updating.
+        self._lamps: list[Lamp] = [
+            Lamp(index=i, label=NUMBER_ROW.get(i, f"slot{i}"),
+                 group="number-row" if i in NUMBER_ROW else "unmapped")
+            for i in range(BLOCK)
+        ]
 
     # -- discovery --------------------------------------------------------
     @classmethod
@@ -132,12 +141,6 @@ class SinowealthBackend(Backend):
         # so doing it per frame causes flicker and latency.
         self._send(self.cmd, UNLOCK, "unlock")
         self._send(self.data, new_frame(MODE_COMMIT), "commit")
-
-        self._lamps = [
-            Lamp(index=i, label=NUMBER_ROW.get(i, f"slot{i}"),
-                 group="number-row" if i in NUMBER_ROW else "unmapped")
-            for i in range(BLOCK)
-        ]
 
     def close(self) -> None:
         for handle in (self.cmd, self.data):

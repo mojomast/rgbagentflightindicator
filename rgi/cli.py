@@ -57,12 +57,36 @@ def cmd_detect(args: argparse.Namespace) -> int:
         return 0
 
     cls = load(chosen)
+    lamps = cls(**({"count": 13} if chosen == "dummy" else {})).lamps()
+    if lamps:
+        print(f"\n{cls.name}: {len(lamps)} lamps, {cls.min_interval * 1000:.0f} ms min interval")
+        groups: dict[str, int] = {}
+        for lamp in lamps:
+            groups[lamp.group] = groups.get(lamp.group, 0) + 1
+        for group, n in sorted(groups.items()):
+            print(f"  {group or '(unlabelled)'}: {n}")
+        print("  first lamps: " + ", ".join(f"{l.index}={l.label}" for l in lamps[:16]))
+        backend = cls(**({"count": 13} if chosen == "dummy" else {}))
+        lanes = backend.default_lanes(min(12, len(lamps)))
+        print("  default lanes: " + ", ".join(str(i) for i in lanes))
+        return 0
+
+    # Nothing to report without claiming the device. Say so rather than doing it
+    # quietly: claiming it takes the board away from anything already driving it.
+    print(f"\n{chosen}: needs the device to answer. Re-run with --open to claim it")
+    print("  (this briefly takes the device over - do not do it while a daemon")
+    print("   is driving the panel, or restart that daemon afterwards)")
+    if not args.open:
+        return 0
+
     kwargs = {}
     if chosen == "openrgb":
         kwargs = {"host": args.openrgb_host, "port": args.openrgb_port,
                   "device": args.device, "leds": args.leds, "debug": True}
-    backend = cls(**kwargs)
+    if chosen == "dummy":
+        kwargs = {"count": 13}
     try:
+        backend = cls(**kwargs)
         backend.open()
     except BackendUnavailable as exc:
         print(f"\ncould not open: {exc}")
@@ -70,7 +94,7 @@ def cmd_detect(args: argparse.Namespace) -> int:
 
     lamps = backend.lamps()
     print(f"\n{backend.name}: {len(lamps)} lamps, {backend.min_interval * 1000:.0f} ms min interval")
-    groups: dict[str, int] = {}
+    groups = {}
     for lamp in lamps:
         groups[lamp.group] = groups.get(lamp.group, 0) + 1
     for group, n in sorted(groups.items()):
@@ -158,6 +182,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     d = sub.add_parser("detect", help="show what backends and lamps are visible")
     _add_backend_args(d)
+    d.add_argument("--open", action="store_true",
+                   help="claim the device to query it (takes it over briefly)")
     d.set_defaults(func=cmd_detect)
 
     m = sub.add_parser("map", help="walk the lamps one at a time (calibration)")

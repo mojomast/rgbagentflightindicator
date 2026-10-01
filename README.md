@@ -32,7 +32,8 @@ python -m rgi daemon                         # run the panel
 python -m rgi watch                          # report OpenCode sessions (optional)
 ```
 
-`detect` prints the backends it found and how many lamps each exposes. `daemon`
+`detect` prints the backends it found and how many lamps each exposes — and it is
+**read-only**: it will not claim a device that something else is driving. `daemon`
 starts the HTTP API and starts painting. `watch` makes OpenCode sessions appear
 without the agents knowing anything about this project.
 
