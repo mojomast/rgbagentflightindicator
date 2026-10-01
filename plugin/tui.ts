@@ -356,7 +356,7 @@ export default {
         // registering commands in this build, so the mouse is the reliable path
         rows.push(
           row(
-            () => (online() ? `\u2328 ${VERSION_LABEL}` : `\u2328 ${VERSION_LABEL} \u00b7 offline`),
+            () => [online() ? `\u2328 ${VERSION_LABEL}` : `\u2328 ${VERSION_LABEL} \u00b7 offline`],
             () => toggleDetails(),
           ),
         )
