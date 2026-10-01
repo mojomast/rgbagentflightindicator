@@ -86,6 +86,15 @@ this project exists. That is what `rgi watch` does for OpenCode:
 rgi watch --url http://127.0.0.1:8730 --stale 7200
 ```
 
+On a machine that does not have the client there is nothing to install: the same
+watcher is published as one file that needs only Python 3.
+
+```sh
+curl -sS -H "X-LED-Token: $TOKEN" "http://<panel-host>:8730/files/rgi-watch.py" \
+  -o /tmp/rgi-watch.py
+python3 /tmp/rgi-watch.py --url http://<panel-host>:8730
+```
+
 It polls OpenCode's own API, claims a lamp for each session that starts working,
 lands it when the turn ends, and releases it after two hours of quiet. It logs
 every decision to `~/.config/rgi/watcher.log`:

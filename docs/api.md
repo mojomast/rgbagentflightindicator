@@ -94,14 +94,14 @@ sending `null` deletes a field. Loose top-level fields work too
 
 `ident` is special: it is *who the agent is*, so it may also be sent when claiming
 the lane (`{"sessionID": …, "ident": "hermes-3"}`), it is stored as a first-class
-field rather than loose detail, and setting only it is a valid request. It is shown
-in the lane's first detail line, next to the host - and the host itself is only
-visible when a lane is uncollapsed.
+field rather than loose detail, and setting only it is a valid request. It is the
+name the lane shows; the harness it runs in and the host are part of the detail
+lines, visible only when a lane is uncollapsed.
 
 `children` is how subagents are shown: a child session should not claim its own
 lamp, but listing it here puts it under its parent's lane, indented, with its own
-state mark. The editor shows all of this when a lane is uncollapsed (`alt+l`, or
-`/lanes`).
+state mark. The editor shows all of this when a lane is uncollapsed (click it; the
+block's title collapses or expands every lane).
 
 ## GET /status
 

@@ -7,7 +7,7 @@ it, or both.
 | piece | where it runs | needs |
 |---|---|---|
 | **panel** (`rgi daemon`) | the machine with the keyboard | the keyboard, USB |
-| **watcher** (`rgi watch`) | any machine whose OpenCode sessions should appear | `rgi`, and a route to the panel |
+| **watcher** (`rgi watch`, or the published `rgi-watch.py`) | any machine whose OpenCode sessions should appear | Python 3, and a route to the panel |
 | **plugin** (`tui.ts`) | any machine whose editor should *show* the lanes | OpenCode, and a route to the panel |
 | **client** (`rgi status`) | anywhere, for reading the lanes | `rgi`, and a route to the panel |
 
@@ -38,12 +38,19 @@ name) or a firewall.
 
 ## First install on another machine
 
-Two commands, plus the plugin:
+The watcher is **one published file and needs nothing but Python 3** — no
+install, no checkout:
 
 ```sh
-pip install rgbagentflightindicator
-rgi watch --url http://<panel-host>:8730      # reports this machine's sessions
+curl -sS -H "X-LED-Token: $TOKEN" "http://<panel-host>:8730/files/rgi-watch.py" \
+  -o /tmp/rgi-watch.py
+python3 /tmp/rgi-watch.py --url http://<panel-host>:8730
 ```
+
+Keep it running the way this machine keeps services (systemd, tmux, a scheduled
+task). The `rgi` client — `rgi status`, `rgi doctor`, `rgi lane-map` — is not on
+PyPI yet; it comes from a checkout of this repository, and only the machine that
+drives keyboards really needs it.
 
 ```sh
 DIR=~/.config/opencode/plugins/rgi-panel
@@ -65,13 +72,14 @@ npm install "@opentui/core@^0.5.14" "@opentui/solid@^0.5.14" "solid-js@^1.9.12"
 ## Updating an existing machine
 
 ```sh
-pip install -U rgbagentflightindicator            # the client and watcher
+curl -sS -H "X-LED-Token: $TOKEN" "http://<panel-host>:8730/files/rgi-watch.py" \
+  -o /tmp/rgi-watch.py                            # the watcher: one file
 curl -sS -H "X-LED-Token: $TOKEN" "http://<panel-host>:8730/files/tui.ts" \
   -o ~/.config/opencode/plugins/rgi-panel/tui.ts  # the plugin
 ```
 
-Restart the watcher the way you started it, then restart OpenCode if the sidebar
-does not pick the change up (it often reloads on its own).
+Restart the watcher with the new file, then restart OpenCode if the sidebar does
+not pick the change up (it often reloads on its own).
 
 **Retire the old plugin if you have one.** Early builds installed
 `~/.config/opencode/plugins/keyboard-status/` and asked for `LEDD_URL`. It is a
@@ -244,7 +252,7 @@ tailscale status                          # is the panel's machine online, and d
 tailscale ping <panel-host>               # does a path exist at all
 curl -sS -m 5 -o /dev/null -w '%{http_code}\n' \
   -H "X-LED-Token: $TOKEN" http://<panel-host>:8730/status
-rgi doctor --url http://<panel-host>:8730 # panel, token, watcher, plugin in one answer
+rgi doctor --url http://<panel-host>:8730 # if the client is installed
 ```
 
 - `000` or a timeout: no path, or the wrong name form (try the FQDN), or the ACL
@@ -252,8 +260,9 @@ rgi doctor --url http://<panel-host>:8730 # panel, token, watcher, plugin in one
 - `401`: the path is fine; the token is wrong.
 - `200`: secure and working.
 
-`rgi watch` and the plugin both find the token themselves, so a machine that
-passes the check above needs no further configuration.
+The watcher — either `rgi watch` or the published `rgi-watch.py` — and the plugin
+both find the token themselves, so a machine that passes the check above needs no
+further configuration.
 
 ## Handing this to an agent
 

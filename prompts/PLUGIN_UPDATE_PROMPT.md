@@ -12,7 +12,7 @@ There may be three things here, and they update differently:
 | piece | what it is | lives in |
 |---|---|---|
 | the **plugin** | draws the lane table in OpenCode's sidebar | `~/.config/opencode/plugins/` |
-| the **watcher** | reports this machine's OpenCode sessions to the panel | `rgi watch`, run however you start it |
+| the **watcher** | reports this machine's OpenCode sessions to the panel | `rgi watch`, or the published `rgi-watch.py` |
 | the **client** | `rgi status` and friends, for reading the panel | the `rgbagentflightindicator` package |
 
 ### 1. Look at what you have before changing it
@@ -22,10 +22,13 @@ share the installation rather than each making their own: two plugins draw two
 sidebar blocks, and two watchers claim the same sessions twice.
 
 ```sh
-rgi doctor                       # panel, token, watcher, plugin, deps - in one command
+rgi doctor                       # if you have the client: panel, token, watcher, plugin
 ls ~/.config/opencode/plugins/   # which plugin directories exist?
-rgi status 2>&1 | head -5        # does the client work, and can it see the panel?
+rgi status 2>&1 | head -5        # if you have the client: can it see the panel?
 ```
+
+If `rgi` is not installed, that is normal: the client is not on PyPI, and step 2
+gets the watcher without it.
 
 - a plugin directory with a `tui.ts` in it: **update it in place**, do not add another
 - `watcher   running (pid N)`: that watcher is this machine's; leave it running

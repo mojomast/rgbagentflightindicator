@@ -26,11 +26,18 @@ inference run.
 ## Quick start
 
 ```sh
-pip install rgbagentflightindicator          # add [sinowealth] for that board
+git clone https://github.com/mojomast/rgbagentflightindicator
+cd rgbagentflightindicator
+pip install -e ".[sinowealth]"               # the extra is only for that board
 python -m rgi detect                         # what can it see?
 python -m rgi daemon                         # run the panel
 python -m rgi watch                          # report OpenCode sessions (optional)
 ```
+
+The package is not on PyPI yet — install from the checkout above, or
+`pip install "git+https://github.com/mojomast/rgbagentflightindicator"`. A machine
+that only needs to *report* to somebody else's panel needs none of this: the
+watcher is one published file (see `docs/machines.md`).
 
 `detect` prints the backends it found and how many lamps each exposes — and it is
 **read-only**: it will not claim a device that something else is driving. `daemon`

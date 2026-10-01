@@ -20,9 +20,12 @@ same sessions twice and the panel fills with lanes nobody can explain. Look
 first:
 
 ```sh
-rgi doctor                       # the whole picture: panel, token, watcher, plugin
+rgi doctor                       # if you have the client: the whole picture
 ls ~/.config/opencode/plugins/   # plugin directories
 ```
+
+If `rgi` is not installed, that is normal: the client is not on PyPI. Nothing a
+machine needs in order to report is behind it — step 6 runs the watcher without it.
 
 Read it before touching anything:
 
