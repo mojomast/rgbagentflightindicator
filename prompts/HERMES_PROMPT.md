@@ -122,4 +122,38 @@ interrupted for everything.
 5. **Read `/status` rather than guessing** which lamps exist: devices differ, and
    one lane can be a different key on each keyboard.
 
-## PASTE TO HERE
+### Publishing detail others can read
+
+State is one word; detail is everything else. Send it separately, and it never
+repaints hardware:
+
+```
+POST /session/info
+{"sessionID": "<id>", "info": {
+   "repo": "rgbagentflightindicator", "branch": "main",
+   "tokens": {"input": 2400000, "output": 940000, "cost": 4.12},
+   "context": {"entries": 473, "compactions": 3},
+   "blocked_on": {"action": "bash", "resources": ["rm -rf build"],
+                  "message": "delete the build directory?"},
+   "children": [{"id": "ses_x", "label": "subagent task", "state": "working"}]}}
+```
+
+Use it to name the repository you are working in, to say **what** you are blocked
+on rather than just that you are, and to list your own subagents — a child lists
+here, under `children`, instead of taking a lane of its own. Partial updates
+merge, so you can send one field at a time.
+
+### Reading the detail of other lanes
+
+The same information comes back, so you can see what the fleet is doing rather
+than only whether it is busy:
+
+```sh
+rgi status --json | jq '.sessions[] | {label, state, in_flight_s, repo: .info.repo,
+                                        blocked: .info.blocked_on.action, kids: (.info.children|length)}'
+```
+
+`GET /status` gives every lane with `in_flight_s`, `idle_s` and its `info`, which
+is how you tell a lane that is *working* from one that has been *stuck for twenty
+minutes*, or find the one that is blocked on a permission prompt you could
+resolve yourself.
