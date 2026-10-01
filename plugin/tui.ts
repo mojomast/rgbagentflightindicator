@@ -230,11 +230,10 @@ export default {
       if (where) lines.push(`${prefix}repo ${trim(where, 30)}`)
       else if (info.directory) lines.push(`${prefix}dir ${trim(String(info.directory), 30)}`)
 
-      // "in flight" is how long the current state has lasted; "idle" is how long
-      // since the lane last reported anything. They diverge because a busy lane
-      // reports a heartbeat - if they are ever equal, that lane has gone quiet.
-      const state = l.state ?? "idle"
-      if (state === "working" || state === "blocked") {
+      // "in flight" is the current action and nothing else: a lane that has landed
+      // has no in-flight time, so this line only appears while something is
+      // actually running or waiting. Idle is how long since it last said anything.
+      if (l.in_flight_s !== null && l.in_flight_s !== undefined) {
         lines.push(`${prefix}in flight ${duration(l.in_flight_s)} · idle ${duration(l.idle_s)}`)
       } else {
         lines.push(`${prefix}idle ${duration(l.idle_s)}`)

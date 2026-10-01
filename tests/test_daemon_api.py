@@ -299,6 +299,31 @@ class TestLaneInfo(PanelCase):
         self.assertEqual(body["info"]["repo"], "r")
         self.assertEqual(body["ident"], "")
 
+    def test_in_flight_belongs_to_the_action_not_the_lane(self):
+        """A landed agent is not flying: in flight ends at the landing, and starts
+        again from zero when the next turn does."""
+        self.call("/session/start", {"sessionID": "s", "slot": 0})
+        self.call("/session/state", {"sessionID": "s", "state": "working"})
+        _, body = self.call("/session/s")
+        self.assertIsInstance(body["in_flight_s"], float)
+        self.assertLess(body["in_flight_s"], 5)
+
+        self.call("/session/state", {"sessionID": "s", "state": "done"})
+        _, body = self.call("/session/s")
+        self.assertIsNone(body["in_flight_s"])          # landed, not in flight
+        self.assertIsInstance(body["idle_s"], float)     # but still reporting
+
+        self.call("/session/state", {"sessionID": "s", "state": "working"})
+        _, body = self.call("/session/s")
+        self.assertLess(body["in_flight_s"], 2)          # a fresh action, a fresh timer
+
+    def test_blocked_is_still_in_flight(self):
+        """Waiting on a human is an unfinished action, not a landing."""
+        self.call("/session/start", {"sessionID": "s"})
+        self.call("/session/state", {"sessionID": "s", "state": "blocked"})
+        _, body = self.call("/session/s")
+        self.assertIsInstance(body["in_flight_s"], float)
+
     def test_releasing_a_lane_drops_its_info(self):
         self.call("/session/start", {"sessionID": "s"})
         self.call("/session/info", {"sessionID": "s", "info": {"repo": "x"}})

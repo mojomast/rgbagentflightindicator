@@ -433,8 +433,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def _lane(self, sid: str, slot: int) -> dict:
         lanes = self.daemon.lanes
+        state = lanes.state.get(sid)
         changed = lanes.changed.get(sid)
         updated = lanes.updated.get(sid)
+        # "in flight" belongs to the action, not to the lane: an agent that has
+        # landed is not flying, so this is None for done, error and idle - and it
+        # starts again from zero when the next turn begins.
+        flying = state in ("working", "blocked", "stopping")
         return {
             "slot": slot,
             "key": self._primary().key_name(slot),
@@ -442,11 +447,10 @@ class Handler(BaseHTTPRequestHandler):
             "label": lanes.label.get(sid),
             "host": lanes.host.get(sid),
             "ident": lanes.ident.get(sid),
-            "state": lanes.state.get(sid),
+            "state": state,
             "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
-            # how long the current state has lasted, and how long since this lane
-            # last reported anything - the two numbers that answer "is it stuck?"
-            "in_flight_s": round(time.monotonic() - changed, 1) if changed else None,
+            "in_flight_s": round(time.monotonic() - changed, 1) if (flying and changed) else None,
+            # how long since this lane last reported anything at all
             "idle_s": round(time.time() - updated, 1) if updated else None,
             "info": lanes.info.get(sid) or {},
         }
