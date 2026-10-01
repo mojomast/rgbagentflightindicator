@@ -271,11 +271,10 @@ export default {
       if (where) lines.push(`${prefix}repo ${trim(where, 30)}`)
       else if (info.directory) lines.push(`${prefix}dir ${trim(String(info.directory), 30)}`)
 
-      // "in flight" is the current action and nothing else: a lane that has landed
-      // has no in-flight time, so this line only appears while something is
-      // actually running or waiting. Idle is how long since it last said anything.
+      // in flight and idle are mutually exclusive: a running action is not idle,
+      // and a landed lane is not flying. Exactly one of the two is ever present.
       if (l.in_flight_s !== null && l.in_flight_s !== undefined) {
-        lines.push(`${prefix}in flight ${duration(l.in_flight_s)} · idle ${duration(l.idle_s)}`)
+        lines.push(`${prefix}in flight ${duration(l.in_flight_s)}`)
       } else {
         lines.push(`${prefix}idle ${duration(l.idle_s)}`)
       }
@@ -401,28 +400,6 @@ export default {
             () => toggleDetails(),
           ),
         )
-        // the handover button: one click, the prompt and the token on the clipboard
-        rows.push(
-          row(
-            () => {
-              const state = copied()
-              if (state === "ok") return ["\u2713 copied \u2014 paste it to the agent"]
-              if (state === "failed") return ["\u2716 could not use the clipboard (see plugin.log)"]
-              return ["\u29c9 copy install/update prompt + token"]
-            },
-            () => {
-              const result = copyToClipboard(handoverText())
-              log(result.ok ? "handover copied to the clipboard"
-                            : `clipboard copy failed: ${result.why}`)
-              setCopied(result.ok ? "ok" : "failed")
-              repaint()
-              setTimeout(() => {
-                setCopied("idle")
-                repaint()
-              }, 4000)
-            },
-          ),
-        )
         const all = lanes()
         if (!all.length) {
           rows.push(textRow(() => "  no lanes claimed"))
@@ -447,6 +424,28 @@ export default {
         }
         rows.push(textRow(() => (allOpen() ? "    (click the title to collapse all, a lane to collapse one)"
                                            : "    (click a lane for detail, the title for all)")))
+        // the handover button, at the bottom where it is least in the way
+        rows.push(
+          row(
+            () => {
+              const state = copied()
+              if (state === "ok") return ["\u2713 copied \u2014 paste it to the agent"]
+              if (state === "failed") return ["\u2716 clipboard unavailable (see plugin.log)"]
+              return ["\u29c9 copy install/update prompt + token"]
+            },
+            () => {
+              const result = copyToClipboard(handoverText())
+              log(result.ok ? "handover copied to the clipboard"
+                            : `clipboard copy failed: ${result.why}`)
+              setCopied(result.ok ? "ok" : "failed")
+              repaint()
+              setTimeout(() => {
+                setCopied("idle")
+                repaint()
+              }, 4000)
+            },
+          ),
+        )
         return rows
       }
       // built inside the getter so every signal read stays tracked

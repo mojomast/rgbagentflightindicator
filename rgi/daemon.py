@@ -436,9 +436,9 @@ class Handler(BaseHTTPRequestHandler):
         state = lanes.state.get(sid)
         changed = lanes.changed.get(sid)
         updated = lanes.updated.get(sid)
-        # "in flight" belongs to the action, not to the lane: an agent that has
-        # landed is not flying, so this is None for done, error and idle - and it
-        # starts again from zero when the next turn begins.
+        # A lane is either in flight or idle, never both: an action that is running
+        # is not idle, and a lane that has landed is not flying. Exactly one of
+        # these is ever present, which makes the pair unambiguous to read.
         flying = state in ("working", "blocked", "stopping")
         return {
             "slot": slot,
@@ -450,8 +450,7 @@ class Handler(BaseHTTPRequestHandler):
             "state": state,
             "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
             "in_flight_s": round(time.monotonic() - changed, 1) if (flying and changed) else None,
-            # how long since this lane last reported anything at all
-            "idle_s": round(time.time() - updated, 1) if updated else None,
+            "idle_s": None if flying else (round(time.time() - updated, 1) if updated else None),
             "info": lanes.info.get(sid) or {},
         }
 

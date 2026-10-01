@@ -259,14 +259,19 @@ class TestLaneInfo(PanelCase):
         status, _ = self.call("/session/info", {"sessionID": "nobody", "info": {"repo": "x"}})
         self.assertEqual(status, 404)
 
-    def test_lane_carries_timings_for_flight_and_idle(self):
+    def test_a_lane_is_either_in_flight_or_idle_never_both(self):
+        """A running action is not idle, and a landed lane is not flying."""
         self.call("/session/start", {"sessionID": "s"})
         self.call("/session/state", {"sessionID": "s", "state": "working"})
         _, body = self.call("/session/s")
         self.assertIsInstance(body["in_flight_s"], float)
-        self.assertIsInstance(body["idle_s"], float)
+        self.assertIsNone(body["idle_s"])              # in flight, so not idle
         self.assertLess(body["in_flight_s"], 5)
-        self.assertLess(body["idle_s"], 5)
+
+        self.call("/session/state", {"sessionID": "s", "state": "done"})
+        _, body = self.call("/session/s")
+        self.assertIsNone(body["in_flight_s"])          # landed, so not flying
+        self.assertIsInstance(body["idle_s"], float)
 
     def test_info_never_changes_the_painted_state(self):
         """Detail is for reading: it must not make the panel repaint."""
