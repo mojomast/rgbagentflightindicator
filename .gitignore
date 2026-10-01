@@ -1,0 +1,22 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# panel state that must never be committed
+token
+token.txt
+*.log
+watcher.log
+plugin.log
+rgi.json
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

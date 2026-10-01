@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rgbagentflightindicator"
+version = "0.1.0"
+description = "Turn an RGB keyboard into an agent status panel"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "mojomast" }]
+keywords = ["rgb", "keyboard", "agents", "status", "indicator", "openrgb", "opencode"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Hardware",
+]
+
+# hidapi is only needed for the Sinowealth backend; everything else is stdlib.
+[project.optional-dependencies]
+sinowealth = ["hidapi>=0.14"]
+lamparray = ["hidapi>=0.14"]
+all = ["hidapi>=0.14"]
+
+[project.scripts]
+rgi = "rgi.cli:main"
+
+[tool.setuptools]
+packages = ["rgi", "rgi.backends", "rgi.watchers"]
+
+[tool.setuptools.package-data]
+rgi = ["../prompts/*.md", "../plugin/*"]
