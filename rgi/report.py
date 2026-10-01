@@ -112,7 +112,8 @@ class Reporter:
         self.host = host or socket.gethostname()
         self.timeout = min(10.0, max(0.1, float(timeout)))
         self._log = log or self._default_log
-        self._state_dir = state_dir or os.path.join(CONFIG_DIR, "integrations")
+        self._state_dir = (state_dir or os.environ.get("RGI_STATE_DIR")
+                           or os.path.join(CONFIG_DIR, "integrations"))
         self._release_grace = max(0.0, float(release_grace or 0.0))
 
         self.lane: Lane | None = None

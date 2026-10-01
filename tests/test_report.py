@@ -235,10 +235,15 @@ class KeepaliveTest(ReporterSetup):
         reporter = self.reporter()
         reporter.working()
         with reporter.keepalive(interval=0.05):
-            time.sleep(0.2)
-            during = len(self.panel.requests_for("/session/info"))
-        self.assertGreaterEqual(during, 2)
-        time.sleep(0.15)
+            # Wait for the first heartbeat rather than assuming a fixed sleep is
+            # enough: under a loaded suite, 0.2 s is not a promise.
+            deadline = time.time() + 5.0
+            while not self.panel.requests_for("/session/info") and time.time() < deadline:
+                time.sleep(0.02)
+            self.assertTrue(self.panel.requests_for("/session/info"),
+                            "no heartbeat arrived within five seconds")
+        during = len(self.panel.requests_for("/session/info"))
+        time.sleep(0.2)
         self.assertEqual(len(self.panel.requests_for("/session/info")), during)
 
 

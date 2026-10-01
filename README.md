@@ -118,6 +118,33 @@ in [docs/opencode.md](docs/opencode.md). Doing this **on other machines** — wi
 the install, update and verification steps, and what to say to the agent that does
 it — is [docs/machines.md](docs/machines.md).
 
+## Integrations
+
+Beyond the OpenCode watcher, the panel can be driven by the harnesses and
+frameworks that agents actually run in. They all speak the same
+[Reporter](docs/integrations.md) — one lane per root workflow, attention waits
+counted by id, ordered events, explicit free-slot claims — so they behave the
+same way, and none of them needs a framework installed to import:
+
+| integration | how it reports | doc |
+|---|---|---|
+| Claude Code | command hooks installed in `settings.json` | [docs/claude-code.md](docs/claude-code.md) |
+| Gemini CLI | hooks in settings, or packaged as an extension | [docs/gemini-cli.md](docs/gemini-cli.md) |
+| Pi | a small event-API extension | [docs/pi.md](docs/pi.md) |
+| GitHub Copilot SDK | an adapter for sessions your application owns | [docs/copilot-sdk.md](docs/copilot-sdk.md) |
+| OpenAI Agents SDK | runner boundaries and lifecycle callbacks | [docs/openai-agents.md](docs/openai-agents.md) |
+| Pydantic AI | run/event hooks, approvals vs background tools | [docs/pydantic-ai.md](docs/pydantic-ai.md) |
+| LangGraph | interrupts, resumption, thread correlation | [docs/langgraph.md](docs/langgraph.md) |
+| CrewAI | crew/flow lifecycle and human feedback | [docs/crewai.md](docs/crewai.md) |
+| Microsoft Agent Framework | middleware and workflow events | [docs/ms-agent.md](docs/ms-agent.md) |
+| ChatGPT and Codex | private stdio MCP adapter | [docs/openai.md](docs/openai.md) |
+
+Two more integrations are displays rather than reporters: a [WLED](docs/wled.md)
+strip is a backend like any keyboard, and [Home Assistant](docs/home-assistant.md)
+gets an aggregate sensor plus transition events for your automations. The
+integration index with the supported-version matrix is
+[docs/integrations.md](docs/integrations.md).
+
 ## Private ChatGPT and Codex testing
 
 Install the optional MCP adapter with `pip install -e '.[openai]'`. It exposes
@@ -149,7 +176,7 @@ rgi status --follow   # reprint on every change
 ```
 
 ```
-rbgafi 0.4.0  http://127.0.0.1:8730
+rbgafi 0.5.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003

@@ -26,6 +26,23 @@ PUBLISHED: dict[str, str] = {
     # the watcher: one file, standard library only, runnable on a machine that has
     # installed nothing - which is how a remote machine reports tokens and context
     "rgi-watch.py": os.path.join(ROOT, "rgi", "watchers", "opencode.py"),
+    # integration instructions: a machine can read the page for its runtime
+    # straight from the panel instead of being handed a link to a repository
+    "integrations.md": os.path.join(ROOT, "docs", "integrations.md"),
+    "claude-code.md": os.path.join(ROOT, "docs", "claude-code.md"),
+    "gemini-cli.md": os.path.join(ROOT, "docs", "gemini-cli.md"),
+    "pi.md": os.path.join(ROOT, "docs", "pi.md"),
+    "copilot-sdk.md": os.path.join(ROOT, "docs", "copilot-sdk.md"),
+    "openai-agents.md": os.path.join(ROOT, "docs", "openai-agents.md"),
+    "pydantic-ai.md": os.path.join(ROOT, "docs", "pydantic-ai.md"),
+    "langgraph.md": os.path.join(ROOT, "docs", "langgraph.md"),
+    "crewai.md": os.path.join(ROOT, "docs", "crewai.md"),
+    "ms-agent.md": os.path.join(ROOT, "docs", "ms-agent.md"),
+    "wled.md": os.path.join(ROOT, "docs", "wled.md"),
+    "home-assistant.md": os.path.join(ROOT, "docs", "home-assistant.md"),
+    "openai.md": os.path.join(ROOT, "docs", "openai.md"),
+    # the Pi extension itself, as one file to drop in place
+    "pi-extension.ts": os.path.join(ROOT, "plugin", "pi", "extension.ts"),
 }
 
 

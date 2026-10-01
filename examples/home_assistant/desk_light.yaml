@@ -1,0 +1,56 @@
+# Example: a desk light that reflects RGI panel activity, using service calls.
+#
+# The bridge never touches this light. It only writes sensor.rgi_panel and the
+# rgi_status_changed event; calling a light service is the automation's job.
+# Copy this into automations.yaml (or a package) and point light.desk at yours.
+# See docs/home-assistant.md for the contract and the other examples.
+alias: RGI panel desk light
+description: Colour a desk light from the RGI panel aggregate state.
+mode: restart
+triggers:
+  - trigger: state
+    entity_id: sensor.rgi_panel
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: sensor.rgi_panel
+            state: "attention"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.desk
+            data:
+              brightness_pct: 100
+              rgb_color: [255, 0, 0]
+      - conditions:
+          - condition: state
+            entity_id: sensor.rgi_panel
+            state: "working"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.desk
+            data:
+              brightness_pct: 70
+              rgb_color: [0, 160, 0]
+      - conditions:
+          - condition: state
+            entity_id: sensor.rgi_panel
+            state: "idle"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.desk
+            data:
+              brightness_pct: 20
+              rgb_color: [80, 80, 80]
+    # Anything else is the offline state: the panel could not be read.
+    default:
+      - action: light.turn_on
+        target:
+          entity_id: light.desk
+        data:
+          brightness_pct: 5
+          rgb_color: [255, 160, 0]
