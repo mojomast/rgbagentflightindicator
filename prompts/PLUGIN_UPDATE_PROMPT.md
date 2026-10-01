@@ -17,16 +17,20 @@ There may be three things here, and they update differently:
 
 ### 1. Look at what you have before changing it
 
+**One installation per machine.** If several agents share this one, they must
+share the installation rather than each making their own: two plugins draw two
+sidebar blocks, and two watchers claim the same sessions twice.
+
 ```sh
-ls ~/.config/opencode/plugins/                  # which plugin directories exist?
-rgi status 2>&1 | head -5                        # does the client work, and can it see the panel?
+rgi doctor                       # panel, token, watcher, plugin, deps - in one command
+ls ~/.config/opencode/plugins/   # which plugin directories exist?
+rgi status 2>&1 | head -5        # does the client work, and can it see the panel?
 ```
 
-**If you have a directory called `keyboard-status`, that is the old plugin** (it
-asks for `LEDD_URL`, logs to `~/keyboard-status/plugin.log`, and labels its block
-"Keyboard (number row)"). The current plugin is a different directory with a
-different id, so install it and **retire the old one** rather than leaving both -
-two plugins would both draw a block in the sidebar.
+- a plugin directory with a `tui.ts` in it: **update it in place**, do not add another
+- `watcher   running (pid N)`: that watcher is this machine's; leave it running
+  (a second `rgi watch` now refuses to start, and says who holds it)
+- a directory called `keyboard-status`: the old plugin, retire it in step 3
 
 ### 2. Update the client, if you use it
 

@@ -36,6 +36,69 @@ DONE_GRACE = 3.0         # a stop this short is not a finished turn
 STALE_DEFAULT = 2 * 3600
 
 LOG_PATH = os.path.join(os.path.expanduser("~"), ".config", "rgi", "watcher.log")
+LOCK_PATH = os.path.join(os.path.expanduser("~"), ".config", "rgi", "watcher.lock")
+
+
+def _pid_alive(pid: int) -> bool:
+    """Is that process still there?
+
+    Deliberately not os.kill(pid, 0): on Windows os.kill does not send a signal,
+    it calls TerminateProcess, so the "is it alive?" probe would kill the very
+    watcher it is asking about. Ask the OS instead.
+    """
+    if os.name == "nt":
+        try:
+            import ctypes
+
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+            STILL_ACTIVE = 259
+            kernel32 = ctypes.windll.kernel32
+            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+            if not handle:
+                return False
+            try:
+                code = ctypes.c_ulong()
+                if kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+                    return code.value == STILL_ACTIVE
+                return False
+            finally:
+                kernel32.CloseHandle(handle)
+        except Exception:
+            return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def acquire_single_instance(path: str = LOCK_PATH) -> str | None:
+    """Claim the machine's watcher slot, or report who already holds it.
+
+    Two watchers on one machine fight: each claims its own lanes for the same
+    sessions, so the panel ends up with duplicates and the keyboard with lamps
+    nobody can explain. Better to refuse the second one loudly.
+    """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if os.path.exists(path):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                holder = fh.read().strip()
+            pid = int(holder.split()[0])
+        except (OSError, ValueError):
+            pid = None
+        if pid and _pid_alive(pid):
+            return holder
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(f"{os.getpid()} (since {time.strftime('%Y-%m-%d %H:%M:%S')})")
+    return None
+
+
+def release_instance(path: str = LOCK_PATH) -> None:
+    try:
+        os.remove(path)
+    except OSError:
+        pass
 
 
 def say(message: str) -> None:
@@ -401,6 +464,19 @@ class Watcher:
                 say(f"[again] {sid[-12:]} -> {info.get('key')}  ({state})")
 
     def run(self) -> None:
+        holder = acquire_single_instance()
+        if holder:
+            say(f"another watcher already owns this machine's lanes: {holder}")
+            say("not starting a second one - two would claim the same sessions twice.")
+            say("stop that one first, or run `rgi doctor` to see what is installed.")
+            return
+
+        try:
+            self._run()
+        finally:
+            release_instance()
+
+    def _run(self) -> None:
         say(f"watching OpenCode; panel at {self.url}")
         say(f"subagents: {'included' if self.include_subagents else 'ignored'}"
             f"   lanes freed after {self.stale / 60:.0f} min idle")

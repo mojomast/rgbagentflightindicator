@@ -268,6 +268,72 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_doctor(args: argparse.Namespace) -> int:
+    """What is installed on this machine, and what is fighting what.
+
+    The question this answers: several agents share one machine, and none of them
+    should install a second copy of anything.
+    """
+    import glob
+    from .daemon import resolve_token
+    from .watchers.opencode import LOCK_PATH
+
+    problems = 0
+    print(f"rbgafi {__version__} - this machine")
+
+    # the panel
+    token = resolve_token(args.token)
+    try:
+        data = _panel_get(args.url, "/status", token)
+        devices = data.get("devices") or []
+        print(f"  panel     reachable at {args.url}: "
+              f"{len(devices)} device(s), {len(data.get('sessions') or {})} lane(s)")
+        for device in devices:
+            print(f"              {device.get('label')}: {device.get('lamps')} lamps")
+    except Exception as exc:
+        print(f"  panel     NOT reachable at {args.url} ({exc})")
+        problems += 1
+
+    # the token
+    print(f"  token     {'found' if token else 'MISSING'} "
+          f"(--token, RGI_TOKEN, or ~/.config/rgi/token)")
+
+    # the watcher: one per machine, and the lock says who has it
+    try:
+        with open(LOCK_PATH, encoding="utf-8") as fh:
+            holder = fh.read().strip()
+        print(f"  watcher   running (pid {holder.split()[0]})")
+    except OSError:
+        print("  watcher   not running - start one with `rgi watch`")
+
+    # the plugin: exactly one, or the sidebar draws two blocks
+    config = os.path.join(os.path.expanduser("~"), ".config", "opencode")
+    found = []
+    for path in glob.glob(os.path.join(config, "plugins", "*")):
+        if os.path.isdir(path) and glob.glob(os.path.join(path, "tui.ts")):
+            found.append(os.path.basename(path))
+    retired = [name for name in found if "retired" in name or "bak" in name]
+    live = [name for name in found if name not in retired]
+    print(f"  plugin    {len(live)} live plugin director{'y' if len(live) == 1 else 'ies'}"
+          f"{': ' + ', '.join(live) if live else ''}")
+    for name in retired:
+        print(f"              {name}: retired (fine to keep, but it is not loaded)")
+    if len(live) > 1:
+        print("              WARNING: more than one plugin would draw a sidebar block each")
+        problems += 1
+    if not live:
+        print("              none installed - see /files/PLUGIN_SETUP_PROMPT.md")
+    deps = os.path.join(config, "node_modules", "@opentui", "solid")
+    print(f"  deps      {'present' if os.path.isdir(deps) else 'MISSING'} "
+          f"(@opentui/solid under {config})")
+    if not os.path.isdir(deps) and live:
+        problems += 1
+
+    print()
+    print("  nothing to do" if not problems else f"  {problems} thing(s) need attention")
+    return 0 if not problems else 1
+
+
 def cmd_push(args: argparse.Namespace) -> int:
     """Set one lane by hand - handy for testing an indicator or scripting."""
     payload = {"agent": args.agent, "sessionID": args.session, "label": args.label}
@@ -332,6 +398,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--quiet-ms", type=int, default=900)
     s.add_argument("--verbose", action="store_true")
     s.set_defaults(func=cmd_daemon)
+
+    dr = sub.add_parser("doctor", help="what is installed on this machine, and what conflicts")
+    dr.add_argument("--url", default=DEFAULT_URL)
+    dr.add_argument("--token", default=None)
+    dr.set_defaults(func=cmd_doctor)
 
     st = sub.add_parser("status", help="show every lane and every device")
     st.add_argument("--url", default=DEFAULT_URL)

@@ -122,6 +122,36 @@ order because the later ones cannot work while an earlier one is broken.
 | watcher silent | check it is running; a refused lane is now logged with the reason |
 | block empty, log healthy | no lanes are claimed — that is a panel-side question |
 
+## Several agents on one machine
+
+Agents sharing a machine must share the *installation*, not each make their own:
+
+- **one plugin directory.** Two plugins draw two sidebar blocks, and one of them
+  will be stale. `rgi doctor` lists what is there and says whether more than one
+  is live.
+- **one watcher.** A second `rgi watch` refuses to start and names the process
+  holding the slot (`~/.config/rgi/watcher.lock`), because two watchers claim the
+  same sessions twice — the panel then shows duplicate lanes that nobody can
+  explain.
+- **one token**, in `~/.config/rgi/token`, shared by every agent on the box.
+
+`rgi doctor` answers the whole question in one command:
+
+```
+rbgafi 0.4.0 - this machine
+  panel     reachable at http://127.0.0.1:8730: 1 device(s), 3 lane(s)
+  token     found (--token, RGI_TOKEN, or ~/.config/rgi/token)
+  watcher   running (pid 45680)
+  plugin    1 live plugin directory: rgi-panel
+              keyboard-status.retired: retired (fine to keep, but it is not loaded)
+  deps      present (@opentui/solid under ~/.config/opencode)
+```
+
+Before installing anything, an agent is told to run it (or, if `rgi` is not
+installed yet, to look at the plugin directory by hand) and to reuse what it
+finds. Both prompts lead with that, and the plugin-related prompts also forbid
+hand-editing local copies — changes come from the panel's `/files` endpoint.
+
 ## Handing this to an agent
 
 Both prompts are published, so you never paste a wall of text:

@@ -12,6 +12,28 @@ An RGB keyboard is being used as an agent annunciator panel, driven by a small
 HTTP service. The plugin shows the same information inside OpenCode: a block in
 the session sidebar, and a compact strip on the home footer.
 
+### 0. Find out whether this machine already has it
+
+**Several agents can share one machine, and none of them should install a second
+copy of anything.** Two plugins draw two sidebar blocks; two watchers claim the
+same sessions twice and the panel fills with lanes nobody can explain. Look
+first:
+
+```sh
+rgi doctor                       # the whole picture: panel, token, watcher, plugin
+ls ~/.config/opencode/plugins/   # plugin directories
+```
+
+Read it before touching anything:
+
+| what you see | what to do |
+|---|---|
+| a plugin directory containing `tui.ts` | **use and update that one** - do not create another |
+| `watcher   running (pid N)` | a watcher already runs here; leave it, do not start a second |
+| a directory named `keyboard-status` | the old plugin: retire it in step 2 |
+| `rgi` not found | install it; `doctor` needs the client, so fall back to the two commands above |
+| `deps MISSING` | install the peer packages in step 1 |
+
 ### 1. Install the peer dependencies
 
 ```sh
