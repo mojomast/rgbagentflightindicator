@@ -15,6 +15,9 @@ Two files, in OpenCode's config directory:
 on Windows). OpenCode discovers plugins by directory, so nothing goes in
 `cli.json`.
 
+For doing this **on another machine** — including retiring an older install,
+tokens, and what to hand an agent — see [machines.md](machines.md).
+
 ## Installing it
 
 ```sh

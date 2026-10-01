@@ -107,7 +107,9 @@ cp <repo>/plugin/*.ts plugins/rgi-panel/
 ```
 
 Details, including the four non-obvious rules of OpenCode's plugin contract, are
-in [docs/opencode.md](docs/opencode.md).
+in [docs/opencode.md](docs/opencode.md). Doing this **on other machines** — with
+the install, update and verification steps, and what to say to the agent that does
+it — is [docs/machines.md](docs/machines.md).
 
 ## Wiring up agents
 
@@ -209,11 +211,22 @@ on.
 | File | What |
 |---|---|
 | [docs/backends.md](docs/backends.md) | the landscape of RGB keyboards, and how to add one |
-| [docs/protocols.md](docs/protocols.md) | the wire formats: Sinowealth, OpenRGB SDK, HID LampArray |
+| [docs/protocols.md](docs/protocols.md) | the wire formats: Sinowealth, EVision, QMK/VIA, OpenRGB, LampArray |
 | [docs/api.md](docs/api.md) | the HTTP API in full |
 | [docs/agents.md](docs/agents.md) | wiring agents, watchers and other tools |
+| [docs/machines.md](docs/machines.md) | running the panel across machines: install, update, verify |
 | [docs/opencode.md](docs/opencode.md) | the OpenCode plugin, and its four sharp edges |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | symptoms, causes, fixes |
+
+Prompts you can hand straight to an agent — they are also published by the panel
+at `GET /files/<name>`, so a remote machine can fetch its own instructions:
+
+| Prompt | For |
+|---|---|
+| [prompts/AGENT_PROMPT.md](prompts/AGENT_PROMPT.md) | any agent that should report its state |
+| [prompts/HERMES_PROMPT.md](prompts/HERMES_PROMPT.md) | an agent that reports *and* reads the lanes |
+| [prompts/PLUGIN_SETUP_PROMPT.md](prompts/PLUGIN_SETUP_PROMPT.md) | a machine with no plugin yet |
+| [prompts/PLUGIN_UPDATE_PROMPT.md](prompts/PLUGIN_UPDATE_PROMPT.md) | a machine that already has one |
 
 ## Tests
 
