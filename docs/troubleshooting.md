@@ -122,6 +122,13 @@ Look at `~/.config/rgi/watcher.log` timestamps: if they stopped, the watcher
 died. If they continue but the panel disagrees, the watcher is not reaching it —
 each entry reports what it sent.
 
+**A subagent is holding its own lamp, or a long-running child vanished from its
+parent's lane.** Both are fixed in the current watcher, and both come from an
+older copy of it: children used to be bound when they appeared between metadata
+refreshes, and they were listed by a record timestamp that does not move while a
+child works. Fetch `rgi-watch.py` from `/files` again, restart it, and any lamp a
+child is holding is handed back on the next pass.
+
 ## Debugging checklist
 
 1. `rgi detect` — is the device there, and how many lamps?

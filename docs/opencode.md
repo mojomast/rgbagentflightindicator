@@ -143,7 +143,12 @@ builds — the plugin's own diagnosis records what the host reports (`mine=0` in
 - **subagents** — only the child sessions that are **currently in flight**, up to
   six, each with its own state mark and output tokens. A finished subagent is
   history, and history in a one-line-per-lane panel is noise; it disappears from
-  the lane the moment it lands.
+  the lane the moment it lands. A subagent **never takes a lamp of its own**: the
+  watcher claims one lane per root session and reports children as metadata, and
+  it classifies a session before binding it, so a child that starts between
+  metadata refreshes cannot grab a lamp — if one ever does, the lamp is handed
+  back on the next pass. (`--include-subagents` asks for the old behaviour: a
+  lamp per child.)
 - **running commands** — the shell commands the lane is running right now, one
   line each (`> bash npm test`), with the command itself rather than the tool
   name. Only shells: a lane reading a file is busy, while a lane running a command

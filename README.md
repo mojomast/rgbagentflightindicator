@@ -141,8 +141,11 @@ same way, and none of them needs a framework installed to import:
 
 Two more integrations are displays rather than reporters: a [WLED](docs/wled.md)
 strip is a backend like any keyboard, and [Home Assistant](docs/home-assistant.md)
-gets an aggregate sensor plus transition events for your automations. The
-integration index with the supported-version matrix is
+gets an aggregate sensor plus transition events for your automations.
+
+Hook-based integrations run through one command, `rgi hook <harness>`, which the
+harness calls with one JSON payload on stdin; the per-harness settings examples
+are on each page. The integration index with the supported-version matrix is
 [docs/integrations.md](docs/integrations.md).
 
 ## Private ChatGPT and Codex testing

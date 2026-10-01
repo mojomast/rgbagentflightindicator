@@ -149,6 +149,7 @@ If you have to go this far, this is the path that worked here:
 | Logitech G LIGHTSYNC | Logi LED SDK | not yet | — |
 | SteelSeries | GameSense HTTP | not yet | easiest of the vendor SDKs |
 | Laptop backlights | Linux LED class | `sysfs` | implemented, untested here |
+| Any WLED strip (ESP32/ESP8266) | WLED JSON API over HTTP, one reserved segment | `wled` | API to firmware source (16.0.1); mock-tested, needs a strip |
 
 ## Contributing a backend
 
