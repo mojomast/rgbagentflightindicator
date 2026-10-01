@@ -157,6 +157,76 @@ def cmd_watch(args: argparse.Namespace) -> int:
     return 0
 
 
+def _panel_get(url: str, path: str, token: str | None, timeout: float = 5.0) -> dict:
+    headers = {}
+    if token:
+        headers["X-LED-Token"] = token
+    req = urllib.request.Request(url.rstrip("/") + path, headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read() or b"{}")
+
+
+def _render_status(data: dict, url: str) -> str:
+    """The lane table, shaped so another agent can read it as easily as a human."""
+    devices = data.get("devices") or []
+    out = [f"rbgafi {__version__}  {url}"]
+    for d in devices:
+        per = "per-key" if d.get("per_lamp") else "single colour"
+        mode = f" {d['mode']}" if d.get("mode") else ""
+        out.append(f"  device {d.get('label','?'):12} {d.get('lamps',0):>4} lamps  "
+                   f"{per}{mode}")
+    sessions = data.get("sessions") or {}
+    if not sessions:
+        out.append("  no lanes claimed")
+        return "\n".join(out)
+
+    # lane -> {device label: lamp name}, so a lane on two keyboards shows both
+    by_device: dict[int, dict[str, str]] = {}
+    for d in devices:
+        for slot, key in enumerate(d.get("lanes") or []):
+            by_device.setdefault(slot, {})[d.get("label", "?")] = key
+
+    out.append("")
+    for sid, info in sorted(sessions.items(), key=lambda kv: kv[1].get("slot", 99)):
+        slot = info.get("slot", "?")
+        where = " ".join(f"{label}={key}" for label, key in by_device.get(slot, {}).items())
+        label = (info.get("label") or sid)[:34]
+        out.append(f"  lane {str(slot):>2}  {info.get('state','?'):8}  {label:34} "
+                   f"[{info.get('host') or '?'}]  {where}  {sid[-12:]}")
+    return "\n".join(out)
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    """Show every lane and every device - the observable side of the panel."""
+    token = args.token or None
+    if args.follow:
+        last = None
+        while True:
+            try:
+                data = _panel_get(args.url, "/status", token)
+                signature = json.dumps(data, sort_keys=True)
+                if signature != last:
+                    last = signature
+                    stamp = time.strftime("%H:%M:%S")
+                    print(f"--- {stamp} ---")
+                    print(_render_status(data, args.url), flush=True)
+            except Exception as exc:
+                print(f"--- {time.strftime('%H:%M:%S')} --- panel unreachable: {exc}",
+                      flush=True)
+                last = None
+            time.sleep(args.interval)
+    try:
+        data = _panel_get(args.url, "/status", token)
+    except Exception as exc:
+        print(f"panel unreachable at {args.url}: {exc}")
+        return 1
+    if args.json:
+        print(json.dumps(data, indent=2))
+    else:
+        print(_render_status(data, args.url))
+    return 0
+
+
 def cmd_push(args: argparse.Namespace) -> int:
     """Set one lane by hand - handy for testing an indicator or scripting."""
     payload = {"agent": args.agent, "sessionID": args.session, "label": args.label}
@@ -215,6 +285,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--quiet-ms", type=int, default=900)
     s.add_argument("--verbose", action="store_true")
     s.set_defaults(func=cmd_daemon)
+
+    st = sub.add_parser("status", help="show every lane and every device")
+    st.add_argument("--url", default=DEFAULT_URL)
+    st.add_argument("--token", default=None)
+    st.add_argument("--json", action="store_true", help="raw /status for scripting")
+    st.add_argument("--follow", action="store_true", help="keep watching, print on change")
+    st.add_argument("--interval", type=float, default=2.0)
+    st.set_defaults(func=cmd_status)
 
     w = sub.add_parser("watch", help="report OpenCode sessions to the panel")
     w.add_argument("--url", default=DEFAULT_URL)

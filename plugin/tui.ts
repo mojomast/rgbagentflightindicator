@@ -34,6 +34,10 @@ const PANEL = process.env.RGI_URL ?? process.env.LEDD_URL ?? "http://127.0.0.1:8
 const POLL_MS = 1000
 const LOG = join(CONFIG, "plugin.log")
 
+// What the sidebar block calls itself. Keep in step with VERSION_LABEL in
+// rgi/__init__.py and the version in pyproject.toml.
+const VERSION_LABEL = "rbgafi v0.3"
+
 function loadToken(): string {
   if (process.env.RGI_TOKEN) return process.env.RGI_TOKEN
   if (process.env.LEDD_TOKEN) return process.env.LEDD_TOKEN
@@ -153,21 +157,21 @@ export default {
       l.host ? trim(l.host, HOST_W).padEnd(HOST_W) : " ".repeat(HOST_W)
 
     const sidebarText = (sessionID?: string) => {
-      if (!online()) return "\u2328 Panel: offline"
+      if (!online()) return `\u2328 ${VERSION_LABEL} \u00b7 offline`
       const all = lanes()
-      if (!all.length) return "\u2328 Panel (no lanes claimed)"
+      if (!all.length) return `\u2328 ${VERSION_LABEL}\n  no lanes claimed`
       const lines = all.map((l) => {
         const here = sessionID && l.id === sessionID
         const mark = MARKS[l.state ?? "idle"] ?? "?"
         return `${here ? "\u25B8" : " "} ${String(l.key ?? "?").padStart(2)} ${mark} ${host(l)} ${name(l)}`
       })
-      return "\u2328 Panel\n" + lines.join("\n")
+      return `\u2328 ${VERSION_LABEL}\n` + lines.join("\n")
     }
 
     const footerText = () => {
-      if (!online()) return "\u2328 offline"
+      if (!online()) return `\u2328 ${VERSION_LABEL} offline`
       const all = lanes()
-      if (!all.length) return "\u2328 \u2013"
+      if (!all.length) return `\u2328 ${VERSION_LABEL}`
       return "\u2328 " + all.map((l) => `${l.key ?? "?"}${MARKS[l.state ?? "idle"] ?? "?"}`).join(" ")
     }
 

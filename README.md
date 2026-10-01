@@ -111,15 +111,32 @@ in [docs/opencode.md](docs/opencode.md).
 
 ## Wiring up agents
 
-Give any agent [prompts/AGENT_PROMPT.md](prompts/AGENT_PROMPT.md). It is
-self-contained: claim a lamp, report transitions, release it. The daemon
-publishes its own copy at `GET /files/AGENT_PROMPT.md`, so you can hand over one
-line instead of a wall of text.
+Give any agent [prompts/AGENT_PROMPT.md](prompts/AGENT_PROMPT.md) — or
+[prompts/HERMES_PROMPT.md](prompts/HERMES_PROMPT.md), which also covers *reading*
+the panel. It is self-contained: claim a lamp, report transitions, release it. The
+daemon publishes its own copy at `GET /files/AGENT_PROMPT.md`, so you can hand
+over one line instead of a wall of text.
 
 ```sh
 curl -sS -X POST http://127.0.0.1:8730/session/start \
   -H "Content-Type: application/json" -H "X-LED-Token: $TOKEN" \
   -d '{"agent":"my-service","sessionID":"nightly-1","label":"nightly sync"}'
+```
+
+And anyone can see the whole fleet, from a shell or from an agent:
+
+```sh
+rgi status            # lane, state, label, host, and which lamp each one holds
+rgi status --json     # the same, for scripting
+rgi status --follow   # reprint on every change
+```
+
+```
+rbgafi 0.3.0  http://127.0.0.1:8730
+  device evision       126 lamps  per-key
+
+  lane  0  done      Greeting                           [workstation]  evision=led0  ses_agent0003
+  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=led2  ses_agent0001
 ```
 
 ## The HTTP API

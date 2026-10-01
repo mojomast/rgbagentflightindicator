@@ -2,6 +2,40 @@
 
 Anything that can send an HTTP POST can have a lamp. Three ways, easiest first.
 
+## 0. Reading the panel (observability)
+
+Before reporting anything, it helps to be able to *see* the lanes. Three ways, in
+order of convenience:
+
+```sh
+rgi status                       # a table: lane, state, label, host, which lamp
+rgi status --json                # the raw /status, for scripting
+rgi status --follow              # reprint whenever anything changes
+```
+
+```
+rbgafi 0.3.0  http://127.0.0.1:8730
+  device evision       126 lamps  per-key
+
+  lane  0  done      Greeting                           [workstation]  evision=led0  ses_agent0003
+  lane  1  done      QMK host-side RGB control protocol [workstation]  evision=led1  ses_agent0002
+  lane  2  working   Keyboard status: LED daemon + open [workstation]  evision=led2  ses_agent0001
+```
+
+The same data is on the API (`GET /status`, `GET /slots`, `GET /session/<id>`), so
+an agent can act on it. The most useful query for an orchestrator is **which lanes
+are `blocked`** — those are the ones blinking red because something is waiting on
+a human:
+
+```python
+data = GET /status
+waiting = {sid: i for sid, i in data["sessions"].items() if i["state"] == "blocked"}
+```
+
+Prefer that to interrupting the human yourself: it is what the panel is for.
+[prompts/HERMES_PROMPT.md](../prompts/HERMES_PROMPT.md) is written for an agent
+that both reports and observes.
+
 ## 1. Hand the agent the prompt
 
 [prompts/AGENT_PROMPT.md](../prompts/AGENT_PROMPT.md) is self-contained: how to
@@ -57,11 +91,11 @@ lands it when the turn ends, and releases it after two hours of quiet. It logs
 every decision to `~/.config/rgi/watcher.log`:
 
 ```
-[bind] doSZ9cWtgI47 -> 1  (in flight)
-[land] doSZ9cWtgI47 -> 1  (turn finished)
-[go]   doSZ9cWtgI47 -> 1  (working again)
-[hold] doSZ9cWtgI47 -> 1  (needs you)
-[free] doSZ9cWtgI47 -> 1  (idle > 120 min)
+[bind] ses_agent0001 -> 1  (in flight)
+[land] ses_agent0001 -> 1  (turn finished)
+[go]   ses_agent0001 -> 1  (working again)
+[hold] ses_agent0001 -> 1  (needs you)
+[free] ses_agent0001 -> 1  (idle > 120 min)
 ```
 
 Copy the shape for anything else with a pollable status: a CI runner, a training

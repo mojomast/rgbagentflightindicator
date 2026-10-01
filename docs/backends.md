@@ -18,7 +18,11 @@ first for a given brand, and how to write a backend when nothing fits.
 2. **Windows 11 Dynamic Lighting sees it.** Devices implementing HID
    *LampArray* (USB usage page `0x59`) appear under Settings → Personalization →
    Dynamic Lighting. That is an open standard, so it works without vendor code on
-   any OS with a LampArray driver. `rgi detect --backend lamparray`.
+   any OS with a LampArray driver.
+   **A `lamparray` backend is designed but not implemented yet** — the protocol is
+   written up in [protocols.md](protocols.md#hid-lamparray-usage-page-0x59), but
+   `rgi` cannot drive these boards today. If yours is one, that is a
+   well-specified place to start.
 
 3. **It is a QMK/VIA board.** QMK speaks a documented raw-HID
    [VIA protocol](https://caniusevia.com/docs/specification/) where per-key

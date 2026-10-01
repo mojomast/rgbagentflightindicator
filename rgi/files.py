@@ -20,6 +20,7 @@ PUBLISHED: dict[str, str] = {
     "tui.ts": os.path.join(ROOT, "plugin", "tui.ts"),
     # instructions
     "AGENT_PROMPT.md": os.path.join(ROOT, "prompts", "AGENT_PROMPT.md"),
+    "HERMES_PROMPT.md": os.path.join(ROOT, "prompts", "HERMES_PROMPT.md"),
     "PLUGIN_SETUP_PROMPT.md": os.path.join(ROOT, "prompts", "PLUGIN_SETUP_PROMPT.md"),
     "PLUGIN_UPDATE_PROMPT.md": os.path.join(ROOT, "prompts", "PLUGIN_UPDATE_PROMPT.md"),
 }
