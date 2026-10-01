@@ -216,7 +216,9 @@ not lost — it simply has no line of its own. Partial updates merge: sending
 are scarce. List it under its parent's `children` instead, with its own `state`,
 and it appears indented when the human uncollapses that lane.
 
-Where the human sees it: **`alt+l`** in OpenCode toggles lane details, and
-`/lanes` does the same from the command palette.
+Where the human sees it: clicking a lane in OpenCode's sidebar expands it, and
+clicking the block's title expands or collapses every lane. `alt+l` and `/lanes`
+are meant to do the same, but the keymap registers no command on current builds —
+the plugin's log records what the host reports.
 
 ## PASTE TO HERE
