@@ -6,6 +6,7 @@ malformed input is refused instead of silently eating a lamp.
 """
 
 import json
+import os
 import threading
 import unittest
 import urllib.error
@@ -303,6 +304,69 @@ class TestLaneInfo(PanelCase):
         self.call("/session/info", {"sessionID": "s", "info": {"repo": "x"}})
         self.call("/session/end", {"sessionID": "s"})
         self.assertNotIn("s", self.lanes.info)
+
+
+class TestLanePolicy(unittest.TestCase):
+    """Which agent gets which lane: configured, and what happens when it is taken."""
+
+    def setUp(self):
+        from rgi.daemon import Daemon, Device, Lanes
+        from rgi.backends.dummy import DummyBackend
+
+        self.backend = DummyBackend(count=8)
+        self.backend.open()
+        self.lanes = Lanes(count=8)
+        self.device = Device(self.backend, pool=list(range(8)), label="dummy")
+        self.daemon = Daemon([self.device], self.lanes, quiet=False,
+                             lane_map={"hermes-3": 5, "opencode": 1})
+
+    def claim(self, agent, ident=None, slot=None):
+        payload = {"agent": agent, "sessionID": agent + (ident or ""), "label": "x"}
+        if ident:
+            payload["ident"] = ident
+        if slot is not None:
+            payload["slot"] = slot
+        slot_used = self.lanes.claim(
+            payload["sessionID"], agent, "x", "host", slot, ident,
+            None if slot is not None else self.daemon.lane_map.get(ident or agent),
+        )
+        return slot_used
+
+    def test_an_ident_gets_its_configured_lane(self):
+        self.assertEqual(self.claim("agent", ident="hermes-3"), 5)
+
+    def test_an_agent_name_can_be_mapped_too(self):
+        self.assertEqual(self.claim("opencode"), 1)
+
+    def test_unmapped_agents_take_the_first_free_lane(self):
+        self.assertEqual(self.claim("whoever"), 0)
+
+    def test_a_mapped_lane_that_is_taken_falls_back(self):
+        self.assertEqual(self.claim("agent", ident="hermes-3"), 5)
+        # same policy, different session: 5 is gone, so take a free lane
+        self.lanes.release("agenthermes-3")
+        self.assertEqual(self.claim("someone", ident="hermes-3"), 5)
+
+    def test_an_explicit_slot_still_wins_over_a_policy(self):
+        self.assertEqual(self.lanes.claim("a", "agent", "x", "h", 7, "hermes-3", 5), 7)
+
+    def test_lane_map_loader_reads_a_file_and_ignores_junk(self):
+        import json
+        import tempfile
+        from rgi.daemon import load_lane_map
+
+        path = os.path.join(tempfile.gettempdir(), "rgi-lane-map-test.json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({"hermes-3": 5, "bad": "not a number", "seven": "7"}, fh)
+        policy = load_lane_map(path)
+        self.assertEqual(policy["hermes-3"], 5)
+        self.assertEqual(policy["seven"], 7)          # numeric strings are fine
+        self.assertNotIn("bad", policy)               # junk is skipped, not fatal
+        os.remove(path)
+
+    def test_lane_map_loader_survives_a_missing_file(self):
+        from rgi.daemon import load_lane_map
+        self.assertEqual(load_lane_map(os.path.join("nowhere", "nope.json")), {})
 
 
 if __name__ == "__main__":
