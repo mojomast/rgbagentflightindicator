@@ -568,7 +568,9 @@ class Watcher:
         status = self.get("/status")
         if status is None:
             return
-        live = set((status.get("sessions") or {}).keys())
+        sessions = status.get("sessions") or {}
+        live = set(sessions.keys())
+        self.name_lanes(sessions)
         for sid, info in list(self.bound.items()):
             if info.get("ignored") or info.get("slot") is None or sid in live:
                 continue
@@ -585,6 +587,25 @@ class Watcher:
             if self.set_state(sid, state):
                 info["state"] = state
                 say(f"[again] {sid[-12:]} -> {info.get('key')}  ({state})")
+
+    def name_lanes(self, sessions: dict) -> None:
+        """Give a lane this watcher already owns the machine's name.
+
+        A lane is named when it is created, and a re-claim never renames one - so
+        a machine that updates its watcher keeps its old, nameless lanes until the
+        daemon restarts. This adopts them instead. A lane whose agent was given a
+        personal name is left alone, and a child is never named: children do not
+        hold lanes.
+        """
+        for sid, info in list(self.bound.items()):
+            if info.get("ignored"):
+                continue
+            lane = sessions.get(sid)
+            if not isinstance(lane, dict) or lane.get("ident"):
+                continue
+            if self.post("/session/info", {"sessionID": sid,
+                                           "ident": self.ident}).get("ok"):
+                say(f"[name]  {sid[-12:]} -> {self.ident}")
 
     def run(self) -> None:
         holder = acquire_single_instance()
