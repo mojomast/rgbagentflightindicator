@@ -8,6 +8,7 @@ before it binds, and hands back a lamp if it ever bound one first.
 
 from __future__ import annotations
 
+import time
 import unittest
 
 from rgi.watchers import opencode
@@ -85,6 +86,41 @@ class ClassifyBeforeBindTest(unittest.TestCase):
         watcher.classify_new({ROOT})
         self.assertEqual(watcher.refreshes, 1)
         self.assertFalse(watcher.parents.get(ROOT))
+
+
+class ChildListingTest(unittest.TestCase):
+    """What an uncollapsed lane shows: in-flight children, and no ghosts."""
+
+    def watcher_with(self, *, active: bool, seen_ago: float, updated_ago: float):
+        watcher = FakeWatcher([[]])
+        watcher.children = {ROOT: [CHILD]}
+        watcher._running = {CHILD} if active else set()
+        watcher.records[CHILD] = {
+            "id": CHILD, "title": "a long child task", "tokens": {"output": 7},
+            "time": {"updated": (time.time() - updated_ago) * 1000},
+        }
+        watcher._child_seen[CHILD] = time.time() - seen_ago
+        watcher._context = lambda sid, now: {}          # not the subject here
+        watcher._running_tools = lambda sid, now: []
+        return watcher
+
+    def test_a_long_running_child_stays_in_flight(self):
+        # Active now, and its record has not moved for an hour - the old filter
+        # used that record and dropped it, which is exactly the bug.
+        watcher = self.watcher_with(active=True, seen_ago=0, updated_ago=3600)
+        info = watcher._lane_info(ROOT, time.time())
+        self.assertEqual([c["id"] for c in info["children"]], [CHILD])
+
+    def test_a_finished_child_drops_out_after_the_grace(self):
+        watcher = self.watcher_with(active=False, seen_ago=opencode.CHILD_GRACE + 60,
+                                    updated_ago=10)
+        info = watcher._lane_info(ROOT, time.time())
+        self.assertEqual(info["children"], [])
+
+    def test_a_child_that_just_stopped_lingers_briefly(self):
+        watcher = self.watcher_with(active=False, seen_ago=5, updated_ago=5)
+        info = watcher._lane_info(ROOT, time.time())
+        self.assertEqual([c["id"] for c in info["children"]], [CHILD])
 
 
 class ReleaseSubagentTest(unittest.TestCase):

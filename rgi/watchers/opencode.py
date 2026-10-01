@@ -37,6 +37,7 @@ SESSION_POLL = 20.0      # how often to refresh titles and last-used times
 DONE_GRACE = 3.0         # a stop this short is not a finished turn
 STALE_DEFAULT = 2 * 3600
 HEARTBEAT = 10.0          # seconds between reports for a lane that is busy
+CHILD_GRACE = 120.0       # a child stays "in flight" this long after it was last active
 
 STATE_DIR = os.path.join(os.path.expanduser("~"), ".config", "rgi")
 LOG_PATH = os.path.join(STATE_DIR, "watcher.log")
@@ -164,6 +165,7 @@ class Watcher:
         self._info_time: dict[str, float] = {}
         self._tools_cache: dict[str, tuple[float, list]] = {}
         self._running: set[str] = set()
+        self._child_seen: dict[str, float] = {}   # child id -> last time it was active
         self._attention_detail: dict[str, dict] = {}
 
     # -- HTTP -------------------------------------------------------------
@@ -471,13 +473,13 @@ class Watcher:
 
         kids = []
         for child in self.children.get(sid, []):
-            # "in flight" means OpenCode says it is running *and* it has been heard
-            # from recently: the active list alone is not enough, and listing
-            # twenty finished subagents is exactly the noise this avoids
-            if child not in self._running:
-                continue
-            last = self.updated.get(child) or 0.0
-            if last and now - last > 600:
+            # "In flight" is the active list, or a short grace after it: a child
+            # must not flicker between polls. It deliberately does *not* use the
+            # child's record timestamp - that does not move while a child works,
+            # so a long run used to drop out of its parent's detail as if it had
+            # finished.
+            seen = self._child_seen.get(child) or 0.0
+            if child not in self._running and now - seen > CHILD_GRACE:
                 continue
             if len(kids) >= 6:
                 break
@@ -508,6 +510,9 @@ class Watcher:
         """
         now = time.time()
         self._running = running
+        for child in running:
+            if self.parents.get(child):
+                self._child_seen[child] = now
         for sid, lane in list(self.bound.items()):
             if lane.get("ignored"):
                 continue
