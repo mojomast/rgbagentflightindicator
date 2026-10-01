@@ -18,11 +18,16 @@ def _registry():
     from .openrgb import OpenRGBBackend
     from .sinowealth import SinowealthBackend
     from .sysfs import SysfsBackend
+    from .wled import WledBackend
 
     out = {
         "dummy": DummyBackend,
         "openrgb": OpenRGBBackend,
         "sinowealth": SinowealthBackend,
+        # a configured WLED strip is an explicit choice for a pixel panel, so it
+        # beats the generic sysfs fallback (true whenever any LED-class device
+        # exists) but not a real keyboard detected by its own protocol
+        "wled": WledBackend,
         "sysfs": SysfsBackend,
     }
     try:                                    # optional, see docs/backends.md

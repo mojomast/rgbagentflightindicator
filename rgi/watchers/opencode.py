@@ -37,6 +37,7 @@ SESSION_POLL = 20.0      # how often to refresh titles and last-used times
 DONE_GRACE = 3.0         # a stop this short is not a finished turn
 STALE_DEFAULT = 2 * 3600
 HEARTBEAT = 10.0          # seconds between reports for a lane that is busy
+CHILD_GRACE = 120.0       # a child stays "in flight" this long after it was last active
 
 STATE_DIR = os.path.join(os.path.expanduser("~"), ".config", "rgi")
 LOG_PATH = os.path.join(STATE_DIR, "watcher.log")
@@ -150,6 +151,7 @@ class Watcher:
         self.ident = resolve_ident(ident)
         self.bound: dict[str, dict] = {}
         self.parents: dict[str, str | None] = {}
+        self._classified: set[str] = set()   # sessions we have asked metadata about
         self.titles: dict[str, str] = {}
         self.updated: dict[str, float] = {}
         self.records: dict[str, dict] = {}          # sessionID -> record from /api/session
@@ -163,6 +165,7 @@ class Watcher:
         self._info_time: dict[str, float] = {}
         self._tools_cache: dict[str, tuple[float, list]] = {}
         self._running: set[str] = set()
+        self._child_seen: dict[str, float] = {}   # child id -> last time it was active
         self._attention_detail: dict[str, dict] = {}
 
     # -- HTTP -------------------------------------------------------------
@@ -286,6 +289,40 @@ class Watcher:
             parent = s.get("parentID")
             if parent:
                 self.children.setdefault(parent, []).append(sid)
+
+    def classify_new(self, running: set[str]) -> None:
+        """Ask for metadata before binding a session we have never seen.
+
+        A subagent can start between two metadata refreshes. Without this the
+        watcher would see an unknown active session, bind it as a root, and the
+        child would keep a lamp until it went stale - a lamp taken from real
+        work by something that is only metadata under its parent's lane. One
+        extra ask covers a whole burst of new sessions, and each session is
+        asked about once.
+        """
+        fresh = [sid for sid in running
+                 if sid not in self.bound and sid not in self.parents
+                 and sid not in self._classified]
+        if not fresh:
+            return
+        if len(self._classified) > 4096:
+            self._classified.clear()
+        self._classified.update(fresh)
+        self.refresh_metadata()
+
+    def release_subagents(self) -> None:
+        """A lane that turns out to be a subagent gives its lamp back.
+
+        This is the other half of the race: a child bound before its parentage
+        was known, or one whose record only appeared later. On the next pass the
+        metadata says what it is, and the lamp is returned.
+        """
+        if self.include_subagents:
+            return
+        for sid, info in list(self.bound.items()):
+            if info.get("ignored") or not self.parents.get(sid):
+                continue
+            self.free(sid, "subagent - children are metadata, not lanes")
 
     # -- the detail the sidebar shows when a lane is uncollapsed ----------
     def _repo(self, directory: str | None) -> dict:
@@ -436,13 +473,13 @@ class Watcher:
 
         kids = []
         for child in self.children.get(sid, []):
-            # "in flight" means OpenCode says it is running *and* it has been heard
-            # from recently: the active list alone is not enough, and listing
-            # twenty finished subagents is exactly the noise this avoids
-            if child not in self._running:
-                continue
-            last = self.updated.get(child) or 0.0
-            if last and now - last > 600:
+            # "In flight" is the active list, or a short grace after it: a child
+            # must not flicker between polls. It deliberately does *not* use the
+            # child's record timestamp - that does not move while a child works,
+            # so a long run used to drop out of its parent's detail as if it had
+            # finished.
+            seen = self._child_seen.get(child) or 0.0
+            if child not in self._running and now - seen > CHILD_GRACE:
                 continue
             if len(kids) >= 6:
                 break
@@ -473,6 +510,9 @@ class Watcher:
         """
         now = time.time()
         self._running = running
+        for child in running:
+            if self.parents.get(child):
+                self._child_seen[child] = now
         for sid, lane in list(self.bound.items()):
             if lane.get("ignored"):
                 continue
@@ -583,6 +623,10 @@ class Watcher:
             self.warned = False
 
             running = set((active.get("data") or {}).keys())
+            # Classify before binding, and hand back any lane that turned out to
+            # be a child: subagents are metadata, never lamps.
+            self.classify_new(running)
+            self.release_subagents()
             attention = self.attention()
             self.push_info(running)
 

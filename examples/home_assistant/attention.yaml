@@ -1,0 +1,25 @@
+# Example: notify when an agent is waiting for a human.
+#
+# The bridge fires rgi_status_changed with the same payload it posts to
+# sensor.rgi_panel, so an event trigger can act on the transition itself.
+# Replace the persistent notification with e.g. notify.mobile_app_<device>
+# if you route notifications to a phone. See docs/home-assistant.md.
+alias: RGI attention notification
+description: Notify when an RGI lane is blocked or failed.
+mode: queued
+max: 10
+triggers:
+  - trigger: event
+    event_type: rgi_status_changed
+    event_data:
+      state: attention
+conditions: []
+actions:
+  - action: notify.persistent_notification
+    data:
+      title: An agent needs attention
+      message: >-
+        {% set sessions = state_attr('sensor.rgi_panel', 'sessions') or [] -%}
+        {% set waiting = sessions | selectattr('state', 'in', ['blocked', 'error']) | list -%}
+        {% for s in waiting %}{{ s.label or s.name }} (lane {{ s.slot }}, {{ s.state }}){% if not loop.last %}; {% endif %}{% endfor %}
+        - {{ state_attr('sensor.rgi_panel', 'total') or 0 }} session(s) on the panel.

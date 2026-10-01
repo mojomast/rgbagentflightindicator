@@ -13,7 +13,17 @@ md = open(PROMPT, encoding="utf-8").read()
 blocks = re.findall(r"```ts\n(.*?)```", md, re.S)
 print(f"found {len(blocks)} ```ts blocks in the prompt")
 
+if not blocks:
+    # The prompt used to embed the two plugin files verbatim. It now fetches
+    # them from /files instead, so there is nothing to compare - say that,
+    # rather than printing "in sync", which would be true only by accident.
+    print("the prompt fetches the plugin from /files; nothing embedded to check")
+    raise SystemExit(0)
+
 names = ["index.ts", "tui.ts"]
+if len(blocks) < len(names):
+    print(f"*** EXPECTED at least {len(names)} blocks, found {len(blocks)}")
+    raise SystemExit(1)
 ok = True
 # The last two blocks are the file contents; an earlier snippet shows the two
 # lines a remote install has to edit.

@@ -1,0 +1,44 @@
+# Example RGI dashboard for Home Assistant (YAML-mode Lovelace).
+#
+# The bridge publishes exactly one entity, sensor.rgi_panel:
+#   state:      attention | working | idle | offline
+#   attributes: total, counts.{idle,working,blocked,done,error,other}, sessions
+# Every session entry carries key, name, state, slot and label - nothing else.
+#
+# Use this as a YAML-mode dashboard, or copy the view into one that already
+# exists. See docs/home-assistant.md for setup and the full contract.
+title: Agent panel
+views:
+  - title: Agents
+    path: agents
+    icon: mdi:robot
+    badges:
+      - entity: sensor.rgi_panel
+    cards:
+      - type: markdown
+        title: Panel
+        content: |
+          {% set counts = state_attr('sensor.rgi_panel', 'counts') or {} %}
+          **{{ states('sensor.rgi_panel') }}** - {{ state_attr('sensor.rgi_panel', 'total') or 0 }} session(s)
+
+          | state | count |
+          | --- | --- |
+          {% for name in ['working', 'blocked', 'done', 'error', 'idle', 'other'] -%}
+          | {{ name }} | {{ counts.get(name, 0) }} |
+          {% endfor %}
+      - type: markdown
+        title: Sessions
+        content: |
+          {% set sessions = state_attr('sensor.rgi_panel', 'sessions') or [] %}
+          {% if sessions -%}
+          {% for s in sessions -%}
+          - **{{ s.label or s.name }}** - `{{ s.state }}` (lane {{ s.slot }})
+          {% endfor -%}
+          {% else -%}
+          No sessions right now.
+          {% endif %}
+      - type: entities
+        title: Aggregate
+        entities:
+          - entity: sensor.rgi_panel
+            name: RGI panel

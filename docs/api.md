@@ -98,6 +98,14 @@ field rather than loose detail, and setting only it is a valid request. It is th
 name the lane shows; the harness it runs in and the host are part of the detail
 lines, visible only when a lane is uncollapsed.
 
+The shared reporter every integration uses (`rgi/report.py`) adds two ordinary
+conventions on top of that, and reading them is how a dashboard tells "waiting
+for a human" from "gone": `pending_requests` is the list of unresolved
+approval/input ids, with `blocked_on` describing the first of them, and
+`heartbeat` is a timestamp written during a quiet wait to prove the lane is still
+alive. Nothing enforces either name; they are just the fields the integrations
+agree on.
+
 By default the name is the machine's: `rgi watch` claims every local session under
 `RGI_IDENT`, then `~/.config/rgi/name`, then the hostname. An `ident` sent at claim
 time is only used when the lane is created — to rename a lane that already exists,

@@ -149,6 +149,7 @@ If you have to go this far, this is the path that worked here:
 | Logitech G LIGHTSYNC | Logi LED SDK | not yet | — |
 | SteelSeries | GameSense HTTP | not yet | easiest of the vendor SDKs |
 | Laptop backlights | Linux LED class | `sysfs` | implemented, untested here |
+| Any WLED strip (ESP32/ESP8266) | WLED JSON API over HTTP, one reserved segment | `wled` | API to firmware source (16.0.1); mock-tested, needs a strip |
 
 ## Contributing a backend
 
@@ -160,3 +161,13 @@ Include in the pull request:
 - a byte-level test if the protocol is fixed-width.
 
 Boards nobody has written down before are the most valuable contribution of all.
+
+## WLED strips as a panel
+
+A WLED device is a keyboard-less way to get a panel: its JSON API can set the
+individual pixels of a reserved segment, and the `wled` backend exposes those
+pixels as lamps. It is configured by environment (`RGI_WLED_URL`,
+`RGI_WLED_SEGMENT`, optional `RGI_WLED_PIXELS`) or `~/.config/rgi/wled.json`,
+so `rgi daemon` auto-detects a configured strip without probing the network.
+See [wled.md](wled.md) for setup, what appears on the strip, and the supported
+firmware versions.

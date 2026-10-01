@@ -71,7 +71,15 @@ Before opening a pull request, these must pass:
 python -m unittest discover -s tests -t .     # all tests
 python tools/scan_for_secrets.py              # no tokens, addresses, local paths
 python tools/check_portability.py             # no shell traps that break on POSIX
+python tools/check_docs.py                    # fences balanced, links resolve
+python tools/check_prompt_sync.py             # prompt code blocks match the files
 ```
+
+A new agent integration follows the contract in `docs/integrations.md`: one
+module that imports its framework lazily, a line in
+`rgi/integrations/__init__.py`, a test against `tests/mock_panel.py`, and a page
+that ends with the supported version. Its tests must pass with none of the
+frameworks installed.
 
 Useful while working:
 
