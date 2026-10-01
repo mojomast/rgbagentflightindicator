@@ -106,7 +106,7 @@ up before the rename have them in their environment.
 3. **The plugin loaded and authenticated**: `~/.config/rgi/plugin.log` shows
    `setup() called … token=yes`, `OpenTUI runtime support installed`,
    `jsx runtime ready`, and two `slot registered:` lines.
-4. **The sidebar block** is labelled `⌨ rbgafi v0.3` and lists lanes with host
+4. **The sidebar block** is labelled `⌨ rbgafi v0.4` and lists lanes with host
    columns.
 
 Each of those four has been a real failure at least once; they are listed in this
@@ -151,6 +151,109 @@ Before installing anything, an agent is told to run it (or, if `rgi` is not
 installed yet, to look at the plugin directory by hand) and to reuse what it
 finds. Both prompts lead with that, and the plugin-related prompts also forbid
 hand-editing local copies — changes come from the panel's `/files` endpoint.
+
+## Reaching the panel over Tailscale, securely
+
+This is the recommended way to connect machines that are not on the same LAN, and
+the only one this project supports for anything beyond a trusted network.
+
+**Tailscale gives you the transport.** Every packet between peers is
+WireGuard-encrypted and authenticated by device key, and nothing is exposed to the
+public internet — there is no port to forward and nothing to find by scanning.
+That is why the panel speaks plain HTTP: inside a tailnet, the encryption is
+already done, and adding TLS would mean certificates for names that only exist on
+your own tailnet.
+
+But Tailscale authenticates *devices*, not *applications*. Any device on your
+tailnet can reach port 8730 on the panel's host, so three things carry the rest of
+the security:
+
+**1. The token is mandatory, and it is not a formality.** Bind beyond localhost and
+the daemon requires `X-LED-Token` on every request, including `/files`. It comes
+from `--token`, then `RGI_TOKEN`, then `~/.config/rgi/token`:
+
+```sh
+mkdir -p ~/.config/rgi && chmod 700 ~/.config/rgi
+head -c 32 /dev/urandom | base64 > ~/.config/rgi/token   # or: openssl rand -base64 32
+chmod 600 ~/.config/rgi/token
+```
+
+Rotate it by replacing the file and restarting the daemon and every watcher — a
+device removed from the tailnet keeps any token it was given, so removing the
+device is not enough on its own.
+
+**2. Use the tailnet's ACLs to say who may reach the port at all.** In the
+Tailscale admin console's access controls, grant only the machines that should
+report or observe, and only on that port:
+
+```jsonc
+{
+  "grants": [
+    {
+      // agents that report their sessions
+      "src": ["tag:agent"],
+      "dst": ["tag:panel"],
+      "ip": ["tcp:8730"],
+    },
+    {
+      // the human's own devices, which read the lanes and the prompts
+      "src": ["user:you@example.com"],
+      "dst": ["tag:panel"],
+      "ip": ["tcp:8730"],
+    },
+  ],
+}
+```
+
+Tag the panel's machine (`tailscale tag`) so the rule survives renames, and put
+agent machines behind `tag:agent`. Everything else on the tailnet is then unable
+to open the port, whatever token it holds.
+
+**3. Never do any of these:**
+
+- **`tailscale funnel`**, which publishes to the public internet by design.
+- **Port forwarding or a reverse proxy on a public interface** — the token is a
+  shared secret in a header, not a hardened auth system; it belongs behind the
+  tailnet.
+- **`0.0.0.0` on a machine that also has a public IP.** If in doubt, bind the
+  panel to its tailnet address explicitly:
+  `rgi daemon --host $(tailscale ip -4) --port 8730`.
+- **Committing a token.** `tools/scan_for_secrets.py` refuses to publish one, and
+  it has caught real leaks — including in documentation.
+
+### Addresses: use the name, not the IP
+
+Prefer the tailnet's fully qualified name over the address:
+
+```sh
+tailscale status | grep -i panel          # find it
+curl -sS -H "X-LED-Token: $TOKEN" http://panel.example.ts.net:8730/files | head -c 200
+```
+
+A name survives address changes and reads better on the lanes, and it avoids a
+real trap: **short names can resolve to a link-local IPv6 address first**, and a
+daemon bound to IPv4 will not answer, so the connection appears to hang. Use the
+full `machine.tailnet.ts.net` form.
+
+### Verifying the path before trusting it
+
+From the machine that will report to the panel, in this order:
+
+```sh
+tailscale status                          # is the panel's machine online, and direct or relayed?
+tailscale ping <panel-host>               # does a path exist at all
+curl -sS -m 5 -o /dev/null -w '%{http_code}\n' \
+  -H "X-LED-Token: $TOKEN" http://<panel-host>:8730/status
+rgi doctor --url http://<panel-host>:8730 # panel, token, watcher, plugin in one answer
+```
+
+- `000` or a timeout: no path, or the wrong name form (try the FQDN), or the ACL
+  denies it.
+- `401`: the path is fine; the token is wrong.
+- `200`: secure and working.
+
+`rgi watch` and the plugin both find the token themselves, so a machine that
+passes the check above needs no further configuration.
 
 ## Handing this to an agent
 

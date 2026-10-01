@@ -116,18 +116,30 @@ state mark. The editor shows all of this when a lane is uncollapsed (`alt+l`, or
   "backend": "evision",
   "lamps": 126,
   "lanes": 12,
+  "lane_map": {"hermes-3": 5, "opencode": 1},
   "free": [2, 4, 5],
   "sessions": {
     "job-123": {"slot": 1, "key": "1", "agent": "hermes", "label": "nightly sync",
-                "host": "kimi", "state": "working", "age": 12.3}
+                "host": "kimi", "ident": "hermes-3", "state": "working",
+                "age": 12.3, "in_flight_s": 84.2, "idle_s": 3.1,
+                "info": {"repo": "nightly", "running": [{"tool": "bash", "detail": "npm test"}]}}
   }
 }
 ```
 
+The three times mean different things, and they are easy to confuse:
+
+| field | meaning |
+|---|---|
+| `age` | how long this session has held the lane |
+| `in_flight_s` | how long the **current action** has been running. `null` for `done`, `error` and `idle` — a landed agent is not in flight — and it restarts from zero when the next action begins. `blocked` counts, because waiting is unfinished, not landed |
+| `idle_s` | how long since the lane last reported anything, of any kind. A busy lane resets this every ten seconds or so (the watcher heartbeats), so a rising `idle_s` means that lane has gone quiet |
+
 `backend`, `lamps` and `key` describe the **primary** device (the first one);
 `devices` describes all of them. A lane's `key` is whatever that lamp is called on
 the primary device, so it differs between boards — the `slot` is the stable
-identifier.
+identifier. `lane_map` is the configured agent→lane policy, so an agent can see
+the rule it is subject to.
 
 ## GET /slots
 

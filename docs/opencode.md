@@ -112,8 +112,17 @@ Rows are **clickable**: clicking a lane uncollapses just that lane; `alt+l` (or
   `context 42.5% of 128k`.
 - **WAITING ON …** — for a lane in `blocked`, *what* it wants: the permission
   action and its resources, or the agent's own `blocked_on` message.
-- **subagents** — the child sessions, indented, each with its own state mark and
-  output tokens. They do not consume lanes of their own.
+- **subagents** — only the child sessions that are **currently in flight**, up to
+  six, each with its own state mark and output tokens. A finished subagent is
+  history, and history in a one-line-per-lane panel is noise; it disappears from
+  the lane the moment it lands.
+- **running commands** — the shell commands the lane is running right now, one
+  line each (`> bash npm test`), with the command itself rather than the tool
+  name. Only shells: a lane reading a file is busy, while a lane running a command
+  is busy in a way you may want to interrupt.
+- **in flight** — the duration of the **current action only**, and absent the
+  moment the lane lands. `idle` keeps counting, because a landed lane that has
+  gone quiet is exactly what you want to notice.
 
 All of that comes from `POST /session/info`, which agents (and the watcher) send
 separately from state changes: detail never triggers a hardware repaint. Start

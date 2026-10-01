@@ -61,7 +61,7 @@ rgi status                      # add --url http://<panel-host>:8730 if remote
 ```
 
 ```
-rbgafi 0.3.0  http://127.0.0.1:8730
+rbgafi 0.4.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
@@ -165,3 +165,23 @@ rgi status --json | jq '.sessions[] | {label, state, in_flight_s, repo: .info.re
 is how you tell a lane that is *working* from one that has been *stuck for twenty
 minutes*, or find the one that is blocked on a permission prompt you could
 resolve yourself.
+
+Read the two times carefully, because they answer different questions:
+
+- **`in_flight_s` is the current action only.** It is `null` for a lane that has
+  landed (`done`, `error`, `idle`) and restarts from zero when the next action
+  begins. `blocked` still counts as in flight — waiting is unfinished, not landed.
+- **`idle_s` is how long since that lane last said anything at all.** A busy lane
+  resets it every few seconds, so a *rising* `idle_s` is the signal that something
+  has gone quiet mid-task — which is the one worth acting on.
+
+`.info.running` lists the **shell commands** a lane is running right now, and
+`.info.children` lists only the subagents **currently in flight** — so treat both
+as "what is happening", not as a record.
+
+**You may be reaching this over Tailscale.** That is the intended path for a
+remote machine: encrypted between devices, never on the public internet. Use the
+full tailnet name rather than a short name or an IP, send the token in the header
+as always, and treat the token as a credential — never log it or commit it. A
+timeout means the tailnet path or an ACL is blocking you; a `401` means the token
+is wrong. They need different responses, so do not conflate them.

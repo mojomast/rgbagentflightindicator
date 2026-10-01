@@ -93,7 +93,7 @@ The plugin usually reloads when its files change; restart OpenCode if not.
 Success looks like this in the sidebar:
 
 ```
-⌨ rbgafi v0.3
+⌨ rbgafi v0.4
 ▸  1 ▶ workstation   the session you are reading
    2 ✔ kimi          some other session
 ```
@@ -110,7 +110,7 @@ slot registered: home.footer.status
 
 Check these three things specifically, because each has been a real failure before:
 
-1. **The header says `rbgafi v0.3`.** If it still says "Keyboard (number row)" or
+1. **The header says `rbgafi v0.4`.** If it still says "Keyboard (number row)" or
    "Panel", you are running the old plugin - go back to step 3.
 2. **The log says `token=yes`.** If it says `token=no`, every poll is a 401 and
    the block will read `offline` - fix step 4.

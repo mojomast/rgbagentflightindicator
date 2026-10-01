@@ -37,6 +37,20 @@ X-LED-Token: <token>
 Missing or wrong token means `401` on every call. Ask the human for it; it is in
 `~/.config/rgi/token` on the panel's machine.
 
+**If the panel is on another machine, it is reached over Tailscale** — encrypted
+between devices, and never exposed to the public internet. Two things matter in
+practice:
+
+- **use the full tailnet name** (`http://panel.example.ts.net:8730`), not the
+  short form: short names can resolve to a link-local IPv6 address first and the
+  connection will hang; and not a bare IP, because names survive address changes
+  and read better on the lanes;
+- **the token is required and is a real credential.** Do not log it, do not paste
+  it into anything you commit, and if you are told it rotated, stop using the old
+  one. Sending it in a header over Tailscale is the intended and secure use.
+- if the connection times out rather than answering `401`, the tailnet path or an
+  ACL is blocking you — say so, do not retry in a loop.
+
 ### 1. Claim a lamp when you start
 
 ```
@@ -191,7 +205,8 @@ Send it when the detail changes, not on a timer. Known fields, all optional:
 | `tokens` | `{"input": 2400000, "output": 940000, "cache_read": 800000000, "cost": 4.12}` | token and spend line |
 | `context` | `{"entries": 473, "compactions": 3, "percent": 42.5, "limit": 128000}` | context pressure |
 | `blocked_on` | `{"action": "bash", "resources": ["rm -rf /tmp"], "message": "…"}` | **WAITING ON …** |
-| `children` | `[{"id": "ses_x", "label": "subagent task", "state": "working", "tokens": 6710}]` | the subagent lines |
+| `children` | `[{"id": "ses_x", "label": "subagent task", "state": "working", "tokens": 6710}]` | the subagent lines — shown only while they are in flight |
+| `running` | `[{"tool": "bash", "detail": "npm test"}]` | shell commands running right now |
 
 Anything else you send is stored and returned by `/status`, so a custom field is
 not lost — it simply has no line of its own. Partial updates merge: sending
