@@ -31,9 +31,27 @@ import { spawnSync } from "node:child_process"
 
 const HOME = homedir()
 const CONFIG = join(HOME, ".config", "rgi")
-const PANEL = process.env.RGI_URL ?? process.env.LEDD_URL ?? "http://127.0.0.1:8730"
 const POLL_MS = 1000
 const LOG = join(CONFIG, "plugin.log")
+
+// The panel address has to survive the environment. A running OpenCode cannot
+// acquire a new variable, and editing this default locally is what the update
+// prompt forbids - the next update overwrites it. So: the environment first, for
+// an override, then ~/.config/rgi/url - the same file the rgi client reads - and
+// only then localhost.
+function resolvePanel(): { url: string; from: string } {
+  const env = process.env.RGI_URL ?? process.env.LEDD_URL
+  if (env) return { url: env.replace(/\/+$/, ""), from: "RGI_URL" }
+  try {
+    const file = readFileSync(join(CONFIG, "url"), "utf8").trim().replace(/\/+$/, "")
+    if (file) return { url: file, from: "~/.config/rgi/url" }
+  } catch {
+    /* no file is the normal case when the panel is local */
+  }
+  return { url: "http://127.0.0.1:8730", from: "the default" }
+}
+const PANEL_INFO = resolvePanel()
+const PANEL = PANEL_INFO.url
 
 // What the sidebar block calls itself. Keep in step with VERSION_LABEL in
 // rgi/__init__.py and the version in pyproject.toml.
@@ -190,7 +208,7 @@ export default {
   id: "rgi.panel",
 
   setup(context: any) {
-    log(`setup() called (panel=${PANEL}, token=${TOKEN ? "yes" : "no"})`)
+    log(`setup() called (panel=${PANEL}, from ${PANEL_INFO.from}, token=${TOKEN ? "yes" : "no"})`)
 
     const [lanes, setLanes] = createSignal<Lane[]>([])
     const [online, setOnline] = createSignal(false)
@@ -217,25 +235,46 @@ export default {
       repaint()
     }
 
+    // The panel address can be a tailnet name, which fails when the tailnet is
+    // down even though the panel is running on this very machine. Localhost is
+    // the last resort, and a slow address never lets polls stack up.
+    const FALLBACK = "http://127.0.0.1:8730"
+    let polling = false
     const poll = async () => {
+      if (polling) return
+      polling = true
       try {
-        const res = await fetch(`${PANEL}/status`, {
-          headers: TOKEN ? { "X-LED-Token": TOKEN } : {},
-        })
-        const data: any = await res.json()
-        const list: Lane[] = Object.entries(data.sessions ?? {}).map(
-          ([id, v]: [string, any]) => ({ id, ...v }),
-        )
-        list.sort((a, b) => Number(a.slot ?? 99) - Number(b.slot ?? 99))
-        setOnline(true)
-        setLanes(list)
-      } catch {
-        setOnline(false)
-      }
-      try {
-        context.renderer?.requestRender?.()
-      } catch {
-        /* ignore */
+        let data: any
+        for (const base of PANEL === FALLBACK ? [FALLBACK] : [PANEL, FALLBACK]) {
+          try {
+            const signal = (AbortSignal as any)?.timeout?.(4000)
+            const res = await fetch(`${base}/status`, {
+              headers: TOKEN ? { "X-LED-Token": TOKEN } : {},
+              ...(signal ? { signal } : {}),
+            })
+            data = await res.json()
+            break
+          } catch {
+            /* try the next address */
+          }
+        }
+        if (data) {
+          const list: Lane[] = Object.entries(data.sessions ?? {}).map(
+            ([id, v]: [string, any]) => ({ id, ...v }),
+          )
+          list.sort((a, b) => Number(a.slot ?? 99) - Number(b.slot ?? 99))
+          setOnline(true)
+          setLanes(list)
+        } else {
+          setOnline(false)
+        }
+      } finally {
+        polling = false
+        try {
+          context.renderer?.requestRender?.()
+        } catch {
+          /* ignore */
+        }
       }
     }
 
@@ -408,14 +447,20 @@ export default {
           const here = !!sessionID && l.id === sessionID
           const mark = MARKS[l.state ?? "idle"] ?? "?"
           const lamp = String(l.key ?? "?").replace(/^led(?=\d)/, "")
-          // who the agent says it is, in order of specificity: its own identifier,
-          // then the machine it is on, then its agent kind as a last resort
-          const who = l.ident || l.host || l.agent || ""
-          const task = trim(sessionTitle(l.id) ?? l.label ?? "", 22)
-          const rest = `${here ? "\u25B8" : " "}| ${who}(${mark})${task}`
+          // The name is what the agent calls itself - its ident - and never the
+          // machine: the host belongs to the detail lines, where it cannot push
+          // the name out of view. The agent kind is only a fallback.
+          const who = l.ident || l.agent || "?"
           rows.push(
-            row(() => [{ text: lamp, fg: digitFg() }, rest], () => toggleLane(l.id)),
+            row(
+              () => [{ text: lamp, fg: digitFg() }, `${here ? "\u25B8" : " "}| ${who}(${mark})`],
+              () => toggleLane(l.id),
+            ),
           )
+          // The task gets its own line: sharing one with the name, a long task
+          // pushed the name out of view and the lane stopped being identifiable.
+          const task = trim(sessionTitle(l.id) ?? l.label ?? "", 34)
+          if (task) rows.push(textRow(() => `    ${task}`, () => toggleLane(l.id)))
           if (isOpen(l)) {
             for (const detail of detailLines(l, "    ")) {
               rows.push(textRow(() => detail))

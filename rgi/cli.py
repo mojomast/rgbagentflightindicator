@@ -21,6 +21,29 @@ from .backends import available_backends, load
 from .backends.base import BackendUnavailable
 
 DEFAULT_URL = "http://127.0.0.1:8730"
+URL_FILE = os.path.join(os.path.expanduser("~"), ".config", "rgi", "url")
+
+
+def resolve_url(explicit: str | None = None) -> str:
+    """URL from --url, RGI_URL/LEDD_URL, ~/.config/rgi/url, or localhost.
+
+    The file exists so a machine does not need the address in its environment: a
+    running OpenCode cannot acquire a new variable, and a shell started before the
+    export does not have it.
+    """
+    if explicit:
+        return explicit.rstrip("/")
+    env = os.environ.get("RGI_URL") or os.environ.get("LEDD_URL")
+    if env:
+        return env.rstrip("/")
+    try:
+        with open(URL_FILE, encoding="utf-8") as fh:
+            value = fh.read().strip()
+        if value:
+            return value.rstrip("/")
+    except OSError:
+        pass
+    return DEFAULT_URL
 
 
 def _add_backend_args(ap: argparse.ArgumentParser) -> None:
@@ -400,12 +423,16 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_daemon)
 
     dr = sub.add_parser("doctor", help="what is installed on this machine, and what conflicts")
-    dr.add_argument("--url", default=DEFAULT_URL)
+    dr.add_argument("--url", default=None,
+                    help="panel address (default: RGI_URL, then ~/.config/rgi/url, "
+                         "then localhost:8730)")
     dr.add_argument("--token", default=None)
     dr.set_defaults(func=cmd_doctor)
 
     st = sub.add_parser("status", help="show every lane and every device")
-    st.add_argument("--url", default=DEFAULT_URL)
+    st.add_argument("--url", default=None,
+                    help="panel address (default: RGI_URL, then ~/.config/rgi/url, "
+                         "then localhost:8730)")
     st.add_argument("--token", default=None)
     st.add_argument("--json", action="store_true", help="raw /status for scripting")
     st.add_argument("--follow", action="store_true", help="keep watching, print on change")
@@ -420,7 +447,9 @@ def build_parser() -> argparse.ArgumentParser:
     lm.set_defaults(func=cmd_lane_map)
 
     w = sub.add_parser("watch", help="report OpenCode sessions to the panel")
-    w.add_argument("--url", default=DEFAULT_URL)
+    w.add_argument("--url", default=None,
+                    help="panel address (default: RGI_URL, then ~/.config/rgi/url, "
+                         "then localhost:8730)")
     w.add_argument("--token", default=None)
     w.add_argument("--include-subagents", action="store_true")
     w.add_argument("--stale", type=float, default=2 * 3600,
@@ -430,7 +459,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("push", help="set one lane by hand")
     p.add_argument("state", nargs="?", default="working",
                    choices=["working", "done", "blocked", "error", "idle"])
-    p.add_argument("--url", default=DEFAULT_URL)
+    p.add_argument("--url", default=None,
+                    help="panel address (default: RGI_URL, then ~/.config/rgi/url, "
+                         "then localhost:8730)")
     p.add_argument("--token", default=None)
     p.add_argument("--session", default="rgi-manual")
     p.add_argument("--agent", default="manual")
@@ -443,6 +474,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if hasattr(args, "url"):
+        args.url = resolve_url(args.url)
     return args.func(args)
 
 

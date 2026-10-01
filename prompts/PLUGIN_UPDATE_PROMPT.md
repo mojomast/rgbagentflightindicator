@@ -34,9 +34,16 @@ rgi status 2>&1 | head -5        # does the client work, and can it see the pane
 
 ### 2. Update the client, if you use it
 
+The package is not on PyPI yet, so there is no `pip install` that works from
+outside the panel's own network. If you have a checkout, pull it:
+
 ```sh
-pip install -U rgbagentflightindicator     # or: git -C <your checkout> pull
+git -C <your checkout> pull
 ```
+
+If you do not have one, skip this step: the client is optional. The plugin
+(step 3) and the `curl` examples below cover reporting and reading; `rgi ...`
+commands exist only on machines where the client is installed.
 
 ### 3. Install the current plugin
 
@@ -55,8 +62,11 @@ Then retire anything old:
 
 ```sh
 mv ~/.config/opencode/plugins/keyboard-status \
-   ~/.config/opencode/plugins/keyboard-status.retired   2>/dev/null
+   ~/.config/opencode/keyboard-status.retired   2>/dev/null
 ```
+
+Move it **out of** `plugins/`: renaming it in place keeps it discoverable, and
+some builds then draw two sidebar blocks.
 
 `GET $BASE/files` lists everything published, with sizes and hashes, if you want
 to check what you are about to install. The panel must be reachable from this
@@ -75,7 +85,16 @@ printf '%s' "<token>" > ~/.config/rgi/token     # if it is not already there
 ```
 
 Set `RGI_URL` in the environment OpenCode is started from if the panel is not on
-`http://127.0.0.1:8730`.
+`http://127.0.0.1:8730`, and write the address to `~/.config/rgi/url` as well:
+
+```sh
+printf '%s' "http://<panel-host>:8730" > ~/.config/rgi/url
+```
+
+The file is what makes this work without any restart: a running OpenCode cannot
+acquire a new environment variable, and the plugin (and the `rgi` client) read
+this file after `RGI_URL` and before localhost. New terminals carry `RGI_URL`;
+the file covers everything already running.
 
 ### 5. Restart the watcher, if you run one
 
@@ -94,14 +113,21 @@ Success looks like this in the sidebar:
 
 ```
 ⌨ rbgafi v0.4
-▸  1 ▶ workstation   the session you are reading
-   2 ✔ kimi          some other session
+▸1| hermes(▶)
+    nightly sync
+ 2| opencode(✔)
+    some other session
+    (click a lane for detail, the title for all)
+⧉ copy install/update prompt + token
 ```
+
+The name on a lane is the agent's own `ident`; the machine it runs on appears in
+the detail lines, not on the collapsed one.
 
 And this in `~/.config/rgi/plugin.log`:
 
 ```
-setup() called (panel=<your panel>, token=yes)
+setup() called (panel=<your panel>, from RGI_URL, token=yes)
 OpenTUI runtime support installed
 jsx runtime ready
 slot registered: sidebar.content
@@ -114,9 +140,9 @@ Check these three things specifically, because each has been a real failure befo
    "Panel", you are running the old plugin - go back to step 3.
 2. **The log says `token=yes`.** If it says `token=no`, every poll is a 401 and
    the block will read `offline` - fix step 4.
-3. **Lines are listed with a host column.** If the block is empty but the log is
-   healthy, no lanes are claimed: that is `rgi status` on the panel's machine,
-   not a problem here.
+3. **Lanes appear at all.** If the block says `no lanes claimed` but the log is
+   healthy, nothing has claimed a lamp yet - that is a panel-side question, not
+   a problem here.
 
 If the log says `could not install OpenTUI runtime support` or
 `jsx() failed: No renderer found`, report those exact lines - the plugin renders

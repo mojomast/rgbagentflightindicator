@@ -69,10 +69,17 @@ Otherwise copy `plugin/index.ts` and `plugin/tui.ts` from this repository.
 
 ### 3. Point it at the panel
 
-`tui.ts` reads the panel URL from `RGI_URL` (default `http://127.0.0.1:8730`) and
-the token from `RGI_TOKEN` or `~/.config/rgi/token`. If the panel runs on another
-machine, set `RGI_URL` in the environment OpenCode is started from, or edit the
-default in the file.
+`tui.ts` reads the panel URL from `RGI_URL`, then `~/.config/rgi/url`, then
+`http://127.0.0.1:8730`; the token comes from `RGI_TOKEN` or
+`~/.config/rgi/token`. If the panel runs on another machine, set `RGI_URL` in the
+environment OpenCode is started from **and** write the address to the file:
+
+```sh
+printf '%s' "http://<panel-host>:8730" > ~/.config/rgi/url
+```
+
+Never edit the default in `tui.ts`: the next update overwrites it, and a running
+OpenCode cannot be handed a new environment variable anyway.
 
 ### 4. Check OpenCode can see it
 
@@ -84,14 +91,16 @@ The plugin is found by directory discovery; nothing belongs in `cli.json`.
 
 ### 5. Restart OpenCode, then verify
 
-`~/.config/rgi/plugin.log` should gain `setup() called`, `slot registered:
-sidebar.content` and `slot registered: home.footer.status`. The sidebar should
-show a block like:
+`~/.config/rgi/plugin.log` should gain `setup() called (panel=…, from …, token=yes)`,
+`slot registered: sidebar.content` and `slot registered: home.footer.status`. The
+sidebar should show a block like:
 
 ```
-⌨ Panel
-▸  1 ▶ laptop        the session you are looking at
-   2 ✔ build-box     some other session
+⌨ rbgafi v0.4
+▸0| hermes(▶)
+    nightly sync
+ 2| opencode(✔)
+    some other session
 ```
 
 If the log says `could not install OpenTUI runtime support` or

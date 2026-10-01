@@ -106,8 +106,8 @@ up before the rename have them in their environment.
 3. **The plugin loaded and authenticated**: `~/.config/rgi/plugin.log` shows
    `setup() called … token=yes`, `OpenTUI runtime support installed`,
    `jsx runtime ready`, and two `slot registered:` lines.
-4. **The sidebar block** is labelled `⌨ rbgafi v0.4` and lists lanes with host
-   columns.
+4. **The sidebar block** is labelled `⌨ rbgafi v0.4` and lists lanes by the names
+   their agents claim (`ident`), with the task on the line beneath.
 
 Each of those four has been a real failure at least once; they are listed in this
 order because the later ones cannot work while an earlier one is broken.
@@ -115,7 +115,7 @@ order because the later ones cannot work while an earlier one is broken.
 | symptom | cause |
 |---|---|
 | all calls `401` | token missing: `RGI_TOKEN` or `~/.config/rgi/token` |
-| block says `offline` | the plugin cannot reach the panel — check `RGI_URL` and the token |
+| block says `offline` | the plugin cannot reach the panel — check `RGI_URL`, `~/.config/rgi/url`, and the token |
 | log says `token=no` | the plugin found no token, so every poll fails |
 | two sidebar blocks | the old `keyboard-status` plugin is still installed |
 | block still says "Keyboard (number row)" | you are running the old plugin |

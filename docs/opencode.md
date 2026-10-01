@@ -41,8 +41,14 @@ loads plugins in its own bundled Bun runtime, not in your Node.
 
 | variable | effect |
 |---|---|
-| `RGI_URL` | the panel, default `http://127.0.0.1:8730` |
+| `RGI_URL` | the panel; otherwise `~/.config/rgi/url` is read, then `http://127.0.0.1:8730` |
 | `RGI_TOKEN` | the shared secret; otherwise `~/.config/rgi/token` is read |
+
+The file matters on machines that are not the panel: a running OpenCode cannot
+acquire a new environment variable, so exporting `RGI_URL` after it started leaves
+its sidebar on localhost. The plugin also falls back to localhost when the address
+it was given does not answer, so a tailnet name that is down does not blank the
+panel on the machine running the panel.
 
 Diagnostics go to `~/.config/rgi/plugin.log`.
 
@@ -82,23 +88,29 @@ plugin is not a 20-line file.
 
 ## Uncollapsing a lane
 
-The block is one line per lane by default. **`alt+l`** (or `/lanes` from the
-command palette) uncollapses it, showing, per lane:
-
-The collapsed line reads `number|who(mark)task`, with the number in its own colour
-so it is easy to pick out, and `who` is what the agent calls itself — its `ident`
-if it set one, otherwise the machine it runs on:
+The block is **two lines per lane**: the name line, then the task. The name line
+reads `number|who(mark)`, with the number in its own colour so it is easy to pick
+out, and `who` is what the agent calls itself — its `ident` if it set one,
+otherwise the agent kind it claimed with. The machine is part of the detail lines,
+not the name:
 
 ```
 ⌨ rbgafi v0.4
-▸0| workstation(▶)Keyboard status: LED da…
- 7| hermes-3(!)nightly sync
- 3| ussy01(✔)OpenCode2 updates and new feat
-    (click a lane, alt+l or /lanes for detail)
+▸0| opencode(▶)
+    Keyboard status: LED daemon + opencode plugin
+ 7| hermes-3(!)
+    nightly sync
+ 3| opencode(✔)
+    OpenCode2 updates and new features
+    (click a lane for detail, the title for all)
+⧉ copy install/update prompt + token
 ```
 
-Rows are **clickable**: clicking a lane uncollapses just that lane; `alt+l` (or
-`/lanes`) does all of them at once.
+Rows are **clickable**: clicking a lane uncollapses just that lane; clicking the
+block's title line uncollapses all of them. `alt+l` and `/lanes` are meant to do
+the same, but `context.keymap.layer()` registers no command on current OpenCode
+builds — the plugin's own diagnosis records what the host reports (`mine=0` in
+`plugin.log`) — so the mouse is the path that works.
 
 - **repository and branch** — which project the lane is actually working in,
   derived from the session's directory.
@@ -157,13 +169,17 @@ sidebar does not pick the change up.
 ## What it draws
 
 ```
-⌨ Panel
-▸  1 ▶ kimi          the session you are reading
-   2 ✔ build-box     some other session
+⌨ rbgafi v0.4
+▸1| hermes(▶)
+    nightly sync
+ 2| build-box(✔)
+    some other session
 ```
 
-`▸` marks the session whose sidebar you are looking at, then the lamp's key name,
-its state mark, the machine it runs on and the lane label. The footer carries the
+`▸` marks the session whose sidebar you are looking at; then the lamp's key, the
+name the agent claims as its `ident` (the agent kind only when it claimed without
+one), and the state mark. The task sits on its own line beneath. The host is part
+of the detail lines, shown when the lane is expanded. The footer carries the
 compact form: `⌨ 1▶ 2✔`.
 
 Lane names come from OpenCode's own session titles when the lane *is* an OpenCode
