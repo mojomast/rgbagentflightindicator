@@ -43,6 +43,7 @@ LOG_PATH = os.path.join(STATE_DIR, "watcher.log")
 LOCK_PATH = os.path.join(STATE_DIR, "watcher.lock")
 URL_PATH = os.path.join(STATE_DIR, "url")
 TOKEN_PATH = os.path.join(STATE_DIR, "token")
+NAME_PATH = os.path.join(STATE_DIR, "name")
 
 
 def _pid_alive(pid: int) -> bool:
@@ -138,12 +139,15 @@ SHELL_TOOLS = {"bash", "shell", "terminal", "sh", "cmd", "powershell", "pwsh", "
 
 class Watcher:
     def __init__(self, url: str = DEFAULT_URL, token: str | None = None,
-                 include_subagents: bool = False, stale: float = STALE_DEFAULT):
+                 include_subagents: bool = False, stale: float = STALE_DEFAULT,
+                 ident: str | None = None):
         self.url = url.rstrip("/")
         self.token = token
         self.include_subagents = include_subagents
         self.stale = stale
         self.host = socket.gethostname()
+        # every lane this watcher claims is named after the machine
+        self.ident = resolve_ident(ident)
         self.bound: dict[str, dict] = {}
         self.parents: dict[str, str | None] = {}
         self.titles: dict[str, str] = {}
@@ -213,7 +217,10 @@ class Watcher:
 
     # -- lanes ------------------------------------------------------------
     def bind(self, sid: str, want: int | None = None) -> dict | None:
-        payload = {"agent": "opencode", "sessionID": sid,
+        # Named after the machine, like every other lane this watcher claims. An
+        # agent the human gave a personal name sets it with /session/info, and a
+        # re-claim never overwrites that: claim() returns early for a live lane.
+        payload = {"agent": "opencode", "sessionID": sid, "ident": self.ident,
                    "label": self.titles.get(sid) or sid, "host": self.host}
         if want is not None:
             payload["slot"] = want
@@ -557,6 +564,8 @@ class Watcher:
         say(f"subagents: {'included' if self.include_subagents else 'ignored'}"
             f"   lanes freed after {self.stale / 60:.0f} min idle")
         say(f"host reported as {self.host}; opencode CLI: {OPENCODE}")
+        say(f"lanes are named {self.ident!r} (--ident, RGI_IDENT, "
+            f"~/.config/rgi/name, else the hostname)")
 
         while True:
             if time.time() - self.last_meta > SESSION_POLL:
@@ -629,6 +638,29 @@ class Watcher:
             time.sleep(ACTIVE_POLL)
 
 
+def resolve_ident(explicit: str | None = None) -> str:
+    """The name every lane from this machine gets: the machine's name.
+
+    Order: ``--ident``, ``RGI_IDENT``, ``~/.config/rgi/name``, then the hostname
+    (short form). The file exists so a human can name a machine once without
+    editing anything, and the hostname is the default so lanes are never left
+    labelled with the harness they happen to run in.
+    """
+    if explicit and explicit.strip():
+        return explicit.strip()
+    env = os.environ.get("RGI_IDENT")
+    if env and env.strip():
+        return env.strip()
+    try:
+        with open(NAME_PATH, encoding="utf-8") as fh:
+            value = fh.read().strip()
+        if value:
+            return value
+    except OSError:
+        pass
+    return socket.gethostname().split(".")[0]
+
+
 def _env_url() -> str:
     """The panel address, the same way the plugin and the client resolve it."""
     env = os.environ.get("RGI_URL") or os.environ.get("LEDD_URL")
@@ -674,12 +706,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--include-subagents", action="store_true")
     ap.add_argument("--stale", type=float, default=STALE_DEFAULT,
                     help="seconds of inactivity before a lamp is reused")
+    ap.add_argument("--ident", default=None,
+                    help="name every lane this watcher claims (default: RGI_IDENT, "
+                         "then ~/.config/rgi/name, then the hostname)")
     args = ap.parse_args(argv)
     watcher = Watcher(
         url=args.url or _env_url(),
         token=args.token or _env_token(),
         include_subagents=args.include_subagents,
         stale=args.stale,
+        ident=args.ident,
     )
     watcher.run()
     return 0

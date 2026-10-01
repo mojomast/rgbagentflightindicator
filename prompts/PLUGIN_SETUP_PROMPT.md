@@ -123,6 +123,11 @@ reports tokens, context, subagents and running shells; older ones only send the
 lane state. It finds the panel address (`RGI_URL`, then `~/.config/rgi/url`) and
 the token (`RGI_TOKEN`, then `~/.config/rgi/token`) by itself.
 
+Lanes from this machine are named after it by default — the hostname, unless you
+write `~/.config/rgi/name` (`RGI_IDENT` overrides both). An agent the human gave
+a personal name can set it with `{"sessionID": …, "ident": "…"}` at claim time or
+any time afterwards; a re-claim never renames a live lane.
+
 ### Rules
 
 1. **Do not edit `cli.json`.** Directory discovery is what is verified.

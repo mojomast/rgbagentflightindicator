@@ -110,6 +110,13 @@ acquire a new environment variable, and the plugin (and the `rgi` client) read
 this file after `RGI_URL` and before localhost. New terminals carry `RGI_URL`;
 the file covers everything already running.
 
+Optionally name this machine's lanes. The watcher claims every local session
+under `~/.config/rgi/name` (default: the hostname), so one file names them all:
+
+```sh
+printf '%s' "<machine-name>" > ~/.config/rgi/name
+```
+
 ### 5. Run the current watcher
 
 Use the file from step 2:

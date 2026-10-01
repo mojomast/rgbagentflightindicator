@@ -55,7 +55,8 @@ practice:
 
 ```
 POST /session/start
-{"agent": "hermes", "sessionID": "<unique id>", "label": "<short label>", "host": "<machine>"}
+{"agent": "hermes", "sessionID": "<unique id>", "label": "<short label>",
+ "host": "<machine>", "ident": "<your name>"}
 ```
 
 Response: `{"slot": 3, "key": "3", "group": "number-row"}` — that response **is**
@@ -65,6 +66,11 @@ your number. Use it if you ever report your state to the human.
 - `label` — what the human reads. Keep it under ~16 characters.
 - `host` — the machine you run on. Optional: omit it and the panel records the
   address the call came from.
+- `ident` — your name on the lane. You usually do not send it: every lane on a
+  machine is named after the machine (`RGI_IDENT`, then `~/.config/rgi/name`, then
+  the hostname) because the watcher claims it that way. Send your own only if the
+  human gave you one — it is also accepted later with `POST /session/info`, and a
+  re-claim will not rename a lane that already exists.
 - `slot` — optional. Ask for a specific lamp; if it is taken you get `409` with
   the list of free ones. Without it you get the first free lamp.
 - `409` means no lamps are free. **Never treat that as fatal** — carry on without
@@ -200,7 +206,7 @@ Send it when the detail changes, not on a timer. Known fields, all optional:
 |---|---|---|
 | `repo` | `"rgbagentflightindicator"` | which project this lane is working on |
 | `branch` | `"main"` | `repo @ branch` |
-| `ident` | `"hermes-3"` | the agent's own identifier — also accepted when you claim the lane |
+| `ident` | `"hermes-3"` | your name on the lane — the machine's name by default; accepted when you claim and via `/session/info` |
 | `directory` | `"D:\\vam"` | used when there is no repo |
 | `tokens` | `{"input": 2400000, "output": 940000, "cache_read": 800000000, "cost": 4.12}` | token and spend line |
 | `context` | `{"entries": 473, "compactions": 3, "percent": 42.5, "limit": 128000}` | context pressure |

@@ -126,9 +126,13 @@ interrupted for everything.
    `GET <panel>/files` and follow `prompts/PLUGIN_UPDATE_PROMPT.md` to update.
    A hand-edited local copy diverges from every other machine and is overwritten
    by the next update. Ask the human if something needs to change.
-7. **Your lane can be pinned.** The human maps an agent's `ident` (or agent name)
-   to a lane with `rgi lane-map`; send a stable `ident` at claim time so the
-   mapping has something to match.
+7. **Your lane has a name, and it can be pinned.** By default every lane on a
+   machine is named after the machine (`RGI_IDENT`, then `~/.config/rgi/name`,
+   then the hostname) - the watcher does that, so you inherit it without doing
+   anything. If the human gave you a personal name, send a stable `ident`: at
+   claim time, or any time with `POST /session/info` (a re-claim will not rename
+   an existing lane). The human maps an `ident` (or agent name) to a lane with
+   `rgi lane-map`.
 
 ### Publishing detail others can read
 

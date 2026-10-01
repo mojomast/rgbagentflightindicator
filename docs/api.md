@@ -98,6 +98,11 @@ field rather than loose detail, and setting only it is a valid request. It is th
 name the lane shows; the harness it runs in and the host are part of the detail
 lines, visible only when a lane is uncollapsed.
 
+By default the name is the machine's: `rgi watch` claims every local session under
+`RGI_IDENT`, then `~/.config/rgi/name`, then the hostname. An `ident` sent at claim
+time is only used when the lane is created — to rename a lane that already exists,
+send `ident` to `POST /session/info`.
+
 `children` is how subagents are shown: a child session should not claim its own
 lamp, but listing it here puts it under its parent's lane, indented, with its own
 state mark. The editor shows all of this when a lane is uncollapsed (click it; the

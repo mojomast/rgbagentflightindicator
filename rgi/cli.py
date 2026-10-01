@@ -177,7 +177,8 @@ def cmd_watch(args: argparse.Namespace) -> int:
     # the panel requires a token as soon as it is not localhost-only, and the
     # watcher has to find it the same way the daemon does or every call is a 401
     watcher = Watcher(url=args.url, token=resolve_token(args.token),
-                      include_subagents=args.include_subagents, stale=args.stale)
+                      include_subagents=args.include_subagents, stale=args.stale,
+                      ident=args.ident)
     try:
         watcher.run()
     except KeyboardInterrupt:
@@ -454,6 +455,9 @@ def build_parser() -> argparse.ArgumentParser:
     w.add_argument("--include-subagents", action="store_true")
     w.add_argument("--stale", type=float, default=2 * 3600,
                    help="seconds of inactivity before a lamp is reused")
+    w.add_argument("--ident", default=None,
+                   help="name every lane this watcher claims (default: RGI_IDENT, "
+                        "then ~/.config/rgi/name, then the hostname)")
     w.set_defaults(func=cmd_watch)
 
     p = sub.add_parser("push", help="set one lane by hand")

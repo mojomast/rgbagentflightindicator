@@ -50,6 +50,12 @@ its sidebar on localhost. The plugin also falls back to localhost when the addre
 it was given does not answer, so a tailnet name that is down does not blank the
 panel on the machine running the panel.
 
+Lane **names** come from the watcher, not the plugin: it claims every local
+session under the machine's name — `RGI_IDENT`, then `~/.config/rgi/name`, then
+the hostname — and the sidebar falls back to the lane's machine when an older
+watcher sent no name at all. An agent the human gave a personal name overrides it
+with `ident`, and the harness it runs in is shown in the detail, never as a name.
+
 Diagnostics go to `~/.config/rgi/plugin.log`.
 
 ## The four sharp edges

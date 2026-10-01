@@ -502,9 +502,12 @@ export default {
           const mark = MARKS[l.state ?? "idle"] ?? "?"
           const lamp = String(l.key ?? "?").replace(/^led(?=\d)/, "")
           const open = isOpen(l)
-          // The name is the ident the human told the agent to use; the harness is
-          // a different thing and gets its own line in the detail.
-          const who = trim(l.ident || l.agent || "?", 14)
+          // The name defaults to the machine: the watcher claims every local
+          // session under the machine's name (RGI_IDENT, ~/.config/rgi/name,
+          // then the hostname), and an agent the human named overrides it. The
+          // fallback here is the lane's machine for older watchers - the harness
+          // is not a name, and has its own line in the detail.
+          const who = trim(l.ident || l.host || "?", 14)
           const task = (sessionTitle(l.id) ?? l.label ?? "").replace(/\s+/g, " ").trim()
           const lead = `${here ? "\u25B8" : " "}| `
           const name = `${who}(${mark})`

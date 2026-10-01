@@ -114,8 +114,9 @@ up before the rename have them in their environment.
 3. **The plugin loaded and authenticated**: `~/.config/rgi/plugin.log` shows
    `setup() called … token=yes`, `OpenTUI runtime support installed`,
    `jsx runtime ready`, and two `slot registered:` lines.
-4. **The sidebar block** is labelled `⌨ rbgafi v0.4` and lists lanes by the names
-   their agents claim (`ident`), with the task on the line beneath.
+4. **The sidebar block** is labelled `⌨ rbgafi v0.4` and names each lane after its
+   machine by default (`RGI_IDENT`, then `~/.config/rgi/name`, then the hostname),
+   or after the `ident` an agent set, with the task on the line beneath.
 
 Each of those four has been a real failure at least once; they are listed in this
 order because the later ones cannot work while an earlier one is broken.
