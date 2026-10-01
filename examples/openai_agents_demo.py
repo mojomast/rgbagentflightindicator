@@ -1,4 +1,4 @@
-"""Run one OpenAI Agents SDK workflow with a lamp on the rbgafi panel.
+"""Run one OpenAI Agents SDK workflow with a lamp on the rgbafi panel.
 
 The panel comes from the environment, exactly like every other rgi client:
 

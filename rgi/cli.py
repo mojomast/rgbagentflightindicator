@@ -202,7 +202,7 @@ def _panel_get(url: str, path: str, token: str | None, timeout: float = 5.0) -> 
 def _render_status(data: dict, url: str) -> str:
     """The lane table, shaped so another agent can read it as easily as a human."""
     devices = data.get("devices") or []
-    out = [f"rbgafi {__version__}  {url}"]
+    out = [f"rgbafi {__version__}  {url}"]
     for d in devices:
         per = "per-key" if d.get("per_lamp") else "single colour"
         mode = f" {d['mode']}" if d.get("mode") else ""
@@ -307,7 +307,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     from .watchers.opencode import LOCK_PATH
 
     problems = 0
-    print(f"rbgafi {__version__} - this machine")
+    print(f"rgbafi {__version__} - this machine")
 
     # the panel
     token = resolve_token(args.token)

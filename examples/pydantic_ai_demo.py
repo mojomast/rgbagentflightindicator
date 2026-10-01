@@ -1,4 +1,4 @@
-"""Run one Pydantic AI workflow with a lamp on the rbgafi panel.
+"""Run one Pydantic AI workflow with a lamp on the rgbafi panel.
 
 The panel comes from the environment, exactly like every other rgi client:
 

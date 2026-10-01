@@ -55,13 +55,13 @@ const PANEL = PANEL_INFO.url
 
 // What the sidebar block calls itself. Keep in step with VERSION_LABEL in
 // rgi/__init__.py and the version in pyproject.toml.
-const VERSION_LABEL = "rbgafi v0.5"
+const VERSION_LABEL = "rgbafi v0.5"
 
 // A paste-ready handover: whichever prompt fits the machine, with the token, so
 // the human does not have to assemble it under pressure.
 function handoverText(): string {
   return [
-    "Register with the rbgafi status panel.",
+    "Register with the rgbafi status panel.",
     "",
     "If this machine has no plugin yet:",
     `  Fetch and follow ${PANEL}/files/PLUGIN_SETUP_PROMPT.md`,
@@ -639,11 +639,11 @@ export default {
           commands: [
             {
               id: "rgi.details",
-              title: "rbgafi: lane details",
-              group: "rbgafi",
+              title: "rgbafi: lane details",
+              group: "rgbafi",
               bind: "alt+l",
               palette: true,
-              slash: { name: "lanes", aliases: ["rbgafi"] },
+              slash: { name: "lanes", aliases: ["rgbafi"] },
               run: () => toggleDetails(),
             },
           ],
