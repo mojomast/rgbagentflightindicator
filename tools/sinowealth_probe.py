@@ -148,6 +148,53 @@ def frame_rgb(header: bytes, colours: dict[int, tuple[int, int, int]],
     return out
 
 
+def listen(found: list[dict], args) -> int:
+    """Print input reports from one interface, or from every readable one.
+
+    Read-only: this never writes, so it cannot disturb the board's lighting or
+    its typing. What it is for is letting the board describe itself - a status
+    byte that changes with the lighting mode is often the clue that explains
+    why a frame is accepted and ignored.
+    """
+    chosen = [i for i in found if not args.iface or i["col"] == args.iface]
+    if not chosen:
+        print(f"no interface called {args.iface}")
+        return 1
+    print(f"\nlistening {args.read} ms on "
+          f"{', '.join(i['col'] for i in chosen)} (type a key if you want to "
+          f"see input flow)")
+    for item in chosen:
+        device = hid.device()
+        try:
+            device.open_path(item["raw"])
+        except Exception as exc:
+            print(f"  {item['col']}: cannot open ({exc})")
+            continue
+        try:
+            device.set_nonblocking(1)
+            deadline = time.time() + args.read / 1000.0
+            seen = 0
+            while time.time() < deadline:
+                try:
+                    data = device.read(64)
+                except OSError as exc:
+                    # An interface with no input endpoint refuses reads on some
+                    # stacks. That is an answer, not a failure.
+                    print(f"  {item['col']}: no input endpoint ({exc})")
+                    break
+                if data:
+                    seen += 1
+                    print(f"  {item['col']}: {bytes(data).hex(' ')}")
+            if not seen:
+                print(f"  {item['col']}: no input reports")
+        finally:
+            try:
+                device.close()
+            except Exception:
+                pass
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--caps", action="store_true",
@@ -171,6 +218,9 @@ def main() -> int:
                          "firmware is unknown, and it cannot drop keystrokes")
     ap.add_argument("--pace", type=float, default=0.0, metavar="MS",
                     help="milliseconds to wait between writes (the driver uses 13)")
+    ap.add_argument("--read", type=int, default=0, metavar="MS",
+                    help="listen for input reports this many milliseconds "
+                         "(only interfaces that report input can do this)")
     ap.add_argument("--send", help="raw hex bytes to write instead of painting")
     ap.add_argument("--repeat", type=int, default=1)
     ap.add_argument("--delay", type=float, default=0.05, help="seconds between sends")
@@ -193,6 +243,9 @@ def main() -> int:
             else:
                 line += "  (caps unavailable - is the board in use?)"
         print(line)
+
+    if args.read:
+        return listen(found, args)
 
     wanted = [(name, parse_slots(getattr(args, name)))
               for name in COLOURS if getattr(args, name)]
