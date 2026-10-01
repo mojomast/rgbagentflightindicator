@@ -37,6 +37,34 @@ python -m rgi watch                          # report OpenCode sessions (optiona
 starts the HTTP API and starts painting. `watch` makes OpenCode sessions appear
 without the agents knowing anything about this project.
 
+### Every connected keyboard, automatically
+
+By default `daemon` uses **every supported keyboard it can see**, not just the
+first one. Plug a second board in and it joins the panel; no configuration, and
+no `--backend` needed:
+
+```
+[rgi] sinowealth: 126 lamps; lanes on `, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, -, =
+[rgi] evision: 126 lamps; lanes on led0, led1, led2, led3, …
+[rgi] listening on http://127.0.0.1:8730
+```
+
+A session is one *lane*, and each device maps lanes onto its own lamps — so the
+same session can be key `1` on one board and `led7` on another.
+
+If a device can only show **one colour at a time** (a keyboard whose firmware only
+exposes VIA's effect controls, or a laptop backlight), the panel does not pretend
+otherwise: that device lights up in the colour of the **most urgent** lane —
+blinking red if anything needs you, white if something just finished, green while
+work is in flight. One lamp is still an honest indicator; twelve fake ones are not.
+
+Choose explicitly if you prefer:
+
+```sh
+python -m rgi daemon --backend evision                 # one of them
+python -m rgi daemon --backend evision --backend qmk   # exactly these two
+```
+
 Nudge a lamp by hand:
 
 ```sh
@@ -117,11 +145,11 @@ Full details, including the states and the error codes, are in
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `--backend` | `auto` | `sinowealth`, `openrgb`, `sysfs`, `lamparray`, `dummy` |
+| `--backend` | all connected | repeatable: `sinowealth`, `evision`, `openrgb`, `sysfs`, `qmk`, `dummy`. Default = every supported keyboard that is present |
 | `--host` / `--port` | `127.0.0.1:8730` | bind address; use `0.0.0.0` to accept agents from other machines |
 | `--token` | `RGI_TOKEN` or `~/.config/rgi/token` | shared secret; **required** once you are not on localhost |
 | `--count` | `12` | how many lanes to offer |
-| `--lanes` | backend default | explicit lamp indices for lanes |
+| `--lanes` | backend default | explicit lamp indices for the *primary* device's lanes |
 | `--device` / `--leds` | `0` / detected | OpenRGB device index, lamp count override |
 | `--no-quiet` | off | do not freeze the frame while you type (see below) |
 

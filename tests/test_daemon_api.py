@@ -12,9 +12,59 @@ import urllib.error
 import urllib.request
 
 from rgi.backends.dummy import DummyBackend
-from rgi.daemon import Daemon, Lanes, Renderer, make_server
+from rgi.daemon import Daemon, Device, Lanes, make_server
 
 TOKEN = "test-token"
+
+
+class SingleColourBackend(DummyBackend):
+    """A device that can only show one colour at a time - a VIA-only QMK board,
+    or a laptop backlight. It must show the most urgent lane, not pretend to
+    have per-key control."""
+
+    name = "single"
+    per_lamp = False
+
+
+class TestSingleColourDevice(unittest.TestCase):
+    def setUp(self):
+        self.backend = SingleColourBackend(count=5)
+        self.backend.open()
+        self.lanes = Lanes(count=3)
+        self.device = Device(self.backend, pool=[0, 1, 2], label="single")
+        self.daemon = Daemon([self.device], self.lanes, quiet=False)
+
+    def render(self, now=None):
+        import time
+        return self.device.frame(self.daemon.snapshot(), now or time.monotonic(), False)
+
+    def test_idle_and_empty_is_dark(self):
+        self.assertEqual(self.render(), [(0, 0, 0)] * 5)
+
+    def test_one_working_lane_lights_the_whole_device(self):
+        self.lanes.claim("s", "opencode", None, None)
+        self.lanes.set_state("s", "working")
+        self.assertEqual(self.render(), [(0, 255, 0)] * 5)
+
+    def test_the_most_urgent_state_wins(self):
+        self.lanes.claim("a", "x", None, None)
+        self.lanes.claim("b", "x", None, None)
+        self.lanes.set_state("a", "done")
+        self.lanes.set_state("b", "blocked")
+        frame = self.render()
+        # blocked outranks done, so the board blinks red whichever it shows
+        self.assertIn(frame[0], ((255, 0, 0), (0, 0, 0)))
+        self.assertEqual(len(set(frame)), 1)      # uniform, never a mix
+
+    def test_done_alone_blinks_white(self):
+        import time
+        self.lanes.claim("s", "x", None, None)
+        self.lanes.set_state("s", "done")
+        seen = set()
+        for i in range(14):
+            seen.add(self.render(time.monotonic() + i * 0.05)[0])
+        self.assertIn((255, 255, 255), seen)
+        self.assertIn((0, 0, 0), seen)
 
 
 class PanelCase(unittest.TestCase):
@@ -22,9 +72,9 @@ class PanelCase(unittest.TestCase):
     def setUpClass(cls):
         cls.backend = DummyBackend(count=6)
         cls.backend.open()
-        cls.lanes = Lanes(pool=[0, 1, 2, 3])
-        cls.daemon = Daemon(cls.backend, cls.lanes,
-                            Renderer(cls.backend, cls.lanes, quiet=False), verbose=False)
+        cls.lanes = Lanes(count=4)
+        cls.device = Device(cls.backend, pool=[0, 1, 2, 3], label="dummy")
+        cls.daemon = Daemon([cls.device], cls.lanes, quiet=False, verbose=False)
         cls.server = make_server("127.0.0.1", 0, cls.daemon, TOKEN)
         cls.port = cls.server.server_address[1]
         cls.base = f"http://127.0.0.1:{cls.port}"
@@ -54,9 +104,10 @@ class PanelCase(unittest.TestCase):
             return exc.code, json.loads(exc.read() or b"{}")
 
     def frame(self):
-        """Render one frame the way the daemon loop would, and return the lit lanes."""
-        colours = self.daemon.renderer.frame(__import__("time").monotonic())
-        return colours
+        """Render one frame the way the daemon loop would."""
+        import time
+        state = self.daemon.snapshot()
+        return self.device.frame(state, time.monotonic(), False)
 
 
 class TestAuth(PanelCase):

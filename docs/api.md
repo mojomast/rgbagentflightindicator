@@ -74,30 +74,44 @@ Releases every lamp. For a human cleaning up, not for agents.
 
 ```json
 {
-  "backend": "sinowealth",
+  "devices": [
+    {"label": "evision", "backend": "evision", "lamps": 126, "per_lamp": true,
+     "lanes": ["led0", "led1", "led2"]},
+    {"label": "sinowealth", "backend": "sinowealth", "lamps": 126, "per_lamp": true,
+     "lanes": ["`", "1", "2"]}
+  ],
+  "backend": "evision",
   "lamps": 126,
+  "lanes": 12,
   "free": [2, 4, 5],
   "sessions": {
-    "job-123": {"slot": 1, "key": "1", "agent": "hermes", "label": "nightly sync",
+    "job-123": {"slot": 1, "key": "led1", "agent": "hermes", "label": "nightly sync",
                 "host": "kimi", "state": "working", "age": 12.3}
   }
 }
 ```
 
+`backend`, `lamps` and `key` describe the **primary** device (the first one);
+`devices` describes all of them. A lane's `key` is whatever that lamp is called on
+the primary device, so it differs between boards — the `slot` is the stable
+identifier.
+
 ## GET /slots
 
-Every lamp in order, occupied or not — what a remote agent reads before deciding
-which lamp to ask for.
+Every lamp of the **primary** device in order, occupied or not — what a remote
+agent reads before deciding which lamp to ask for. `lane` is the lane slot a lamp
+is carrying, so you can compare layouts across devices.
 
 ```json
 {
-  "backend": "sinowealth",
+  "backend": "evision",
+  "device": "evision",
   "free": [2],
   "slots": [
-    {"slot": 1, "key": "1", "group": "number-row", "free": false,
+    {"slot": 0, "key": "led0", "group": "unmapped", "lane": 0, "free": false,
      "sessionID": "job-123", "agent": "hermes", "label": "nightly sync",
      "host": "kimi", "state": "working", "age": 12.3},
-    {"slot": 2, "key": "2", "group": "number-row", "free": true}
+    {"slot": 1, "key": "led1", "group": "unmapped", "lane": 1, "free": true}
   ]
 }
 ```

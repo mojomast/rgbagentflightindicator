@@ -23,8 +23,9 @@ DEFAULT_URL = "http://127.0.0.1:8730"
 
 
 def _add_backend_args(ap: argparse.ArgumentParser) -> None:
-    ap.add_argument("--backend", default="auto",
-                    help="keyboard driver: auto, sinowealth, openrgb, sysfs, lamparray, dummy")
+    ap.add_argument("--backend", action="append", default=None,
+                    help="keyboard driver, repeatable. Default: every supported keyboard "
+                         "that is connected (sinowealth, evision, openrgb, sysfs, dummy)")
     ap.add_argument("--device", type=int, default=0, help="OpenRGB device index")
     ap.add_argument("--openrgb-host", default="127.0.0.1")
     ap.add_argument("--openrgb-port", type=int, default=6742)
@@ -35,10 +36,16 @@ def _add_backend_args(ap: argparse.ArgumentParser) -> None:
     ap.add_argument("--debug", action="store_true")
 
 
-def pick_backend(name: str):
-    """Resolve --backend auto to the first backend that reports itself available."""
-    if name != "auto":
-        return name
+def pick_backend(names) -> str:
+    """Resolve --backend to a single name for the one-shot commands.
+
+    Accepts a name, a list of names, or None (meaning auto). Detection order
+    decides when several are possible.
+    """
+    if isinstance(names, str):
+        names = [names]
+    if names and names != ["auto"]:
+        return names[0]
     for candidate, ok in available_backends():
         if ok and candidate != "dummy":
             return candidate
