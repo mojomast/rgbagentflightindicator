@@ -133,7 +133,7 @@ The three times mean different things, and they are easy to confuse:
 |---|---|
 | `age` | how long this session has held the lane |
 | `in_flight_s` | how long the **current action** has been running. `null` for `done`, `error` and `idle` — a landed agent is not in flight — and it restarts from zero when the next action begins. `blocked` counts, because waiting is unfinished, not landed |
-| `idle_s` | how long since the lane last reported anything, of any kind. A busy lane resets this every ten seconds or so (the watcher heartbeats), so a rising `idle_s` means that lane has gone quiet |
+| `idle_s` | how long since the lane last reported anything, and `null` **while it is in flight**. In flight and idle are mutually exclusive: a running action is not idle, and a landed lane is not flying, so exactly one of the two is ever present |
 
 `backend`, `lamps` and `key` describe the **primary** device (the first one);
 `devices` describes all of them. A lane's `key` is whatever that lamp is called on

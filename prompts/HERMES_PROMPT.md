@@ -171,9 +171,10 @@ Read the two times carefully, because they answer different questions:
 - **`in_flight_s` is the current action only.** It is `null` for a lane that has
   landed (`done`, `error`, `idle`) and restarts from zero when the next action
   begins. `blocked` still counts as in flight — waiting is unfinished, not landed.
-- **`idle_s` is how long since that lane last said anything at all.** A busy lane
-  resets it every few seconds, so a *rising* `idle_s` is the signal that something
-  has gone quiet mid-task — which is the one worth acting on.
+- **`idle_s` is how long since that lane last said anything, and it is `null`
+  while the lane is in flight** — the two are mutually exclusive, so exactly one of
+  them is ever present. A *large* `in_flight_s` is the signal that something has
+  gone quiet mid-task, and that is the one worth acting on.
 
 `.info.running` lists the **shell commands** a lane is running right now, and
 `.info.children` lists only the subagents **currently in flight** — so treat both
