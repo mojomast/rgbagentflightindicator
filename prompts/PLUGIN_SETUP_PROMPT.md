@@ -126,7 +126,12 @@ the token (`RGI_TOKEN`, then `~/.config/rgi/token`) by itself.
 Lanes from this machine are named after it by default — the hostname, unless you
 write `~/.config/rgi/name` (`RGI_IDENT` overrides both). An agent the human gave
 a personal name can set it with `{"sessionID": …, "ident": "…"}` at claim time or
-any time afterwards; a re-claim never renames a live lane.
+any time afterwards; a re-claim never renames a live lane, and the watcher adopts
+any lane it owns that has no name.
+
+The `rgi` client is optional and comes from the panel, not a registry: the
+manifest at `GET <panel-host>/files` lists a `.whl`, fetch it with the token and
+`pip install` it (`PLUGIN_UPDATE_PROMPT.md` has the exact commands).
 
 ### Rules
 

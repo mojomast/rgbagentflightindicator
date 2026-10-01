@@ -45,11 +45,32 @@ PUBLISHED: dict[str, str] = {
     "pi-extension.ts": os.path.join(ROOT, "plugin", "pi", "extension.ts"),
 }
 
+DIST = os.path.join(ROOT, "dist")
+
+
+def built_wheels() -> dict[str, str]:
+    """Client wheels that have been built, if any.
+
+    `dist/` is build output and gitignored. Publishing whatever is there means a
+    reporting machine can install the client without a registry, and the wheel
+    matches the panel's own tree by construction. Nothing is published when the
+    panel has not built one.
+    """
+    out: dict[str, str] = {}
+    try:
+        for name in os.listdir(DIST):
+            if name.endswith(".whl"):
+                out[name] = os.path.join(DIST, name)
+    except OSError:
+        pass
+    return out
+
 
 def published_files() -> list[dict]:
     out = []
-    for name in sorted(PUBLISHED):
-        path = PUBLISHED[name]
+    entries = {**PUBLISHED, **built_wheels()}
+    for name in sorted(entries):
+        path = entries[name]
         entry: dict = {"name": name, "url": f"/files/{name}"}
         try:
             with open(path, "rb") as fh:
@@ -64,11 +85,23 @@ def published_files() -> list[dict]:
 
 
 def read_published(name: str) -> str | None:
-    path = PUBLISHED.get(name)
+    path = PUBLISHED.get(name) or built_wheels().get(name)
     if path is None:
         return None
     try:
         with open(path, encoding="utf-8") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
+def read_published_bytes(name: str) -> bytes | None:
+    """Raw bytes of any published file: a wheel is binary, prompts are not."""
+    path = PUBLISHED.get(name) or built_wheels().get(name)
+    if path is None:
+        return None
+    try:
+        with open(path, "rb") as fh:
             return fh.read()
     except OSError:
         return None

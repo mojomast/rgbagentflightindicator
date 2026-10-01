@@ -48,16 +48,20 @@ python3 /tmp/rgi-watch.py          # step 5 says how to keep it running
 Running the current watcher is what puts tokens, context, subagents and running
 shells into your lanes; older watchers only send the lane state.
 
-The `rgi` client is separate and still not on PyPI, so there is no `pip install`
-that works from outside the panel's own network. If you have a checkout, pull it:
+The `rgi` client is not on PyPI, but the panel serves a built wheel that matches
+its own tree. Fetch it - the manifest names it - and install it:
 
 ```sh
-git -C <your checkout> pull
+curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files" > /tmp/rgi-files.json
+WHEEL=$(python3 -c "import json;print(next(f['name'] for f in json.load(open('/tmp/rgi-files.json'))['files'] if f['name'].endswith('.whl')))")
+curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/$WHEEL" -o /tmp/rgi.whl
+python3 -m pip install --user /tmp/rgi.whl
 ```
 
-If you do not have one, that is fine: the plugin (step 3) and the `curl` examples
-below cover reporting and reading, and `rgi ...` commands exist only on machines
-where the client is installed.
+The wheel is build output on the panel (`uv build --wheel`), not committed; if
+the manifest has no `.whl`, a checkout works too (`git -C <your checkout> pull`).
+Nothing about reporting *needs* the client - it is for `rgi status`, `rgi doctor`
+and `rgi lane-map`.
 
 ### 3. Install the current plugin
 

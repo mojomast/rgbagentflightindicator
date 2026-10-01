@@ -37,7 +37,9 @@ python -m rgi watch                          # report OpenCode sessions (optiona
 The package is not on PyPI yet — install from the checkout above, or
 `pip install "git+https://github.com/mojomast/rgbagentflightindicator"`. A machine
 that only needs to *report* to somebody else's panel needs none of this: the
-watcher is one published file (see `docs/machines.md`).
+watcher is one published file (see `docs/machines.md`), and a panel serves a
+built wheel of the client at `GET /files`, so a reporting machine can install
+`rgi` without a registry.
 
 `detect` prints the backends it found and how many lamps each exposes — and it is
 **read-only**: it will not claim a device that something else is driving. `daemon`
@@ -179,7 +181,7 @@ rgi status --follow   # reprint on every change
 ```
 
 ```
-rbgafi 0.5.0  http://127.0.0.1:8730
+rbgafi 0.5.1  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003

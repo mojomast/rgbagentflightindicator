@@ -48,9 +48,21 @@ python3 /tmp/rgi-watch.py --url http://<panel-host>:8730
 ```
 
 Keep it running the way this machine keeps services (systemd, tmux, a scheduled
-task). The `rgi` client — `rgi status`, `rgi doctor`, `rgi lane-map` — is not on
-PyPI yet; it comes from a checkout of this repository, and only the machine that
-drives keyboards really needs it.
+task).
+
+The `rgi` client is not on PyPI, but the panel serves a built wheel — no
+registry, and it matches the panel's own tree:
+
+```sh
+BASE=http://<panel-host>:8730                  # and TOKEN, as above
+curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files" > /tmp/files.json
+WHEEL=$(python3 -c "import json;print(next(f['name'] for f in json.load(open('/tmp/files.json'))['files'] if f['name'].endswith('.whl')))")
+curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/$WHEEL" -o /tmp/rgi.whl
+python3 -m pip install --user /tmp/rgi.whl
+```
+
+The wheel is built on the panel with `uv build --wheel` (build output, not
+committed); if the manifest has no `.whl`, install from a checkout instead.
 
 ```sh
 DIR=~/.config/opencode/plugins/rgi-panel
@@ -147,7 +159,7 @@ Agents sharing a machine must share the *installation*, not each make their own:
 `rgi doctor` answers the whole question in one command:
 
 ```
-rbgafi 0.5.0 - this machine
+rbgafi 0.5.1 - this machine
   panel     reachable at http://127.0.0.1:8730: 1 device(s), 3 lane(s)
   token     found (--token, RGI_TOKEN, or ~/.config/rgi/token)
   watcher   running (pid 45680)

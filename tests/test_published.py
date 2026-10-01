@@ -9,7 +9,10 @@ machine failing to start.
 
 from __future__ import annotations
 
+import os
+import tempfile
 import unittest
+from unittest import mock
 
 from rgi import files
 
@@ -56,6 +59,30 @@ class PublishedWatcherTest(unittest.TestCase):
         self.assertIn('"url"', text)              # ~/.config/rgi/url is read
         self.assertIn("RGI_TOKEN", text)
         self.assertIn('"token"', text)            # ~/.config/rgi/token is read
+
+
+class PublishedWheelTest(unittest.TestCase):
+    """A built client wheel is published like anything else, but as binary."""
+
+    def test_a_wheel_in_dist_is_listed_and_served_as_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dist = os.path.join(tmp, "dist")
+            os.makedirs(dist)
+            blob = b"PK\x03\x04 a wheel is a zip, and bytes are not text"
+            wheel = "rgbagentflightindicator-9.9.9-py3-none-any.whl"
+            with open(os.path.join(dist, wheel), "wb") as fh:
+                fh.write(blob)
+            with mock.patch.object(files, "DIST", dist):
+                names = [f["name"] for f in files.published_files()]
+                self.assertIn(wheel, names)
+                self.assertEqual(files.read_published_bytes(wheel), blob)
+                self.assertIsNone(files.read_published_bytes("nope.whl"))
+
+    def test_no_dist_directory_is_not_an_error(self):
+        missing = os.path.join(tempfile.gettempdir(), "rgi-dist-that-is-not-there")
+        with mock.patch.object(files, "DIST", missing):
+            names = [f["name"] for f in files.published_files()]
+            self.assertIn("rgi-watch.py", names)
 
 
 if __name__ == "__main__":

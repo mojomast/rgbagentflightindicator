@@ -40,7 +40,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .backends import OFF, RGB, Backend, BackendUnavailable, load, available_backends
 from .config import resolve_token               # noqa: F401  (re-exported)
-from .files import published_files, read_published
+from .files import published_files, read_published_bytes
 
 PALETTE: dict[str, RGB] = {
     "working": (0, 255, 0),      # in flight
@@ -417,6 +417,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_bytes(self, code: int, blob: bytes, ctype="application/octet-stream") -> None:
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(blob)))
+        self.end_headers()
+        self.wfile.write(blob)
+
     def _body(self) -> dict:
         n = int(self.headers.get("Content-Length") or 0)
         if not n:
@@ -514,12 +521,15 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.startswith("/files/"):
             name = path[len("/files/"):]
-            text = read_published(name)
-            if text is None:
+            blob = read_published_bytes(name)
+            if blob is None:
                 self._send(404, {"error": f"not published: {name!r}",
                                  "published": [f["name"] for f in published_files()]})
                 return
-            self._send_text(200, text)
+            # a built client wheel is binary; everything else in there is text
+            ctype = ("application/octet-stream" if name.endswith(".whl")
+                     else "text/plain; charset=utf-8")
+            self._send_bytes(200, blob, ctype)
             return
 
         self._send(404, {"error": "not found",
