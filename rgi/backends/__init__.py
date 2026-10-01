@@ -30,6 +30,11 @@ def _registry():
         out["lamparray"] = LampArrayBackend
     except Exception:                       # pragma: no cover - optional module
         pass
+    try:
+        from .evision import EvisionBackend
+        out["evision"] = EvisionBackend
+    except Exception:                       # pragma: no cover - optional module
+        pass
     return out
 
 

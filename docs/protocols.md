@@ -163,6 +163,86 @@ Reference: [HUTRR84](https://www.usb.org/sites/default/files/hutrr84_-_lighting_
 and Microsoft's [ArduinoHidForWindows](https://github.com/microsoft/ArduinoHidForWindows)
 for a complete worked report descriptor.
 
+## EVision (SONiX) - Magic Refiner, Redragon, and many others
+
+The second family this project drives, and the protocol behind the Magic Refiner
+MK 17 (USB `320F:501D`) that is the reference board here. Recovered from
+OpenRGB's `EVisionKeyboardController` (`b9309c61`) and then **confirmed on
+hardware**: the board answers the v2 capability query on usage page `0xFF1C` with
+`aa 55`, reports a 126-lamp map, and accepts v2 direct-colour packets.
+
+### Interface
+
+```
+usage page 0xFF1C, interface 1     output reports only - no feature reports
+```
+
+Both OpenRGB detectors key on the usage page and interface number, and ignore the
+usage itself. The keyboard boot collection on the same device is not used.
+
+### Framing
+
+Every message is one 64-byte output report:
+
+```
+  [0]     report id, always 0x04
+  [1..2]  checksum, little endian = sum(bytes[3..63])
+  [3]     command
+  [4]     payload size
+  [5..6]  payload offset, little endian
+  [7]     unused
+  [8..63] payload, at most 56 bytes
+```
+
+A device that speaks **v2** replies to every packet with a 64-byte response that
+echoes the report id, the command, the offset and *the request's checksum*, with a
+status byte at `[7]`. Our board does exactly this — which is how the protocol was
+identified:
+
+```
+sent:  04 0a 00 03 07 00 00 00 ...          read capabilities
+reply: 04 0a 00 03 07 00 00 00 aa 55 00 00 0d 7e 50 ...
+                                            ^^^^^     ^^^^^^ map_size = 0x7e = 126
+```
+
+### Commands
+
+| op | meaning |
+|---|---|
+| `0x01` / `0x02` | begin / end configuration (wraps stored-profile writes) |
+| `0x03` | read capabilities |
+| `0x05` / `0x06` | read / write config (profiles, mode, brightness, colour) |
+| `0x0A` / `0x0B` | read / write stored custom colours |
+| `0x12` | dynamic colours (direct): RGB triples at absolute byte offsets, 56-byte chunks |
+| `0x13` | end dynamic colours - hand the board back to its own firmware |
+
+Colour order is **RGB**, stride 3, no per-packet header beyond the 8-byte one
+above. v1 uses the same header with different commands (`0x06` mode, `0x11`
+colours, 54-byte chunks); a v1 board simply does not answer `0x03`.
+
+### Two details that matter in software
+
+- **Refresh or lose it.** While the board is being driven it wants a nudge about
+  every 200 ms: command `0x12` with a single zero byte at offset 18. Without it
+  the firmware drifts back to its own effect. `rgi`'s backend keeps a small
+  thread for this.
+- **Direct mode needs no mode packet.** Unlike the stored profiles, writing
+  `0x12` packets is enough — which is ideal for a status panel: no profile is
+  consumed and nothing is saved to the keyboard.
+
+### What is not known
+
+The lamp *index* map is not published for this board: the protocol addresses LEDs
+by index, but not which index is which key. OpenRGB's v2 driver ships a 106-entry
+map for its own devices; ours reports 126. Use `rgi map` to walk them and note
+which index sits under which key, then pass `--lanes` with the row you want.
+
+Related: this same device is [OpenRGB issue #4148](https://gitlab.com/CalcProgrammer1/OpenRGB/-/issues/4148)
+(reported, still open). The vendor app is the generic eVision OEM utility rebadged
+for the seller, and the MCU is a SONiX `SN32F248` (`VS11K09A`), which is also
+QMK-portable via [SonixQMK](https://sonixqmk.github.io/SonixDocs/) if you are
+willing to open the case.
+
 ## Other routes, briefly
 
 - **SteelSeries GameSense** — HTTP JSON on `localhost:27301`. Easiest vendor API

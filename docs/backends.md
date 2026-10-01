@@ -135,6 +135,8 @@ If you have to go this far, this is the path that worked here:
 | Device | Protocol | Backend | Verified |
 |---|---|---|---|
 | Sinowealth `258A:0049` (white-label "Gaming Keyboard", READSON, many rebrands) | vendor HID feature reports, planar B/G/R blocks | `sinowealth` | yes, on hardware |
+| EVision/SONiX `320F:501D` (Magic Refiner MK 17) and siblings | 64-byte command protocol on usage page `0xFF1C` | `evision` | yes, on hardware |
+| Other EVision boards (Redragon, Husky, EvoFox, Kreo, VGN/ATK…) | same protocol, v1 or v2 | `evision` (v2) / OpenRGB | protocol family confirmed; per-board maps differ |
 | Any OpenRGB-supported keyboard | OpenRGB SDK over TCP | `openrgb` | SDK implemented + unit tested; not yet against a board |
 | HID LampArray keyboards | USB HID usage page `0x59` feature reports | `lamparray` (planned) | protocol documented here |
 | QMK / VIA boards | raw HID, VIA protocol | not yet | easy first contribution |
