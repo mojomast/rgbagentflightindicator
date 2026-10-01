@@ -17,7 +17,7 @@ import time
 import urllib.request
 
 from . import __version__
-from .backends import available_backends, load
+from .backends import OPT_IN, available_backends, auto_backends, load
 from .backends.base import BackendUnavailable
 from .config import DEFAULT_URL, resolve_url     # noqa: F401  (public surface)
 
@@ -66,17 +66,21 @@ def pick_backend(names) -> str:
         names = [names]
     if names and names != ["auto"]:
         return names[0]
-    for candidate, ok in available_backends():
-        if ok and candidate != "dummy":
-            return candidate
-    return "dummy"
+    found = auto_backends()
+    return found[0] if found else "dummy"
 
 
 def cmd_detect(args: argparse.Namespace) -> int:
     print(f"rgi {__version__}\n")
     print("backends:")
     for name, ok in available_backends():
-        print(f"  {'YES' if ok else ' no'}  {name}")
+        mark = "YES" if ok else " no"
+        if name in OPT_IN:
+            mark = f"{'YES' if ok else ' no'}*"
+        print(f"  {mark}  {name}")
+    if any(name in OPT_IN and ok for name, ok in available_backends()):
+        print("  *  present, but never opened automatically: "
+              "name it with --backend")
 
     chosen = pick_backend(args.backend)
     print(f"\nwould use: {chosen}")

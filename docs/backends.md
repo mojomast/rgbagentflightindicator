@@ -138,7 +138,7 @@ If you have to go this far, this is the path that worked here:
 
 | Device | Protocol | Backend | Verified |
 |---|---|---|---|
-| Sinowealth `258A:0049` (white-label "Gaming Keyboard", READSON, many rebrands) | vendor HID feature reports, planar B/G/R blocks | `sinowealth` | yes, on hardware |
+| Sinowealth `258A:0049` (white-label "Gaming Keyboard", READSON, many rebrands) | vendor HID feature reports on usage page `0xFF00` (Col05 command, Col06 data), planar B/G/R blocks | `sinowealth` (**opt-in**) | frames accepted on hardware, but see the warning below |
 | EVision/SONiX `320F:501D` (Magic Refiner MK 17) and siblings | 64-byte command protocol on usage page `0xFF1C` | `evision` | yes, on hardware |
 | Other EVision boards (Redragon, Husky, EvoFox, Kreo, VGN/ATK�) | same protocol, v1 or v2 | `evision` (v2) / OpenRGB | protocol family confirmed; per-board maps differ |
 | Any OpenRGB-supported keyboard | OpenRGB SDK over TCP | `openrgb` | SDK implemented + unit tested; not yet against a board |
@@ -147,6 +147,51 @@ If you have to go this far, this is the path that worked here:
 | QMK on stock VIA firmware | same channel, VIA rgb_matrix = one colour | `qmk` (single colour) | protocol to source; needs a board to confirm |
 | QMK with the OpenRGB or SignalRGB module | their own raw HID protocols | not driven — use that project's host, or flash Vial | detected and reported only |
 | Logitech G LIGHTSYNC | Logi LED SDK | not yet | — |
+
+### `sinowealth` is opt-in, and why
+
+Auto-detection **will not** open the sinowealth backend, even when a
+`258A:0049` board is plugged in. Start it by name if you mean it:
+
+```sh
+rgi daemon --backend sinowealth
+```
+
+Measured on this machine on 2026-10-01, on a `258A:0049` whose firmware exposed
+only the `0xFF00` collections:
+
+- `UNLOCK` (6/6 bytes) and `MODE_COMMIT` (1032/1032) are accepted, and the
+  keyboard's lighting engine visibly restarts — a flicker.
+- **Frames carrying per-key colours are accepted but do not light the keys.**
+  Painting slots 0–12 left the whole board black.
+- **Sustained writes dropped keystrokes.** Around 20 writes/second was enough.
+  Paced at 40 ms with nothing else contending, every frame was accepted, which
+  suggests a timing window rather than a protocol mismatch — but it still did
+  not light the keys, so the frame layout is the open question.
+- Writes faster than roughly one per 25 ms were refused outright
+  (`send_feature_report` returned `-1`), which the driver already retries.
+
+The same physical board was driven successfully through `evision` earlier the
+same day, which means it was presenting usage page `0xFF1C` then and `0xFF00`
+now. No `0xFF1C` interface exists on this machine at the moment, so `evision`
+correctly refuses to attach.
+
+That is why the backend is opt-in: a status light that blanks the board and eats
+keystrokes is worse than no status light, and "it is plugged in" is not consent
+to be driven by an unconfirmed protocol. `rgi detect` shows it as `YES*` with
+the reason, and `tests/test_backend_optin.py` holds the rule.
+
+`tools/sinowealth_probe.py` is the lab tool for finishing this off — it lists
+the collections with their real report sizes and reports how many bytes the
+firmware accepted for every write:
+
+```sh
+python tools/sinowealth_probe.py --caps        # read-only
+python tools/sinowealth_probe.py --red 0-12    # writes; stop the daemon first
+```
+
+Open it before painting and after, since a second opener takes the board away
+from the daemon.
 | SteelSeries | GameSense HTTP | not yet | easiest of the vendor SDKs |
 | Laptop backlights | Linux LED class | `sysfs` | implemented, untested here |
 | Any WLED strip (ESP32/ESP8266) | WLED JSON API over HTTP, one reserved segment | `wled` | API to firmware source (16.0.1); mock-tested, needs a strip |

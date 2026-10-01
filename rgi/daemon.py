@@ -38,7 +38,8 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .backends import OFF, RGB, Backend, BackendUnavailable, load, available_backends
+from .backends import (OFF, RGB, Backend, BackendUnavailable, auto_backends,
+                       load, opt_in_backends)
 from .config import resolve_token               # noqa: F401  (re-exported)
 from .files import published_files, read_published_bytes
 
@@ -676,7 +677,12 @@ def open_devices(args: argparse.Namespace) -> list[Device]:
     if isinstance(wanted, str):
         wanted = [wanted]
     if not wanted or wanted == ["auto"]:
-        wanted = [name for name, ok in available_backends() if ok and name != "dummy"]
+        wanted = auto_backends()
+        for name in opt_in_backends():
+            # Say so rather than opening it: a board that is plugged in is not
+            # consent to be driven by a protocol we have not confirmed on it.
+            print(f"[rgi] {name}: present, not opened automatically "
+                  f"(start with --backend {name} to use it)")
         if not wanted:
             wanted = ["dummy"]
 
