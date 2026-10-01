@@ -213,6 +213,7 @@ class Watcher:
                 continue
             fresh = self.bind(sid, want=info.get("slot"))
             if fresh is None:
+                say(f"[warn] could not re-claim {sid[-12:]}: the panel refused a lamp")
                 continue
             if fresh["slot"] != info.get("slot"):
                 say(f"[slot] {sid[-12:]} was {info.get('slot')}, now {fresh['slot']}")
