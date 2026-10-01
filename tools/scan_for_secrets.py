@@ -19,6 +19,10 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKIP_DIRS = {".git", "__pycache__", ".venv", "venv", "build", "dist", ".mypy_cache"}
 
+
+def _skip(directory: str) -> bool:
+    return directory in SKIP_DIRS or directory.endswith(".egg-info")
+
 PATTERNS: list[tuple[str, str]] = [
     # credentials
     (r"(?i)\bX-LED-Token:\s*(?!<|your|\$)[A-Za-z0-9_\-]{8,}", "a real token in a header example"),
@@ -58,7 +62,7 @@ ALLOW = [
 def files():
     me = os.path.abspath(__file__)
     for base, dirs, names in os.walk(ROOT):
-        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+        dirs[:] = [d for d in dirs if not _skip(d)]
         for name in names:
             if name.endswith((".pyc", ".png", ".jpg", ".zip")):
                 continue

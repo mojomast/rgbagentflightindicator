@@ -1,77 +1,134 @@
 # Plugin update prompt
 
-Give this to an agent on a machine that already has the watcher and/or the panel
-plugin, when they need to be brought up to date.
+Give this to an agent on a machine that already has the panel's pieces installed
+(the watcher, the OpenCode plugin, or both) and needs them brought up to date.
 
 ## PASTE FROM HERE
 
-**You are being asked to update the panel's pieces on this machine.**
+**You are being asked to update the rbgafi panel's pieces on this machine.**
 
-Two things may be installed here:
+There may be three things here, and they update differently:
 
-- the **watcher** (`rgi watch`) which reports this machine's agent sessions
-- the **plugin** (OpenCode's `plugins/rgi-panel/`) which draws the panel in the
-  sidebar
+| piece | what it is | lives in |
+|---|---|---|
+| the **plugin** | draws the lane table in OpenCode's sidebar | `~/.config/opencode/plugins/` |
+| the **watcher** | reports this machine's OpenCode sessions to the panel | `rgi watch`, run however you start it |
+| the **client** | `rgi status` and friends, for reading the panel | the `rgbagentflightindicator` package |
 
-### 1. Note your local edits first
-
-Back up, then diff. Machines differ: the panel URL, the token and the start
-command are often local.
-
-```sh
-cp ~/.config/rgi/watcher.log ~/.config/rgi/watcher.log.bak 2>/dev/null
-```
-
-Check for a `--hold` flag in how the watcher is started. That flag came from an
-early build whose owner freed each lamp 45 seconds after every turn - if it is
-still there, lamps will keep vanishing shortly after a turn ends. Remove it, or
-use `--stale 7200`.
-
-### 2. Update from the source
-
-Either fetch from the panel:
+### 1. Look at what you have before changing it
 
 ```sh
-BASE=<panel-host>
-TOKEN=<token>
-curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/tui.ts" -o ~/.config/opencode/plugins/rgi-panel/tui.ts
-curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/index.ts" -o ~/.config/opencode/plugins/rgi-panel/index.ts
+ls ~/.config/opencode/plugins/                  # which plugin directories exist?
+rgi status 2>&1 | head -5                        # does the client work, and can it see the panel?
 ```
 
-...or from the repository (`pip install -U` / `git pull`, whichever you used).
+**If you have a directory called `keyboard-status`, that is the old plugin** (it
+asks for `LEDD_URL`, logs to `~/keyboard-status/plugin.log`, and labels its block
+"Keyboard (number row)"). The current plugin is a different directory with a
+different id, so install it and **retire the old one** rather than leaving both -
+two plugins would both draw a block in the sidebar.
 
-### 3. Restart the watcher, then OpenCode
-
-Restart the watcher the same way it was started, with the panel URL it used
-before. The plugin usually reloads when its files change; restart OpenCode if the
-sidebar does not pick it up.
-
-### 4. Verify behaviour, not just installation
-
-Do a normal turn and watch the lamp:
-
-1. while working: **green**
-2. when the turn ends: **blinks white, then holds white**
-3. **it must still be lit a minute later** - if it goes dark after ~45 seconds,
-   the old `--hold` behaviour is still in play
-4. next turn: **green again**, not stuck white
-
-`~/.config/rgi/watcher.log` narrates every decision:
-
-```
-[bind] … (in flight)   [land] … (turn finished)   [go] … (working again)
-[work] … (unblocked)   [hold] … (needs you)       [free] … (idle > 120 min)
-```
-
-### 5. Prove the watcher can reach OpenCode's CLI
+### 2. Update the client, if you use it
 
 ```sh
-time opencode api get /api/session/active     # expect JSON, well under a second
+pip install -U rgbagentflightindicator     # or: git -C <your checkout> pull
 ```
 
-If that hangs, the watcher will hang with it. An early build called the CLI
-through a shell, which on Linux and macOS ran only the first word of the command
-(`opencode`) and waited for the 25 second timeout. The current build resolves the
-binary and passes the arguments directly.
+### 3. Install the current plugin
+
+```sh
+DIR=~/.config/opencode/plugins/rgi-panel
+mkdir -p "$DIR"
+
+BASE=<panel-host>            # e.g. http://panel.example:8730
+TOKEN=<token>                # or read it from ~/.config/rgi/token
+
+curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/tui.ts"   -o "$DIR/tui.ts"
+curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/index.ts" -o "$DIR/index.ts"
+```
+
+Then retire anything old:
+
+```sh
+mv ~/.config/opencode/plugins/keyboard-status \
+   ~/.config/opencode/plugins/keyboard-status.retired   2>/dev/null
+```
+
+`GET $BASE/files` lists everything published, with sizes and hashes, if you want
+to check what you are about to install. The panel must be reachable from this
+machine; if it is not, ask the human for the address, and use the tailnet name
+rather than an IP where you have one.
+
+### 4. Make sure the plugin can authenticate
+
+The plugin reads the panel address from `RGI_URL` (older builds also honour
+`LEDD_URL`) and the token from `RGI_TOKEN`, falling back to
+`~/.config/rgi/token`:
+
+```sh
+mkdir -p ~/.config/rgi
+printf '%s' "<token>" > ~/.config/rgi/token     # if it is not already there
+```
+
+Set `RGI_URL` in the environment OpenCode is started from if the panel is not on
+`http://127.0.0.1:8730`.
+
+### 5. Restart the watcher, if you run one
+
+Restart it the same way it was started before, with the panel URL it used. Check
+for a `--hold` flag: that came from an early build that freed each lamp 45 seconds
+after every turn. Remove it, or use `--stale 7200`. The watcher now finds the
+token itself (`--token`, then `RGI_TOKEN`, then `~/.config/rgi/token`), so a
+token-protected panel no longer needs it passed by hand - and if the panel refuses
+a lane it says so in `~/.config/rgi/watcher.log` instead of failing silently.
+
+The plugin usually reloads when its files change; restart OpenCode if not.
+
+### 6. Verify, and say what you saw
+
+Success looks like this in the sidebar:
+
+```
+⌨ rbgafi v0.3
+▸  1 ▶ workstation   the session you are reading
+   2 ✔ kimi          some other session
+```
+
+And this in `~/.config/rgi/plugin.log`:
+
+```
+setup() called (panel=<your panel>, token=yes)
+OpenTUI runtime support installed
+jsx runtime ready
+slot registered: sidebar.content
+slot registered: home.footer.status
+```
+
+Check these three things specifically, because each has been a real failure before:
+
+1. **The header says `rbgafi v0.3`.** If it still says "Keyboard (number row)" or
+   "Panel", you are running the old plugin - go back to step 3.
+2. **The log says `token=yes`.** If it says `token=no`, every poll is a 401 and
+   the block will read `offline` - fix step 4.
+3. **Lines are listed with a host column.** If the block is empty but the log is
+   healthy, no lanes are claimed: that is `rgi status` on the panel's machine,
+   not a problem here.
+
+If the log says `could not install OpenTUI runtime support` or
+`jsx() failed: No renderer found`, report those exact lines - the plugin renders
+nothing rather than breaking the TUI, and that message says why.
+
+### 7. Reporting your own state (unchanged, but worth checking)
+
+Claiming a lane and reporting transitions has not changed:
+
+```sh
+curl -sS -X POST "$BASE/session/start" -H "Content-Type: application/json" \
+  -H "X-LED-Token: $TOKEN" \
+  -d '{"agent":"hermes","sessionID":"job-123","label":"nightly sync"}'
+```
+
+Then `working` / `blocked` / `done`, then `/session/end`. `prompts/HERMES_PROMPT.md`
+on the panel covers reporting *and* reading the lanes.
 
 ## PASTE TO HERE
