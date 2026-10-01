@@ -34,6 +34,7 @@ ACTIVE_POLL = 1.5        # how often to ask OpenCode what is running
 SESSION_POLL = 20.0      # how often to refresh titles and last-used times
 DONE_GRACE = 3.0         # a stop this short is not a finished turn
 STALE_DEFAULT = 2 * 3600
+HEARTBEAT = 10.0          # seconds between reports for a lane that is busy
 
 LOG_PATH = os.path.join(os.path.expanduser("~"), ".config", "rgi", "watcher.log")
 LOCK_PATH = os.path.join(os.path.expanduser("~"), ".config", "rgi", "watcher.lock")
@@ -147,6 +148,8 @@ class Watcher:
         self._repo_cache: dict[str, dict] = {}
         self._context_cache: dict[str, tuple[float, dict]] = {}
         self._info_sent: dict[str, str] = {}
+        self._info_time: dict[str, float] = {}
+        self._tools_cache: dict[str, tuple[float, list]] = {}
         self._running: set[str] = set()
         self._attention_detail: dict[str, dict] = {}
 
@@ -357,6 +360,45 @@ class Watcher:
                 return None
         return None
 
+    def _running_tools(self, sid: str, now: float) -> list[dict]:
+        """Terminal commands and other tools this session is running right now.
+
+        The last assistant message carries its tool parts with their state, so a
+        running bash command is visible - which is the difference between "busy"
+        and "busy running the thing that is stuck".
+        """
+        cached = self._tools_cache.get(sid)
+        if cached and now - cached[0] < 5:
+            return cached[1]
+
+        running: list[dict] = []
+        data, _ = self.cli(f"/api/session/{sid}/message", timeout=20)
+        if isinstance(data, dict):
+            messages = data.get("data") or []
+            for message in reversed(messages):
+                if message.get("type") != "assistant":
+                    continue
+                for part in message.get("content") or []:
+                    if not isinstance(part, dict) or part.get("type") != "tool":
+                        continue
+                    state = part.get("state") or {}
+                    if state.get("status") not in ("running", "pending"):
+                        continue
+                    detail = part.get("name") or "tool"
+                    raw = state.get("input") or {}
+                    if isinstance(raw, dict):
+                        for key in ("command", "cmd", "filePath", "path", "pattern", "url"):
+                            if raw.get(key):
+                                detail = str(raw[key])
+                                break
+                    running.append({
+                        "tool": part.get("name") or "tool",
+                        "detail": " ".join(str(detail).split())[:60],
+                    })
+                break                       # only the latest assistant message
+        self._tools_cache[sid] = (now, running)
+        return running
+
     def _lane_info(self, sid: str, now: float) -> dict:
         record = self.records.get(sid) or {}
         directory = (record.get("location") or {}).get("directory")
@@ -375,15 +417,23 @@ class Watcher:
 
         kids = []
         for child in self.children.get(sid, []):
+            # only the ones actually in flight: a finished subagent is history, and
+            # history in a one-line-per-lane panel is noise
+            if child not in self._running:
+                continue
             child_record = self.records.get(child) or {}
             kids.append({
                 "id": child,
                 "label": (child_record.get("title") or child)[:40],
-                "state": ("working" if child in self._running else "idle"),
+                "state": "working",
                 "tokens": ((child_record.get("tokens") or {}).get("output")),
             })
         if kids:
             info["children"] = kids
+
+        tools = self._running_tools(sid, now)
+        if tools:
+            info["running"] = tools
 
         blocked = self._attention_detail.get(sid)
         if blocked:
@@ -391,7 +441,12 @@ class Watcher:
         return info
 
     def push_info(self, running: set[str]) -> None:
-        """Send lane detail to the panel when it changes - never on a timer."""
+        """Send lane detail to the panel.
+
+        Posts when it changes, and otherwise at least every HEARTBEAT seconds
+        while a lane is busy - the panel measures "idle" from the last report, so
+        without a heartbeat a working lane and a stuck one look identical.
+        """
         now = time.time()
         self._running = running
         for sid, lane in list(self.bound.items()):
@@ -403,9 +458,13 @@ class Watcher:
                 say(f"[warn] could not build detail for {sid[-12:]}: {exc}")
                 continue
             signature = json.dumps(info, sort_keys=True)
-            if self._info_sent.get(sid) == signature:
+            fresh = self._info_sent.get(sid) == signature
+            last = self._info_time.get(sid, 0.0)
+            busy = lane.get("state") in ("working", "blocked", "stopping")
+            if fresh and not (busy and now - last > HEARTBEAT):
                 continue
             self._info_sent[sid] = signature
+            self._info_time[sid] = now
             self.post("/session/info", {"sessionID": sid, "info": info})
 
     def attention(self) -> set[str]:

@@ -215,7 +215,10 @@ class Lanes:
         """Merge free-form detail into a lane.
 
         Detail is for reading, not painting: it changes what /status and the
-        editor sidebar show, and never causes a frame write.
+        editor sidebar show, and never causes a frame write. It does count as a
+        sign of life, so the lane's "idle" timer resets - otherwise a busy lane
+        and a stuck one report identical numbers, since both are derived from the
+        last state change.
         """
         with self.lock:
             if sid not in self.slot:
@@ -228,6 +231,7 @@ class Lanes:
                     current[key].update(value)
                 else:
                     current[key] = value
+            self.updated[sid] = time.time()
             return True
 
     def clear(self) -> None:

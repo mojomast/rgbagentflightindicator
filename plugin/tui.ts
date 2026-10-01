@@ -230,7 +230,15 @@ export default {
       if (where) lines.push(`${prefix}repo ${trim(where, 30)}`)
       else if (info.directory) lines.push(`${prefix}dir ${trim(String(info.directory), 30)}`)
 
-      lines.push(`${prefix}in flight ${duration(l.in_flight_s)} · idle ${duration(l.idle_s)}`)
+      // "in flight" is how long the current state has lasted; "idle" is how long
+      // since the lane last reported anything. They diverge because a busy lane
+      // reports a heartbeat - if they are ever equal, that lane has gone quiet.
+      const state = l.state ?? "idle"
+      if (state === "working" || state === "blocked") {
+        lines.push(`${prefix}in flight ${duration(l.in_flight_s)} · idle ${duration(l.idle_s)}`)
+      } else {
+        lines.push(`${prefix}idle ${duration(l.idle_s)}`)
+      }
 
       const tokens = info.tokens ?? {}
       const spend = money(tokens.cost)
@@ -258,9 +266,16 @@ export default {
         lines.push(`${prefix}WAITING ON ${trim(String(what), 26)}`)
       }
 
-      const children = info.children ?? []
+      // a running terminal command or other tool: the difference between "busy"
+      // and "busy running the thing that is stuck"
+      const tools = (info as any).running ?? []
+      for (const tool of tools.slice(0, 3)) {
+        lines.push(`${prefix}> ${tool.tool} ${trim(String(tool.detail ?? ""), 26)}`)
+      }
+
+      const children = (info.children ?? []).filter((c) => c.state === "working")
       if (children.length) {
-        lines.push(`${prefix}${children.length} subagent${children.length > 1 ? "s" : ""}:`)
+        lines.push(`${prefix}${children.length} subagent${children.length > 1 ? "s" : ""} in flight:`)
         for (const child of children.slice(0, 6)) {
           const mark = MARKS[child.state ?? "idle"] ?? "?"
           const seen = child.tokens ? ` ${compact(child.tokens)}` : ""
