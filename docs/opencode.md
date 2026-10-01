@@ -85,23 +85,20 @@ plugin is not a 20-line file.
 The block is one line per lane by default. **`alt+l`** (or `/lanes` from the
 command palette) uncollapses it, showing, per lane:
 
+The collapsed line reads `number|who(mark)task`, with the number in its own colour
+so it is easy to pick out, and `who` is what the agent calls itself — its `ident`
+if it set one, otherwise the machine it runs on:
+
 ```
 ⌨ rbgafi v0.4
-▸  0 ▶ Keyboard status: LED da…
-     id hermes-3 · host workstation · agent opencode
-     repo vam @ main
-     in flight 19s · idle 19s
-     tokens 2.5M in / 951k out · $4.12
-     context 473 entries · 3 compactions
-     2 subagents:
-       ▶ OpenCode v2 plugin UI API surface 6.7k
-       ✔ QMK host-side RGB control protocol
-    (alt+l or /lanes to collapse)
+▸0| workstation(▶)Keyboard status: LED da…
+ 7| hermes-3(!)nightly sync
+ 3| ussy01(✔)OpenCode2 updates and new feat
+    (click a lane, alt+l or /lanes for detail)
 ```
 
-The collapsed line is deliberately just the key, the state and the label: **which
-machine a lane is on is only visible once you uncollapse it**, next to the agent's
-own identifier (`id hermes-3 · host workstation`).
+Rows are **clickable**: clicking a lane uncollapses just that lane; `alt+l` (or
+`/lanes`) does all of them at once.
 
 - **repository and branch** — which project the lane is actually working in,
   derived from the session's directory.

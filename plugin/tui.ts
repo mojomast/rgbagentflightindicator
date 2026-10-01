@@ -154,14 +154,26 @@ export default {
 
     const [lanes, setLanes] = createSignal<Lane[]>([])
     const [online, setOnline] = createSignal(false)
-    const [expanded, setExpanded] = createSignal(START_EXPANDED)
-    const toggleDetails = () => {
-      setExpanded(!expanded())
+    // Detail is per lane and toggled by clicking it; alt+l (or /lanes) does all.
+    const [openLanes, setOpenLanes] = createSignal<string[]>([])
+    const [allOpen, setAllOpen] = createSignal(START_EXPANDED)
+
+    const isOpen = (lane: Lane) => allOpen() || openLanes().includes(lane.id)
+    const repaint = () => {
       try {
         context.renderer?.requestRender?.()
       } catch {
         /* ignore */
       }
+    }
+    const toggleLane = (id: string) => {
+      const open = openLanes()
+      setOpenLanes(open.includes(id) ? open.filter((x) => x !== id) : [...open, id])
+      repaint()
+    }
+    const toggleDetails = () => {
+      setAllOpen(!allOpen())
+      repaint()
     }
 
     const poll = async () => {
@@ -259,26 +271,107 @@ export default {
       return lines
     }
 
-    const sidebarText = (sessionID?: string) => {
-      if (!online()) return `\u2328 ${VERSION_LABEL} \u00b7 offline`
-      const all = lanes()
-      if (!all.length) return `\u2328 ${VERSION_LABEL}\n  no lanes claimed`
-      const lines: string[] = []
-      for (const l of all) {
-        const here = sessionID && l.id === sessionID
-        const mark = MARKS[l.state ?? "idle"] ?? "?"
-        // 0name(mark)task - the lamp number, who it is, how it is doing, what it
-        // is doing. A lamp named "7" stays "7": the index is the identifier.
-        const lamp = String(l.key ?? "?").replace(/^led(?=\d)/, "")
-        const who = l.ident || l.agent || ""
-        lines.push(
-          `${here ? "\u25B8" : " "}${lamp}${who}(${mark})${trim(sessionTitle(l.id) ?? l.label ?? "", 22)}`,
+    // The lamp number carries the eye in this block, so it gets its own colour:
+    // a theme accent where one exists, and a fixed cyan otherwise so it is always
+    // distinguishable from the text beside it.
+    const digitFg = (): string => {
+      try {
+        const t = context.theme
+        return (
+          t?.text?.accent ??
+          t?.accent?.base ??
+          t?.border?.active ??
+          t?.border?.focus ??
+          "#33b1ff"
         )
-        if (expanded()) lines.push(...detailLines(l, "    "))
+      } catch {
+        return "#33b1ff"
       }
-      if (expanded()) lines.push(`    (alt+l or /lanes to collapse)`)
-      else lines.push(`    (alt+l or /lanes for detail)`)
-      return `\u2328 ${VERSION_LABEL}\n` + lines.join("\n")
+    }
+
+    // One clickable row. OpenTUI delivers mouse events to the topmost cell and
+    // bubbles them, so a box containing the text is the clickable unit; the text
+    // itself is made non-selectable or it swallows the click as a selection.
+    // `getParts` returns strings and {text, fg} spans, so one segment can be
+    // coloured differently from the rest of the line.
+    const row = (
+      getParts: () => Array<string | { text: string; fg?: string }>,
+      onClick?: () => void,
+    ) => {
+      if (!jsxFn) return null
+      const props: Record<string, unknown> = {
+        flexDirection: "row",
+        height: 1,
+        get children() {
+          return jsxFn("text", {
+            fg: themeFg(),
+            selectable: false,
+            get children() {
+              return getParts().map((part) =>
+                typeof part === "string"
+                  ? part
+                  : jsxFn("span", {
+                      fg: part.fg ?? themeFg(),
+                      selectable: false,
+                      get children() {
+                        return part.text
+                      },
+                    }),
+              )
+            },
+          })
+        },
+      }
+      if (onClick) {
+        props.onMouseUp = (event: any) => {
+          if (event?.button !== 0) return          // left click only
+          event?.stopPropagation?.()
+          onClick()
+        }
+      }
+      return jsxFn("box", props)
+    }
+
+    const textRow = (get: () => string, onClick?: () => void) => row(() => [get()], onClick)
+
+    const sidebar = (sessionID?: string) => {
+      if (!jsxFn) return null
+      const build = () => {
+        const rows: unknown[] = []
+        rows.push(textRow(() => (online() ? `\u2328 ${VERSION_LABEL}` : `\u2328 ${VERSION_LABEL} \u00b7 offline`)))
+        const all = lanes()
+        if (!all.length) {
+          rows.push(textRow(() => "  no lanes claimed"))
+        }
+        for (const l of all) {
+          const here = !!sessionID && l.id === sessionID
+          const mark = MARKS[l.state ?? "idle"] ?? "?"
+          const lamp = String(l.key ?? "?").replace(/^led(?=\d)/, "")
+          // who the agent says it is, in order of specificity: its own identifier,
+          // then the machine it is on, then its agent kind as a last resort
+          const who = l.ident || l.host || l.agent || ""
+          const task = trim(sessionTitle(l.id) ?? l.label ?? "", 22)
+          const rest = `${here ? "\u25B8" : " "}| ${who}(${mark})${task}`
+          rows.push(
+            row(() => [{ text: lamp, fg: digitFg() }, rest], () => toggleLane(l.id)),
+          )
+          if (isOpen(l)) {
+            for (const detail of detailLines(l, "    ")) {
+              rows.push(textRow(() => detail))
+            }
+          }
+        }
+        rows.push(textRow(() => (allOpen() ? "    (click a lane, alt+l or /lanes to collapse)"
+                                           : "    (click a lane, alt+l or /lanes for detail)")))
+        return rows
+      }
+      // built inside the getter so every signal read stays tracked
+      return jsxFn("box", {
+        flexDirection: "column",
+        get children() {
+          return build()
+        },
+      })
     }
 
     const footerText = () => {
@@ -328,33 +421,44 @@ export default {
       }
     }
 
-    place("sidebar.content", ({ sessionID }: any) => line(() => sidebarText(sessionID)))
+    place("sidebar.content", ({ sessionID }: any) => sidebar(sessionID))
     place("home.footer.status", () => line(footerText))
 
-    // Alt+L (and /lanes) to uncollapse a lane: repository, subagents, tokens,
-    // context and what anything is waiting on. Wrapped because an older host
-    // without the keymap API must still get the block itself.
-    try {
-      context.keymap?.layer?.(() => ({
-        mode: "global",
-        priority: 5,
-        commands: [
-          {
-            id: "rgi.details",
-            title: "rbgafi: lane details",
-            group: "rbgafi",
-            bind: "alt+l",
-            palette: true,
-            slash: { name: "lanes", aliases: ["rbgafi"] },
-            run: () => toggleDetails(),
-          },
-        ],
-        bindings: ["rgi.details"],
-      }))
-      log("keymap layer registered (alt+l, /lanes)")
-    } catch (err: any) {
-      log(`keymap layer unavailable, use RGI_EXPAND=1 to start expanded: ${err?.message ?? err}`)
+    // The keymap can only be claimed from inside a rendered component: setup()
+    // runs in an async microtask with no Solid owner, so calling layer() there
+    // throws "Keymap.Provider is missing" and the shortcut silently never exists.
+    // The host's own plugins register from a slot render for exactly this reason.
+    let keymapClaimed = false
+    const claimKeymap = () => {
+      if (keymapClaimed) return
+      keymapClaimed = true
+      try {
+        context.keymap.layer(() => ({
+          mode: "global",
+          priority: 5,
+          commands: [
+            {
+              id: "rgi.details",
+              title: "rbgafi: lane details",
+              group: "rbgafi",
+              bind: "alt+l",
+              palette: true,
+              slash: { name: "lanes", aliases: ["rbgafi"] },
+              run: () => toggleDetails(),
+            },
+          ],
+          // no `bindings`: a named command's own `bind` is activated for it
+        }))
+        const shortcuts = context.keymap.shortcuts?.("rgi.details") ?? []
+        log(`keymap layer registered (alt+l, /lanes) shortcuts=${JSON.stringify(shortcuts)}`)
+      } catch (err: any) {
+        log(`keymap layer failed: ${err?.message ?? err}`)
+      }
     }
+    place("app", () => {
+      claimKeymap()
+      return null
+    })
 
     return () => {
       clearInterval(timer)
