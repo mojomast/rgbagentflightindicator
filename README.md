@@ -249,6 +249,7 @@ on.
 
 | File | What |
 |---|---|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | how to add hardware, a plugin, or a fix — and what a pull request must prove |
 | [docs/backends.md](docs/backends.md) | the landscape of RGB keyboards, and how to add one |
 | [docs/protocols.md](docs/protocols.md) | the wire formats: Sinowealth, EVision, QMK/VIA, OpenRGB, LampArray |
 | [docs/api.md](docs/api.md) | the HTTP API in full |

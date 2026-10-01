@@ -1,0 +1,100 @@
+name: New device support
+description: Ask for a keyboard to be supported, or offer to write the backend yourself
+labels: ["device support"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking this on. Please read
+        [docs/backends.md](https://github.com/mojomast/rgbagentflightindicator/blob/main/docs/backends.md)
+        first — it covers which route usually works for a given brand, and how to
+        reverse engineer a board nobody has written down.
+
+        Search existing issues before opening this one: somebody may already be
+        working on your device, and adding your findings there is more useful
+        than a duplicate.
+
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: The name it was sold as. If it is a rebrand, say so.
+      placeholder: Magic Refiner MK 17 (also sold as ...)
+    validations:
+      required: true
+
+  - type: input
+    id: ids
+    attributes:
+      label: USB IDs
+      description: VID:PID, and the manufacturer and product strings the device reports.
+      placeholder: "320F:501D — manufacturer \"SONiX\", product \"USB DEVICE\""
+    validations:
+      required: true
+
+  - type: textarea
+    id: interfaces
+    attributes:
+      label: Interfaces
+      description: |
+        What the device exposes. `rgi detect` output, or `lsusb -v`, or the
+        Windows device properties. Usage page and report sizes are the useful part.
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: known
+    attributes:
+      label: Is it in another project's supported list?
+      description: |
+        OpenRGB supports hundreds of boards, and HID LampArray is an open
+        standard; either may already do this for you.
+      options:
+        - "OpenRGB supports it (say which device entry)"
+        - "It is a HID LampArray device (Windows 11 Dynamic Lighting sees it)"
+        - "It is a QMK/VIA board"
+        - "No — nothing supports it yet"
+        - "I do not know"
+    validations:
+      required: true
+
+  - type: textarea
+    id: software
+    attributes:
+      label: Vendor software
+      description: |
+        What drives its lighting today, and where it came from. A name, a
+        screenshot or a link — do not attach vendor binaries.
+    validations:
+      required: false
+
+  - type: textarea
+    id: captures
+    attributes:
+      label: Captures or findings
+      description: |
+        Any packet capture, protocol notes, or experiments you have already run
+        (USBPcap/Wireshark, `usbmon`, a chipset family, a datasheet, a teardown).
+        If you have none yet, say so — that becomes the first task.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: intentions
+    attributes:
+      label: Do you intend to write the backend?
+      options:
+        - label: "Yes, I can write it and test it on the hardware"
+        - label: "Yes, but I will need help with the protocol"
+        - label: "No — I am only requesting support"
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Before you start
+      options:
+        - label: "I understand this project writes LED reports only, never firmware."
+          required: true
+        - label: "I have searched existing issues for this device."
+          required: true
