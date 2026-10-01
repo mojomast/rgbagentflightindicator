@@ -128,6 +128,9 @@ def opencode_exe() -> str:
 OPENCODE = opencode_exe()
 
 
+SHELL_TOOLS = {"bash", "shell", "terminal", "sh", "cmd", "powershell", "pwsh", "exec"}
+
+
 class Watcher:
     def __init__(self, url: str = DEFAULT_URL, token: str | None = None,
                  include_subagents: bool = False, stale: float = STALE_DEFAULT):
@@ -361,11 +364,12 @@ class Watcher:
         return None
 
     def _running_tools(self, sid: str, now: float) -> list[dict]:
-        """Terminal commands and other tools this session is running right now.
+        """Shell commands this session is running right now.
 
-        The last assistant message carries its tool parts with their state, so a
-        running bash command is visible - which is the difference between "busy"
-        and "busy running the thing that is stuck".
+        Only shells, not every tool: a lane reading a file is busy, while a lane
+        running a command is busy in a way you may want to interrupt. The last
+        assistant message carries its tool parts with their state, so the command
+        line is available while it runs.
         """
         cached = self._tools_cache.get(sid)
         if cached and now - cached[0] < 5:
@@ -384,7 +388,10 @@ class Watcher:
                     state = part.get("state") or {}
                     if state.get("status") not in ("running", "pending"):
                         continue
-                    detail = part.get("name") or "tool"
+                    tool = str(part.get("name") or "").lower()
+                    if tool not in SHELL_TOOLS:
+                        continue
+                    detail = tool
                     raw = state.get("input") or {}
                     if isinstance(raw, dict):
                         for key in ("command", "cmd", "filePath", "path", "pattern", "url"):
@@ -417,10 +424,16 @@ class Watcher:
 
         kids = []
         for child in self.children.get(sid, []):
-            # only the ones actually in flight: a finished subagent is history, and
-            # history in a one-line-per-lane panel is noise
+            # "in flight" means OpenCode says it is running *and* it has been heard
+            # from recently: the active list alone is not enough, and listing
+            # twenty finished subagents is exactly the noise this avoids
             if child not in self._running:
                 continue
+            last = self.updated.get(child) or 0.0
+            if last and now - last > 600:
+                continue
+            if len(kids) >= 6:
+                break
             child_record = self.records.get(child) or {}
             kids.append({
                 "id": child,
@@ -428,12 +441,11 @@ class Watcher:
                 "state": "working",
                 "tokens": ((child_record.get("tokens") or {}).get("output")),
             })
-        if kids:
-            info["children"] = kids
-
-        tools = self._running_tools(sid, now)
-        if tools:
-            info["running"] = tools
+        # always send these, even when empty: the panel merges detail rather than
+        # replacing it, so an omitted key leaves the previous value on screen -
+        # which is how twenty-seven finished subagents stayed listed.
+        info["children"] = kids
+        info["running"] = self._running_tools(sid, now)
 
         blocked = self._attention_detail.get(sid)
         if blocked:
