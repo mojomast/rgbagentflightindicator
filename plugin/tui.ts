@@ -509,22 +509,23 @@ export default {
           const lead = `${here ? "\u25B8" : " "}| `
           const name = `${who}(${mark})`
           const toggle = () => toggleLane(l.id)
-          const headed = (tail: string) => () => [
+          const headed = (tail: string, fg: string) => () => [
             { text: lamp, fg: digitFg() },
             { text: lead, fg: dimFg() },
             { text: name, fg: stateFg(l.state) },
-            { text: tail ? ` ${tail}` : "", fg: themeFg() },
+            { text: tail ? ` ${tail}` : "", fg },
           ]
           if (!open) {
-            // collapsed: the name, and the task abbreviated onto the same line
+            // collapsed: the name, and the task abbreviated onto the same line,
+            // dim so the coloured name is the thing that stands out
             const short = task.length > 24 ? task.slice(0, 23) + "\u2026" : task
-            rows.push(row(headed(short), toggle))
+            rows.push(row(headed(short, dimFg()), toggle))
           } else {
             // expanded: the whole task, starting on the name's line and wrapping
             // beneath it, then the detail lines
             const firstBudget = Math.max(16, TASK_WRAP - lamp.length - lead.length - name.length - 1)
             const wrapped = task ? wrapTask(task, firstBudget, TASK_WRAP - 4) : []
-            rows.push(row(headed(wrapped[0] ?? ""), toggle))
+            rows.push(row(headed(wrapped[0] ?? "", themeFg()), toggle))
             for (const extra of wrapped.slice(1)) {
               rows.push(textRow(() => `    ${extra}`, toggle))
             }
