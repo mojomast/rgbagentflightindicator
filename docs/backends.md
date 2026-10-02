@@ -138,7 +138,7 @@ If you have to go this far, this is the path that worked here:
 
 | Device | Protocol | Backend | Verified |
 |---|---|---|---|
-| Sinowealth `258A:0049` (white-label "Gaming Keyboard", READSON, many rebrands) | vendor HID feature reports on usage page `0xFF00` (Col05 command, Col06 data), planar B/G/R blocks | `sinowealth` (**opt-in**) | frames accepted on hardware, but see the warning below |
+| Sinowealth `258A:0049` (white-label "Gaming Keyboard", READSON, many rebrands) | vendor HID feature reports on usage page `0xFF00` (Col05 command, Col06 data), planar B/G/R blocks, per-key ("game") mode entered at open | `sinowealth` | yes, on hardware - live lanes paint |
 | EVision/SONiX `320F:501D` (Magic Refiner MK 17) and siblings | 64-byte command protocol on usage page `0xFF1C` | `evision` | yes, on hardware |
 | Other EVision boards (Redragon, Husky, EvoFox, Kreo, VGN/ATK�) | same protocol, v1 or v2 | `evision` (v2) / OpenRGB | protocol family confirmed; per-board maps differ |
 | Any OpenRGB-supported keyboard | OpenRGB SDK over TCP | `openrgb` | SDK implemented + unit tested; not yet against a board |

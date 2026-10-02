@@ -12,6 +12,19 @@ honours, so its writes go nowhere while still appearing to succeed. Restart the
 daemon. `rgi detect` is read-only for exactly this reason; only `--open`, `map`
 and `daemon` claim the device.
 
+On the Sinowealth board the same symptom has a second cause: per-key frames are
+only honoured while the board is in per-key ("game") mode, and it boots into its
+stock effect. The current driver enters the mode at open, so a restart fixes
+that as well; a driver older than the game-commit fix never enters it at all.
+`docs/protocols.md` has the sequence.
+
+**The panel is driving a keyboard that is not the one in front of me.**
+The backends attach to different physical boards: `evision` only opens devices
+exposing usage page `0xFF1C` (Magic Refiner and kin), `sinowealth` only the
+`258A:0049`. If the panel says `evision` while your 258A sits dark, the board it
+is driving is unplugged. `rgi detect` shows what is actually present — match the
+backend to the board on the desk.
+
 **Nothing lights up at all.**
 Check the backend: `rgi detect`. If it reports no lamps, the device is not
 visible — for USB boards, check the cable and that the keyboard is on **wired
