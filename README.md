@@ -203,9 +203,10 @@ GET  /files[/<name>]        published files, with hashes
 ```
 
 Lamps are the scarce resource — a keyboard has a dozen, not a thousand — so a
-lane is held until the session releases it, is evicted as least-recently-used, or
-goes quiet for `--stale` seconds (two hours by default). That is deliberate: the
-number should keep meaning the same session.
+lane is held until the session releases it or a new session evicts it as
+least-recently-used. The OpenCode watcher additionally releases lanes for
+sessions it has not seen for `rgi watch --stale` seconds (two hours by default).
+That is deliberate: the number should keep meaning the same session.
 
 Full details, including the states and the error codes, are in
 [docs/api.md](docs/api.md).

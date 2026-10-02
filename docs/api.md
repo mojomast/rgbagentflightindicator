@@ -31,11 +31,12 @@ Claim a lamp.
 | `host` | no | the machine; falls back to the caller's address |
 | `slot` | no | ask for a specific lamp |
 
-`200` → `{"slot": 3, "key": "3", "group": "number-row"}`
+`200` → `{"slot": 3, "key": "3", "devices": ["sinowealth"]}`
 
 `key` is the human-facing name of the lamp (`1`, `F5`, `zone-left`, …) and
-`group` is the pool it belongs to. Calling this twice with the same `sessionID`
-returns the same lamp rather than claiming a second one.
+`devices` lists the devices whose pool is deep enough to show that lane, so the
+same lane can appear on more than one keyboard. Calling this twice with the same
+`sessionID` returns the same lamp rather than claiming a second one.
 
 ## POST /session/state
 
@@ -215,11 +216,15 @@ accepted a body with no `sessionID` and quietly claimed a lamp called `unknown`.
 
 - **Lamps are scarce.** A keyboard has a dozen. A lane is released explicitly, or
   evicted as least-recently-used when a new session needs one and nothing is
-  free, or after `--stale` seconds of inactivity (default two hours).
+  free. The daemon has no idle timeout of its own; the OpenCode watcher releases
+  sessions it has not seen for `rgi watch --stale` seconds (default two hours).
 - **An explicit `slot` request is never resolved by evicting someone else** — you
   get an honest `409` with the free list.
 - **The frame is written only when the rendered result changes.** Most
   controllers repaint everything on any write, so this is what keeps the panel
   from flashing.
-- **While the human types, colours freeze.** Some firmware drops keypresses while
-  it is busy repainting. `--no-quiet` turns this off, `--quiet-ms` tunes it.
+- **While the human types, nothing is written.** Some firmware drops keypresses
+  while it is busy repainting, so a typing burst means total silence: a lane
+  change that lands in it - a flash, a new lane - is held and painted in one
+  frame once typing pauses. `--no-quiet` turns this off; `--quiet-ms` (default
+  1500) is how long "typing" lasts after the last keystroke.

@@ -440,8 +440,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="JSON file mapping agent name or ident -> lane "
                         "(default ~/.config/rgi/lanes.json)")
     s.add_argument("--no-quiet", action="store_true",
-                   help="do not freeze the frame while the human types")
-    s.add_argument("--quiet-ms", type=int, default=900)
+                   help="do not hold the frame while the human types")
+    s.add_argument("--quiet-ms", type=int, default=1500,
+                   help="hold writes for this long after the last keystroke "
+                        "(default 1500)")
     s.add_argument("--verbose", action="store_true")
     s.set_defaults(func=cmd_daemon)
 

@@ -18,15 +18,17 @@ across all lanes as one colour instead of lying about it.
 
 Behaviour worth knowing:
 
-* a lane keeps its lamp until the session releases it, is evicted as
-  least-recently-used, or goes quiet for ``--stale`` seconds. Lamps are scarce: a
-  keyboard has a dozen, not a thousand.
+* a lane keeps its lamp until the session releases it or is evicted as
+  least-recently-used when a new session needs one. Lamps are scarce: a keyboard
+  has a dozen, not a thousand. (``rgi watch --stale`` releases lanes for sessions
+  the watcher has not seen in a while; the daemon itself has no idle timeout.)
 * each device's frame is only written when *that device's* rendered result
   changes. Most controllers repaint everything on any write, so a needless write
   is a visible flash.
-* while the human is typing the frame is frozen on steady colours, because some
-  firmware drops keypresses while it is busy repainting (see
-  docs/troubleshooting.md).
+* nothing is written at all while the human is typing, because some firmware
+  drops keypresses while it is busy repainting. Changes that land in a typing
+  burst - including a lane going done or blocked - are held and painted in one
+  frame once typing pauses (see docs/troubleshooting.md).
 """
 
 from __future__ import annotations
@@ -341,7 +343,7 @@ class Device:
 
 class Daemon:
     def __init__(self, devices: list[Device], lanes: Lanes,
-                 quiet: bool = True, quiet_ms: int = 900, verbose: bool = False,
+                 quiet: bool = True, quiet_ms: int = 1500, verbose: bool = False,
                  lane_map: dict[str, int] | None = None):
         self.devices = devices
         self.lanes = lanes
@@ -359,24 +361,40 @@ class Daemon:
                 out[("changed", slot)] = self.lanes.changed.get(sid, time.monotonic())
         return out
 
+    def tick(self) -> None:
+        """One render pass: paint every device whose frame changed.
+
+        While the human is typing, nothing is written at all. Some firmware
+        drops keypresses while it is busy repainting, and the worst moment to
+        write is exactly when a lane lands mid-typing burst - so the frame is
+        held, and the newest state goes out in a single write once typing
+        pauses. The input check is repeated immediately before the write
+        because the render above takes long enough for a keystroke to arrive
+        after it.
+        """
+        now = time.monotonic()
+        quiet = self.quiet and ms_since_input() < self.quiet_ms
+        state = self.snapshot()
+        for device in self.devices:
+            colours = device.frame(state, now, quiet)
+            key = tuple(colours)
+            if key == device.last:
+                continue
+            if self.quiet and ms_since_input() < self.quiet_ms:
+                continue                    # typing: hold the frame, write nothing
+            device.backend.write(colours)
+            device.last = key
+            if self.verbose:
+                lit = " ".join(
+                    f"{device.backend.lamps()[i].label}={c}"
+                    for i, c in enumerate(colours) if c != OFF
+                )
+                print(f"[rgi] {device.label}: {lit or '(all off)'}", flush=True)
+
     def run(self) -> None:
         while True:
             try:
-                now = time.monotonic()
-                quiet = self.quiet and ms_since_input() < self.quiet_ms
-                state = self.snapshot()
-                for device in self.devices:
-                    colours = device.frame(state, now, quiet)
-                    key = tuple(colours)
-                    if key != device.last:
-                        device.backend.write(colours)
-                        device.last = key
-                        if self.verbose:
-                            lit = " ".join(
-                                f"{device.backend.lamps()[i].label}={c}"
-                                for i, c in enumerate(colours) if c != OFF
-                            )
-                            print(f"[rgi] {device.label}: {lit or '(all off)'}", flush=True)
+                self.tick()
             except BackendUnavailable as exc:
                 for device in self.devices:
                     print(f"[rgi] {device.label} lost: {exc}")

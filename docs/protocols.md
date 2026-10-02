@@ -102,7 +102,8 @@ notes above say what to look for.
 
 - **Every write blanks and repaints the whole panel.** A needless update is a
   visible flash, and while the controller is busy it can drop keypresses. Hence
-  the daemon's change-detection and the typing-aware quiet mode.
+  the daemon's change-detection and the rule that nothing is written while the
+  human types (held changes paint in one frame afterwards).
 - **The firmware cannot absorb back-to-back reports.** ~13 ms between writes,
   with one retry: the first attempt often returns short.
 - **The mode commit restarts the lighting engine,** so it is sent once at open,

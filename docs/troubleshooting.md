@@ -53,8 +53,11 @@ up, and pass `--lanes` explicitly.
 
 **A key stops responding to my typing while the panel animates.**
 Real firmware behaviour: the controller is busy repainting and drops keypresses.
-The daemon freezes the frame on steady colours while you type (Windows only for
-now); `--quiet-ms` tunes the window and `--no-quiet` disables it.
+The fix is stronger than freezing the animation, because the landing flash itself
+was the problem: while you type the daemon writes nothing at all (Windows only
+for now), so a lane that lands mid-sentence is held and painted in one frame when
+you pause. `--quiet-ms` is how long "typing" lasts after the last keystroke
+(default 1500); `--no-quiet` disables the hold.
 
 **It worked, I replugged, now nothing changes.**
 A replug invalidates the device handle: writes appear to succeed and go nowhere.
@@ -72,8 +75,9 @@ lane that is currently `working`.
 
 **A lamp vanished while I was still using it.**
 Check for a `--hold` flag. An early build freed each lamp 45 seconds after every
-turn, which looked exactly like this. The current rule is `--stale` seconds of
-inactivity, two hours by default.
+turn, which looked exactly like this. The current watcher rule is `rgi watch
+--stale` seconds of inactivity (two hours by default); the daemon itself only
+releases lanes explicitly or by least-recently-used eviction.
 
 **A lamp never turns green again on the second turn.**
 Also the old behaviour: a session that had already landed was never sent
