@@ -58,7 +58,8 @@ curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/$WHEEL" -o /tmp/rgi.whl
 python3 -m pip install --user /tmp/rgi.whl
 ```
 
-The wheel is build output on the panel (`uv build --wheel`), not committed; if
+The wheel is build output on the panel (`uv build --wheel`, or
+`python -m pip wheel . -w dist --no-deps` without uv), not committed; if
 the manifest has no `.whl`, a checkout works too (`git -C <your checkout> pull`).
 Nothing about reporting *needs* the client - it is for `rgi status`, `rgi doctor`
 and `rgi lane-map`.

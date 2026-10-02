@@ -61,8 +61,9 @@ curl -sS -H "X-LED-Token: $TOKEN" "$BASE/files/$WHEEL" -o /tmp/rgi.whl
 python3 -m pip install --user /tmp/rgi.whl
 ```
 
-The wheel is built on the panel with `uv build --wheel` (build output, not
-committed); if the manifest has no `.whl`, install from a checkout instead.
+The wheel is built on the panel with `uv build --wheel`, or without uv:
+`python -m pip wheel . -w dist --no-deps` (build output, not committed); if the
+manifest has no `.whl`, install from a checkout instead.
 
 ```sh
 DIR=~/.config/opencode/plugins/rgi-panel
