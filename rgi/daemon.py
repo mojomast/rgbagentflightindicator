@@ -15,6 +15,9 @@ across all lanes as one colour instead of lying about it.
     GET  /slots           every lamp of the primary device, with its occupant
     GET  /session/<sid>   which lane a session holds
     GET  /files/<name>    the OpenCode plugin and the agent prompts
+    GET  /ui/             the web configuration UI (static; no auth needed)
+    GET  /ui/api/*        live status, config, SSE, health, logs (X-LED-Token)
+    PUT  /ui/api/config   validate and apply a whole config revision
 
 Behaviour worth knowing:
 
@@ -40,6 +43,10 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from . import ui as ui_api
+from . import webconfig
+from . import VERSION as RGI_VERSION
+from .appearance import Appearance
 from .backends import (OFF, RGB, Backend, BackendUnavailable, auto_backends,
                        load, opt_in_backends)
 from .config import resolve_token               # noqa: F401  (re-exported)
@@ -263,6 +270,10 @@ class Device:
         self.pool = list(pool)
         self.label = label or backend.name
         self.last: tuple | None = None
+        # Layout labels and static lamp colours come from the config; both are
+        # display-only and safe to swap between ticks.
+        self.label_overrides: dict[int, str] = {}
+        self.override: dict | None = None      # time-boxed test/mapping frame
 
     @property
     def per_lamp(self) -> bool:
@@ -271,7 +282,8 @@ class Device:
     def key_name(self, slot: int) -> str:
         lamps = self.backend.lamps()
         if 0 <= slot < len(self.pool) and self.pool[slot] < len(lamps):
-            return lamps[self.pool[slot]].label
+            lamp = self.pool[slot]
+            return self.label_overrides.get(lamp, lamps[lamp].label)
         return f"slot{slot}"
 
     def describe(self) -> dict:
@@ -280,8 +292,10 @@ class Device:
                     lanes=[self.key_name(i) for i in range(min(len(self.pool), 12))])
         return info
 
-    def frame(self, lane_state, now: float, quiet: bool) -> list[RGB]:
+    def frame(self, lane_state, now: float, quiet: bool,
+              appearance: Appearance | None = None) -> list[RGB]:
         """Colours for this device's lamps, one per lamp, in lamps() order."""
+        app = appearance or Appearance.default()
         lamps = self.backend.lamps()
         values = [OFF] * len(lamps)
 
@@ -300,19 +314,8 @@ class Device:
             if winner_state is None or winner_state == "off":
                 return values
 
-            colour = PALETTE[winner_state]
-            if quiet:
-                return [colour] * len(lamps)
-
             started = lane_state.get(("changed", winner_slot), now)
-            if winner_state == "done" and (now - started) < DONE_BLINKS * 2 * BLINK_PERIOD:
-                on = int((now - started) / BLINK_PERIOD) % 2 == 0
-                return [colour if on else OFF] * len(lamps)
-            if winner_state == "blocked" and (
-                    BLOCK_BLINKS == 0 or (now - started) < BLOCK_BLINKS * 2 * BLINK_PERIOD):
-                on = int((now - started) / BLINK_PERIOD) % 2 == 0
-                return [colour if on else OFF] * len(lamps)
-            return [colour] * len(lamps)
+            return [app.render(winner_state, now - started, quiet)] * len(lamps)
 
         for sid_slot, state in lane_state.items():
             if not isinstance(sid_slot, int) or sid_slot >= len(self.pool):
@@ -320,37 +323,35 @@ class Device:
             lamp = self.pool[sid_slot]
             if not (0 <= lamp < len(values)):
                 continue
-            colour = PALETTE.get(state, PALETTE["idle"])
             started = lane_state.get(("changed", sid_slot), now)
-
-            if quiet:
-                values[lamp] = colour
-                continue
-            if state == "done":
-                if (now - started) < DONE_BLINKS * 2 * BLINK_PERIOD:
-                    values[lamp] = colour if int((now - started) / BLINK_PERIOD) % 2 == 0 else OFF
-                else:
-                    values[lamp] = colour
-            elif state == "blocked":
-                if BLOCK_BLINKS == 0 or (now - started) < BLOCK_BLINKS * 2 * BLINK_PERIOD:
-                    values[lamp] = colour if int((now - started) / BLINK_PERIOD) % 2 == 0 else OFF
-                else:
-                    values[lamp] = colour
-            else:
-                values[lamp] = colour
+            colour = app.render(state, now - started, quiet)
+            override = app.lamp_override(self.backend.name, lamp)
+            values[lamp] = override if override is not None else colour
         return values
 
 
 class Daemon:
     def __init__(self, devices: list[Device], lanes: Lanes,
                  quiet: bool = True, quiet_ms: int = 1500, verbose: bool = False,
-                 lane_map: dict[str, int] | None = None):
+                 lane_map: dict[str, int] | None = None,
+                 config: dict | None = None, raw_config: dict | None = None,
+                 quiet_configurable: bool = True):
         self.devices = devices
         self.lanes = lanes
         self.quiet = quiet
         self.quiet_ms = quiet_ms
         self.verbose = verbose
         self.lane_map = dict(lane_map or {})
+        self._base_lane_map = dict(lane_map or {})    # legacy lanes.json; config wins
+        self.config = config if isinstance(config, dict) else webconfig.default_config()
+        self.raw_config = raw_config if isinstance(raw_config, dict) else {}
+        self.revision = int(self.config.get("revision") or 0)
+        self.appearance = Appearance.from_config(self.config)
+        self.quiet_configurable = quiet_configurable
+        self.logs = ui_api.LogRing()
+        self.broadcaster = ui_api.Broadcaster(self.ui_status)
+        self.last_paint = 0.0
+        self._device_errors: dict[str, str] = {}
 
     def snapshot(self) -> dict:
         """Slot -> state, plus the blink timestamps, taken under the lane lock."""
@@ -360,6 +361,205 @@ class Daemon:
                 out[slot] = self.lanes.state.get(sid, "idle")
                 out[("changed", slot)] = self.lanes.changed.get(sid, time.monotonic())
         return out
+
+    # -- views for the HTTP layer ----------------------------------------
+    def lane_view(self, sid: str, slot: int) -> dict:
+        lanes = self.lanes
+        state = lanes.state.get(sid)
+        changed = lanes.changed.get(sid)
+        updated = lanes.updated.get(sid)
+        # A lane is either in flight or idle, never both: an action that is running
+        # is not idle, and a lane that has landed is not flying. Exactly one of
+        # these is ever present, which makes the pair unambiguous to read.
+        flying = state in ("working", "blocked", "stopping")
+        primary = self.devices[0] if self.devices else None
+        with lanes.lock:
+            return {
+                "slot": slot,
+                "key": primary.key_name(slot) if primary else f"slot{slot}",
+                "agent": lanes.agent.get(sid),
+                "label": lanes.label.get(sid),
+                "host": lanes.host.get(sid),
+                "ident": lanes.ident.get(sid),
+                "state": state,
+                "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
+                "in_flight_s": round(time.monotonic() - changed, 1) if (flying and changed) else None,
+                "idle_s": None if flying else (round(time.time() - updated, 1) if updated else None),
+                "info": lanes.info.get(sid) or {},
+            }
+
+    def status_payload(self) -> dict:
+        primary = self.devices[0] if self.devices else None
+        with self.lanes.lock:
+            return {
+                "devices": [d.describe() for d in self.devices],
+                "backend": primary.backend.name if primary else None,
+                "lamps": len(primary.backend.lamps()) if primary else 0,
+                "lanes": self.lanes.count,
+                "lane_map": self.lane_map,
+                "free": self.lanes.free(),
+                "sessions": {sid: self.lane_view(sid, slot)
+                             for sid, slot in self.lanes.slot.items()},
+            }
+
+    def ui_status(self) -> dict:
+        """The /status shape plus revision and active test overlays."""
+        payload = self.status_payload()
+        payload["revision"] = self.revision
+        now = time.monotonic()
+        payload["tests"] = [
+            {"device": d.label, "label": (d.override or {}).get("label"),
+             "expires_in": round(max(0.0, (d.override or {}).get("deadline", now) - now), 1)}
+            for d in self.devices if d.override
+        ]
+        return payload
+
+    def capabilities(self) -> list[dict]:
+        out = []
+        for device in self.devices:
+            out.append({
+                "name": device.backend.name,
+                "label": device.label,
+                "per_lamp": device.per_lamp,
+                "min_interval": float(getattr(device.backend, "min_interval", 0.0)),
+                "pool": list(device.pool),
+                "lamps": [{"index": lamp.index, "label": lamp.label,
+                           "group": lamp.group}
+                          for lamp in device.backend.lamps()],
+            })
+        return out
+
+    def health(self) -> dict:
+        endpoints = []
+        for entry in self.config.get("endpoints") or []:
+            if not isinstance(entry, dict):
+                continue
+            endpoints.append({
+                "id": entry.get("id"),
+                "kind": entry.get("kind"),
+                "url": entry.get("url"),
+                "enabled": entry.get("enabled", True),
+                "live": False,
+                "note": "configured at startup; changes need a restart",
+            })
+        return {
+            "version": RGI_VERSION,
+            "devices": [{
+                "label": d.label,
+                "backend": d.backend.name,
+                "ok": True,
+                "lamps": len(d.backend.lamps()),
+                "per_lamp": d.per_lamp,
+                "min_interval": float(getattr(d.backend, "min_interval", 0.0)),
+                "last_error": self._device_errors.get(d.label),
+            } for d in self.devices],
+            "endpoints": endpoints,
+            "sse_clients": self.broadcaster.clients,
+            "logging": "in-memory ring, last 500 lines",
+        }
+
+    # -- runtime config ---------------------------------------------------
+    def apply_config(self, config: dict,
+                     pools: bool = True) -> tuple[list[str], list[str]]:
+        """Swap the live config; returns (applied, restart_required).
+
+        Appearance, lane preferences, pools, layout labels and static lamp
+        colours take effect on the next tick. Host, port, lane count, endpoint
+        parameters and device enable flags are startup concerns, and saying so
+        is better than pretending a hot reload happened.
+        """
+        old = self.config or {}
+        new = config if isinstance(config, dict) else webconfig.default_config()
+        with self.lanes.lock:
+            self.config = new
+            self.revision = int(new.get("revision") or 0)
+            self.appearance = Appearance.from_config(new)
+            if self.quiet_configurable:
+                settings = new.get("settings") or {}
+                self.quiet = bool(settings.get("quiet", self.quiet))
+                self.quiet_ms = int(settings.get("quiet_ms", self.quiet_ms))
+            self.lane_map = dict(self._base_lane_map)
+            self.lane_map.update(webconfig.compile_lane_map(new))
+            for device in self.devices:
+                entry = (new.get("devices") or {}).get(device.backend.name)
+                if not isinstance(entry, dict):
+                    continue
+                lamps = device.backend.lamps()
+                pool = entry.get("lane_pool")
+                if pools and isinstance(pool, list):
+                    clean = [p for p in pool
+                             if isinstance(p, int) and not isinstance(p, bool)
+                             and 0 <= p < len(lamps)]
+                    if clean:
+                        device.pool = clean
+                layout = (new.get("layouts") or {}).get(entry.get("layout"))
+                labels: dict[int, str] = {}
+                if isinstance(layout, dict):
+                    for key in layout.get("keys") or []:
+                        if (isinstance(key, dict)
+                                and isinstance(key.get("lamp"), int)
+                                and isinstance(key.get("label"), str)):
+                            labels[key["lamp"]] = key["label"]
+                device.label_overrides = labels
+                device.last = None
+        restart: list[str] = []
+        old_settings, new_settings = old.get("settings") or {}, new.get("settings") or {}
+        for key in ("host", "port", "count"):
+            if old_settings.get(key) != new_settings.get(key):
+                restart.append(f"settings.{key}")
+        if (old.get("endpoints") or []) != (new.get("endpoints") or []):
+            restart.append("endpoints")
+        old_devices, new_devices = old.get("devices") or {}, new.get("devices") or {}
+        for name in set(old_devices) | set(new_devices):
+            if ((old_devices.get(name) or {}).get("enabled")
+                    != (new_devices.get(name) or {}).get("enabled")):
+                restart.append(f"devices.{name}.enabled")
+        self.notify()
+        return (["appearance", "lanes.overrides", "devices.lane_pool",
+                 "devices.layout", "lamp_overrides", "settings.quiet"], restart)
+
+    # -- hardware test/mapping overlays -----------------------------------
+    def set_overlay(self, device: Device, frame, seconds: float,
+                    label: str = "test") -> dict:
+        """Paint one frame for a moment, consumed by the render loop.
+
+        The HTTP thread never writes the backend; this is the single-writer
+        rule that keeps a test from racing the live panel.
+        """
+        seconds = max(0.05, float(seconds))
+        device.override = {
+            "frame": tuple(frame),
+            "deadline": time.monotonic() + seconds,
+            "expires_at": time.time() + seconds,
+            "label": label,
+        }
+        device.last = None
+        self.notify()
+        return {"device": device.label, "label": label,
+                "duration_s": seconds, "expires_at": device.override["expires_at"]}
+
+    def clear_overlays(self) -> list[str]:
+        cleared = []
+        for device in self.devices:
+            if device.override:
+                device.override = None
+                device.last = None
+                cleared.append(device.label)
+        if cleared:
+            self.notify()
+        return cleared
+
+    # -- diagnostics ------------------------------------------------------
+    def log_event(self, level: str, source: str, message: str) -> None:
+        """Record a line for the Logs page. Deliberately does not notify SSE:
+        a chatty error must not turn into a stream of snapshots."""
+        self.logs.add(level, source, message)
+
+    def notify(self) -> None:
+        try:
+            self.broadcaster.bump()
+        except Exception:
+            pass
 
     def tick(self) -> None:
         """One render pass: paint every device whose frame changed.
@@ -376,7 +576,21 @@ class Daemon:
         quiet = self.quiet and ms_since_input() < self.quiet_ms
         state = self.snapshot()
         for device in self.devices:
-            colours = device.frame(state, now, quiet)
+            overlay = device.override
+            if overlay is not None:
+                if now < overlay["deadline"]:
+                    # A test or mapping probe: an explicit human action, so the
+                    # typing hold does not apply - they clicked, not typed.
+                    colours = list(overlay["frame"])
+                    key = ("overlay",) + tuple(colours)
+                    if key != device.last:
+                        device.backend.write(colours)
+                        device.last = key
+                    continue
+                device.override = None      # expired: hand the board back
+                device.last = None
+                self.notify()
+            colours = device.frame(state, now, quiet, self.appearance)
             key = tuple(colours)
             if key == device.last:
                 continue
@@ -398,14 +612,23 @@ class Daemon:
             except BackendUnavailable as exc:
                 for device in self.devices:
                     print(f"[rgi] {device.label} lost: {exc}")
+                    self._device_errors[device.label] = str(exc)
+                    self.log_event("error", device.label, f"lost: {exc}")
                     try:
                         device.backend.close()
                         device.backend.open()
                         device.last = None
+                        self._device_errors.pop(device.label, None)
+                        self.log_event("info", device.label, "reconnected")
+                        self.notify()
                     except Exception as exc2:
                         print(f"[rgi] {device.label} reconnect failed: {exc2}")
+                        self._device_errors[device.label] = str(exc2)
+                        self.log_event("error", device.label,
+                                       f"reconnect failed: {exc2}")
             except Exception as exc:                       # keep the panel alive
                 print(f"[rgi] write failed: {exc}")
+                self.log_event("error", "render", f"write failed: {exc}")
             time.sleep(TICK)
 
 
@@ -459,48 +682,34 @@ class Handler(BaseHTTPRequestHandler):
         return self.daemon.devices[0]
 
     def _lane(self, sid: str, slot: int) -> dict:
-        lanes = self.daemon.lanes
-        state = lanes.state.get(sid)
-        changed = lanes.changed.get(sid)
-        updated = lanes.updated.get(sid)
-        # A lane is either in flight or idle, never both: an action that is running
-        # is not idle, and a lane that has landed is not flying. Exactly one of
-        # these is ever present, which makes the pair unambiguous to read.
-        flying = state in ("working", "blocked", "stopping")
-        return {
-            "slot": slot,
-            "key": self._primary().key_name(slot),
-            "agent": lanes.agent.get(sid),
-            "label": lanes.label.get(sid),
-            "host": lanes.host.get(sid),
-            "ident": lanes.ident.get(sid),
-            "state": state,
-            "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
-            "in_flight_s": round(time.monotonic() - changed, 1) if (flying and changed) else None,
-            "idle_s": None if flying else (round(time.time() - updated, 1) if updated else None),
-            "info": lanes.info.get(sid) or {},
-        }
+        return self.daemon.lane_view(sid, slot)
 
     # -- routes -----------------------------------------------------------
     def do_GET(self):
+        raw_path = self.path.split("?")[0]
+        path = raw_path.rstrip("/")
+        if path == "/ui/api" or path.startswith("/ui/api/"):
+            if not self._authorised():
+                self._send(401, {"error": "missing or bad X-LED-Token"})
+                return
+            if ui_api.handle_api_get(self, path):
+                return
+            self._send(404, ui_api.envelope("not_found", f"no such API route: {path}"))
+            return
+        if path == "/ui" or path.startswith("/ui/"):
+            # The shell and its assets carry no data, so they need no token;
+            # every /ui/api call does.
+            if ui_api.serve_static(self, raw_path.rstrip("/")):
+                return
+            self._send(404, {"error": "not found"})
+            return
         if not self._authorised():
             self._send(401, {"error": "missing or bad X-LED-Token"})
             return
-        path = self.path.split("?")[0].rstrip("/")
         lanes = self.daemon.lanes
 
         if path == "/status":
-            with lanes.lock:
-                self._send(200, {
-                    "devices": [d.describe() for d in self.daemon.devices],
-                    "backend": self._primary().backend.name,
-                    "lamps": len(self._primary().backend.lamps()),
-                    "lanes": lanes.count,
-                    "lane_map": self.daemon.lane_map,
-                    "free": lanes.free(),
-                    "sessions": {sid: self._lane(sid, slot)
-                                 for sid, slot in lanes.slot.items()},
-                })
+            self._send(200, self.daemon.status_payload())
             return
 
         if path == "/slots":
@@ -555,11 +764,22 @@ class Handler(BaseHTTPRequestHandler):
                          "known": ["/status", "/slots", "/session/<id>", "/files/<name>"]})
 
     def do_POST(self):
+        raw_path = self.path.split("?")[0]
+        path = raw_path.rstrip("/")
         if not self._authorised():
             self._send(401, {"error": "missing or bad X-LED-Token"})
             return
+        length = int(self.headers.get("Content-Length") or 0)
+        if length > webconfig.BODY_MAX:
+            self._send(413, ui_api.envelope(
+                "body_too_large", f"body over {webconfig.BODY_MAX} bytes"))
+            return
         data = self._body()
-        path = self.path.rstrip("/")
+        if path.startswith("/ui/api/"):
+            if ui_api.handle_api_post(self, path, data):
+                return
+            self._send(404, ui_api.envelope("not_found", f"no such API route: {path}"))
+            return
         lanes = self.daemon.lanes
 
         if path == "/session/start":
@@ -600,6 +820,7 @@ class Handler(BaseHTTPRequestHandler):
             key = primary.key_name(slot)
             shown = [d.label for d in self.daemon.devices
                      if slot < len(d.pool)]
+            self.daemon.notify()
             self._send(200, {"slot": slot, "key": key,
                              "devices": shown})
             return
@@ -614,6 +835,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(400, {"error": f"unknown state {state!r}", "known": sorted(STATES)})
                 return
             ok = lanes.set_state(sid.strip(), state)
+            if ok:
+                self.daemon.notify()
             self._send(200 if ok else 404, {"ok": ok})
             return
 
@@ -644,6 +867,7 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(400, {"error": "nothing to record: send an info object, "
                                               "an ident, or both"})
                 return
+            self.daemon.notify()
             self._send(200, {"ok": True})
             return
 
@@ -653,15 +877,41 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(400, {"error": "sessionID is required and must be a non-empty string"})
                 return
             lanes.release(sid.strip())
+            self.daemon.notify()
             self._send(200, {"ok": True})
             return
 
         if path == "/clear":
             lanes.clear()
+            self.daemon.notify()
             self._send(200, {"ok": True})
             return
 
         self._send(404, {"error": "not found"})
+
+    def do_PUT(self):
+        path = self.path.split("?")[0].rstrip("/")
+        if not self._authorised():
+            self._send(401, {"error": "missing or bad X-LED-Token"})
+            return
+        length = int(self.headers.get("Content-Length") or 0)
+        if length > webconfig.BODY_MAX:
+            self._send(413, ui_api.envelope(
+                "body_too_large", f"body over {webconfig.BODY_MAX} bytes"))
+            return
+        data = self._body()
+        if ui_api.handle_api_put(self, path, data):
+            return
+        self._send(404, ui_api.envelope("not_found", f"no such API route: PUT {path}"))
+
+    def do_DELETE(self):
+        path = self.path.split("?")[0].rstrip("/")
+        if not self._authorised():
+            self._send(401, {"error": "missing or bad X-LED-Token"})
+            return
+        if ui_api.handle_api_delete(self, path):
+            return
+        self._send(404, ui_api.envelope("not_found", f"no such API route: DELETE {path}"))
 
 
 def make_server(host: str, port: int, daemon: Daemon, token: str) -> ThreadingHTTPServer:
@@ -737,11 +987,23 @@ def run(args: argparse.Namespace) -> int:
 
     lanes = Lanes(count=args.count)
     lane_map = load_lane_map(getattr(args, "lane_map", None))
+    try:
+        raw_config = webconfig.load_raw()
+        config = webconfig.deep_fill(webconfig.default_config(), raw_config)
+    except webconfig.ConfigError as exc:
+        print(f"[rgi] config: {exc.message}; using defaults")
+        raw_config, config = {}, webconfig.default_config()
     daemon = Daemon(devices, lanes, quiet=not args.no_quiet,
-                    quiet_ms=args.quiet_ms, verbose=args.verbose, lane_map=lane_map)
+                    quiet_ms=args.quiet_ms, verbose=args.verbose,
+                    lane_map=lane_map, config=config, raw_config=raw_config,
+                    quiet_configurable=not args.no_quiet)
+    daemon.apply_config(config, pools=not args.lanes)
+    if args.quiet_ms != 1500:               # an explicit CLI flag wins at startup
+        daemon.quiet_ms = args.quiet_ms     # (later Applies are the user's choice)
 
     token = resolve_token(args.token)
     server = make_server(args.host, args.port, daemon, token or "")
+    daemon.log_event("info", "daemon", f"listening on http://{args.host}:{args.port}")
 
     for device in devices:
         lamps = device.backend.lamps()

@@ -31,6 +31,7 @@ cd rgbagentflightindicator
 pip install -e ".[sinowealth]"               # the extra is only for that board
 python -m rgi detect                         # what can it see?
 python -m rgi daemon                         # run the panel
+python -m rgi ui                             # configure it in a browser
 python -m rgi watch                          # report OpenCode sessions (optional)
 ```
 
@@ -182,7 +183,7 @@ rgi status --follow   # reprint on every change
 ```
 
 ```
-rgbafi 0.5.2  http://127.0.0.1:8730
+rgbafi 0.6.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
@@ -200,6 +201,9 @@ POST /session/state         {"sessionID","state"}   working|done|blocked|error|i
 POST /session/end           {"sessionID"}
 POST /clear
 GET  /files[/<name>]        published files, with hashes
+GET  /ui/                   the web configuration UI (static, no token needed)
+GET  /ui/api/*              live status, config, SSE, health, logs (X-LED-Token)
+PUT  /ui/api/config         validate and apply a whole config revision
 ```
 
 Lamps are the scarce resource — a keyboard has a dozen, not a thousand — so a
@@ -221,8 +225,17 @@ Full details, including the states and the error codes, are in
 | `--count` | `12` | how many lanes to offer |
 | `--lanes` | backend default | explicit lamp indices for the *primary* device's lanes |
 | `--device` / `--leds` | `0` / detected | OpenRGB device index, lamp count override |
-| `--no-quiet` | off | do not freeze the frame while you type (see below) |
+| `--no-quiet` | off | do not hold writes while you type (see below) |
 | `--lane-map` | `~/.config/rgi/lanes.json` | which agent gets which lane |
+
+### The web UI
+
+`rgi ui` opens the configuration page: colours and effects for every state,
+layouts and key names, lane pools, preferred lanes, the agents registry, and
+the keyboard mapping wizard. Everything edits a browser draft; hardware is only
+touched when you press **Apply**, or a time-boxed test button. The whole config
+is one versioned file at `~/.config/rgi/config.json`, with backups and history
+snapshots beside it. Full details: [docs/webui.md](docs/webui.md).
 
 ### Which agent gets which lane
 
@@ -302,6 +315,7 @@ on.
 | [docs/backends.md](docs/backends.md) | the landscape of RGB keyboards, and how to add one |
 | [docs/protocols.md](docs/protocols.md) | the wire formats: Sinowealth, EVision, QMK/VIA, OpenRGB, LampArray |
 | [docs/api.md](docs/api.md) | the HTTP API in full |
+| [docs/webui.md](docs/webui.md) | the web configuration UI, the config schema, and the mapping wizard |
 | [docs/agents.md](docs/agents.md) | wiring agents, watchers and other tools |
 | [docs/machines.md](docs/machines.md) | running the panel across machines: install, update, verify |
 | [docs/opencode.md](docs/opencode.md) | the OpenCode plugin, and its four sharp edges |
@@ -321,6 +335,7 @@ at `GET /files/<name>`, so a remote machine can fetch its own instructions:
 
 ```sh
 python -m unittest discover -s tests -t .
+cd rgi/webui && node --test        # browser modules; Node 18+, no npm install
 ```
 
 No hardware and no network: the daemon is exercised against a dummy backend over

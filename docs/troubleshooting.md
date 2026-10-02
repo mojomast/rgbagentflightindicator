@@ -59,6 +59,27 @@ for now), so a lane that lands mid-sentence is held and painted in one frame whe
 you pause. `--quiet-ms` is how long "typing" lasts after the last keystroke
 (default 1500); `--no-quiet` disables the hold.
 
+**The web UI asks for a token, or shows "panel unreachable".**
+Open it with `rgi ui`, which passes the token in the URL fragment; a bare
+`/ui/` has no token and will ask. The token is kept in `sessionStorage` for the
+tab only. If the page is open on another machine, use the same token as the
+agents (`~/.config/rgi/token`). A 401 clears the stored token and reopens the
+dialog; it never retries in a loop.
+
+**The web UI's webcam mode says the camera needs a secure context.**
+`getUserMedia` only works on `http://localhost`, `http://127.0.0.1` or HTTPS —
+not on a LAN or Tailscale address. Open the UI on the machine with the camera,
+or use manual press-to-label mapping, which works everywhere.
+
+**I changed host/port/count and nothing happened.**
+Those are startup flags: the UI saves them and shows a "restart required"
+banner. Stop and start the daemon; your other changes were already applied live.
+
+**Apply says another tab changed the config.**
+Two tabs were editing the same revision. *Reload from panel* takes the newer
+file and discards the draft; *Overwrite* applies your draft on top. Nothing is
+merged silently, and the previous file stays in the backup chain either way.
+
 **It worked, I replugged, now nothing changes.**
 A replug invalidates the device handle: writes appear to succeed and go nowhere.
 The daemon notices write failures, reopens and repaints; if a backend does not

@@ -1,0 +1,9 @@
+{
+  "name": "rgi-webui",
+  "private": true,
+  "type": "module",
+  "description": "Browser assets for the rgbafi panel. No npm dependencies; this file exists only so Node parses the ES modules when running node --test.",
+  "scripts": {
+    "test": "node --test tests/"
+  }
+}

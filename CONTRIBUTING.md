@@ -69,6 +69,7 @@ Before opening a pull request, these must pass:
 
 ```sh
 python -m unittest discover -s tests -t .     # all tests
+cd rgi/webui && node --test && cd ../..       # browser modules (Node 18+, no npm)
 python tools/scan_for_secrets.py              # no tokens, addresses, local paths
 python tools/check_portability.py             # no shell traps that break on POSIX
 python tools/check_docs.py                    # fences balanced, links resolve

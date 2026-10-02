@@ -1,0 +1,3362 @@
+[
+ {
+  "name": "default palette",
+  "config": {
+   "appearance": {
+    "blink": {
+     "period_ms": 560,
+     "duty": 0.5
+    },
+    "states": {
+     "working": {
+      "label": "Working",
+      "icon": "play",
+      "pattern": "steady",
+      "color": "#00ff00",
+      "brightness": 255
+     },
+     "done": {
+      "label": "Done",
+      "icon": "check",
+      "pattern": "blink",
+      "color": "#ffffff",
+      "brightness": 255,
+      "cycles": 10,
+      "then": "steady"
+     },
+     "blocked": {
+      "label": "Blocked",
+      "icon": "alert",
+      "pattern": "blink",
+      "color": "#ff0000",
+      "brightness": 255,
+      "cycles": 0,
+      "then": "steady"
+     },
+     "error": {
+      "label": "Error",
+      "icon": "x",
+      "pattern": "steady",
+      "color": "#ff0000",
+      "brightness": 255
+     },
+     "idle": {
+      "label": "Idle",
+      "icon": "dot",
+      "pattern": "steady",
+      "color": "#282828",
+      "brightness": 255
+     },
+     "off": {
+      "label": "Off",
+      "icon": "off",
+      "pattern": "off",
+      "color": "#000000",
+      "brightness": 0
+     }
+    }
+   }
+  },
+  "cases": [
+   {
+    "name": "default working@0.0 quiet=False",
+    "state": "working",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.0 quiet=True",
+    "state": "working",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.05 quiet=False",
+    "state": "working",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.05 quiet=True",
+    "state": "working",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.14 quiet=False",
+    "state": "working",
+    "elapsed": 0.14,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.14 quiet=True",
+    "state": "working",
+    "elapsed": 0.14,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.279 quiet=False",
+    "state": "working",
+    "elapsed": 0.279,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.279 quiet=True",
+    "state": "working",
+    "elapsed": 0.279,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.28 quiet=False",
+    "state": "working",
+    "elapsed": 0.28,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.28 quiet=True",
+    "state": "working",
+    "elapsed": 0.28,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.29 quiet=False",
+    "state": "working",
+    "elapsed": 0.29,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.29 quiet=True",
+    "state": "working",
+    "elapsed": 0.29,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.42 quiet=False",
+    "state": "working",
+    "elapsed": 0.42,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.42 quiet=True",
+    "state": "working",
+    "elapsed": 0.42,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.56 quiet=False",
+    "state": "working",
+    "elapsed": 0.56,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.56 quiet=True",
+    "state": "working",
+    "elapsed": 0.56,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.7 quiet=False",
+    "state": "working",
+    "elapsed": 0.7,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@0.7 quiet=True",
+    "state": "working",
+    "elapsed": 0.7,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@1.12 quiet=False",
+    "state": "working",
+    "elapsed": 1.12,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@1.12 quiet=True",
+    "state": "working",
+    "elapsed": 1.12,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@2.24 quiet=False",
+    "state": "working",
+    "elapsed": 2.24,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@2.24 quiet=True",
+    "state": "working",
+    "elapsed": 2.24,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@5.59 quiet=False",
+    "state": "working",
+    "elapsed": 5.59,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@5.59 quiet=True",
+    "state": "working",
+    "elapsed": 5.59,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@5.6 quiet=False",
+    "state": "working",
+    "elapsed": 5.6,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@5.6 quiet=True",
+    "state": "working",
+    "elapsed": 5.6,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@5.61 quiet=False",
+    "state": "working",
+    "elapsed": 5.61,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@5.61 quiet=True",
+    "state": "working",
+    "elapsed": 5.61,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@12.0 quiet=False",
+    "state": "working",
+    "elapsed": 12.0,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default working@12.0 quiet=True",
+    "state": "working",
+    "elapsed": 12.0,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "default done@0.0 quiet=False",
+    "state": "done",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.0 quiet=True",
+    "state": "done",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.05 quiet=False",
+    "state": "done",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.05 quiet=True",
+    "state": "done",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.14 quiet=False",
+    "state": "done",
+    "elapsed": 0.14,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.14 quiet=True",
+    "state": "done",
+    "elapsed": 0.14,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.279 quiet=False",
+    "state": "done",
+    "elapsed": 0.279,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.279 quiet=True",
+    "state": "done",
+    "elapsed": 0.279,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.28 quiet=False",
+    "state": "done",
+    "elapsed": 0.28,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default done@0.28 quiet=True",
+    "state": "done",
+    "elapsed": 0.28,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.29 quiet=False",
+    "state": "done",
+    "elapsed": 0.29,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default done@0.29 quiet=True",
+    "state": "done",
+    "elapsed": 0.29,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.42 quiet=False",
+    "state": "done",
+    "elapsed": 0.42,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default done@0.42 quiet=True",
+    "state": "done",
+    "elapsed": 0.42,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.56 quiet=False",
+    "state": "done",
+    "elapsed": 0.56,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.56 quiet=True",
+    "state": "done",
+    "elapsed": 0.56,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.7 quiet=False",
+    "state": "done",
+    "elapsed": 0.7,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@0.7 quiet=True",
+    "state": "done",
+    "elapsed": 0.7,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@1.12 quiet=False",
+    "state": "done",
+    "elapsed": 1.12,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@1.12 quiet=True",
+    "state": "done",
+    "elapsed": 1.12,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@2.24 quiet=False",
+    "state": "done",
+    "elapsed": 2.24,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@2.24 quiet=True",
+    "state": "done",
+    "elapsed": 2.24,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@5.59 quiet=False",
+    "state": "done",
+    "elapsed": 5.59,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default done@5.59 quiet=True",
+    "state": "done",
+    "elapsed": 5.59,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@5.6 quiet=False",
+    "state": "done",
+    "elapsed": 5.6,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default done@5.6 quiet=True",
+    "state": "done",
+    "elapsed": 5.6,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@5.61 quiet=False",
+    "state": "done",
+    "elapsed": 5.61,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@5.61 quiet=True",
+    "state": "done",
+    "elapsed": 5.61,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@12.0 quiet=False",
+    "state": "done",
+    "elapsed": 12.0,
+    "quiet": false,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default done@12.0 quiet=True",
+    "state": "done",
+    "elapsed": 12.0,
+    "quiet": true,
+    "expect": [
+     255,
+     255,
+     255
+    ]
+   },
+   {
+    "name": "default blocked@0.0 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.0 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.05 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.05 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.14 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.14,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.14 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.14,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.279 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.279,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.279 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.279,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.28 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.28,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.28 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.28,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.29 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.29,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.29 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.29,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.42 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.42,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.42 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.42,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.56 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.56,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.56 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.56,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.7 quiet=False",
+    "state": "blocked",
+    "elapsed": 0.7,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@0.7 quiet=True",
+    "state": "blocked",
+    "elapsed": 0.7,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@1.12 quiet=False",
+    "state": "blocked",
+    "elapsed": 1.12,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@1.12 quiet=True",
+    "state": "blocked",
+    "elapsed": 1.12,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@2.24 quiet=False",
+    "state": "blocked",
+    "elapsed": 2.24,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@2.24 quiet=True",
+    "state": "blocked",
+    "elapsed": 2.24,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@5.59 quiet=False",
+    "state": "blocked",
+    "elapsed": 5.59,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@5.59 quiet=True",
+    "state": "blocked",
+    "elapsed": 5.59,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@5.6 quiet=False",
+    "state": "blocked",
+    "elapsed": 5.6,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@5.6 quiet=True",
+    "state": "blocked",
+    "elapsed": 5.6,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@5.61 quiet=False",
+    "state": "blocked",
+    "elapsed": 5.61,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@5.61 quiet=True",
+    "state": "blocked",
+    "elapsed": 5.61,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@12.0 quiet=False",
+    "state": "blocked",
+    "elapsed": 12.0,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default blocked@12.0 quiet=True",
+    "state": "blocked",
+    "elapsed": 12.0,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.0 quiet=False",
+    "state": "error",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.0 quiet=True",
+    "state": "error",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.05 quiet=False",
+    "state": "error",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.05 quiet=True",
+    "state": "error",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.14 quiet=False",
+    "state": "error",
+    "elapsed": 0.14,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.14 quiet=True",
+    "state": "error",
+    "elapsed": 0.14,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.279 quiet=False",
+    "state": "error",
+    "elapsed": 0.279,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.279 quiet=True",
+    "state": "error",
+    "elapsed": 0.279,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.28 quiet=False",
+    "state": "error",
+    "elapsed": 0.28,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.28 quiet=True",
+    "state": "error",
+    "elapsed": 0.28,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.29 quiet=False",
+    "state": "error",
+    "elapsed": 0.29,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.29 quiet=True",
+    "state": "error",
+    "elapsed": 0.29,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.42 quiet=False",
+    "state": "error",
+    "elapsed": 0.42,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.42 quiet=True",
+    "state": "error",
+    "elapsed": 0.42,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.56 quiet=False",
+    "state": "error",
+    "elapsed": 0.56,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.56 quiet=True",
+    "state": "error",
+    "elapsed": 0.56,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.7 quiet=False",
+    "state": "error",
+    "elapsed": 0.7,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@0.7 quiet=True",
+    "state": "error",
+    "elapsed": 0.7,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@1.12 quiet=False",
+    "state": "error",
+    "elapsed": 1.12,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@1.12 quiet=True",
+    "state": "error",
+    "elapsed": 1.12,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@2.24 quiet=False",
+    "state": "error",
+    "elapsed": 2.24,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@2.24 quiet=True",
+    "state": "error",
+    "elapsed": 2.24,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@5.59 quiet=False",
+    "state": "error",
+    "elapsed": 5.59,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@5.59 quiet=True",
+    "state": "error",
+    "elapsed": 5.59,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@5.6 quiet=False",
+    "state": "error",
+    "elapsed": 5.6,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@5.6 quiet=True",
+    "state": "error",
+    "elapsed": 5.6,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@5.61 quiet=False",
+    "state": "error",
+    "elapsed": 5.61,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@5.61 quiet=True",
+    "state": "error",
+    "elapsed": 5.61,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@12.0 quiet=False",
+    "state": "error",
+    "elapsed": 12.0,
+    "quiet": false,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default error@12.0 quiet=True",
+    "state": "error",
+    "elapsed": 12.0,
+    "quiet": true,
+    "expect": [
+     255,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default idle@0.0 quiet=False",
+    "state": "idle",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.0 quiet=True",
+    "state": "idle",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.05 quiet=False",
+    "state": "idle",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.05 quiet=True",
+    "state": "idle",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.14 quiet=False",
+    "state": "idle",
+    "elapsed": 0.14,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.14 quiet=True",
+    "state": "idle",
+    "elapsed": 0.14,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.279 quiet=False",
+    "state": "idle",
+    "elapsed": 0.279,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.279 quiet=True",
+    "state": "idle",
+    "elapsed": 0.279,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.28 quiet=False",
+    "state": "idle",
+    "elapsed": 0.28,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.28 quiet=True",
+    "state": "idle",
+    "elapsed": 0.28,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.29 quiet=False",
+    "state": "idle",
+    "elapsed": 0.29,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.29 quiet=True",
+    "state": "idle",
+    "elapsed": 0.29,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.42 quiet=False",
+    "state": "idle",
+    "elapsed": 0.42,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.42 quiet=True",
+    "state": "idle",
+    "elapsed": 0.42,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.56 quiet=False",
+    "state": "idle",
+    "elapsed": 0.56,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.56 quiet=True",
+    "state": "idle",
+    "elapsed": 0.56,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.7 quiet=False",
+    "state": "idle",
+    "elapsed": 0.7,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@0.7 quiet=True",
+    "state": "idle",
+    "elapsed": 0.7,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@1.12 quiet=False",
+    "state": "idle",
+    "elapsed": 1.12,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@1.12 quiet=True",
+    "state": "idle",
+    "elapsed": 1.12,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@2.24 quiet=False",
+    "state": "idle",
+    "elapsed": 2.24,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@2.24 quiet=True",
+    "state": "idle",
+    "elapsed": 2.24,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@5.59 quiet=False",
+    "state": "idle",
+    "elapsed": 5.59,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@5.59 quiet=True",
+    "state": "idle",
+    "elapsed": 5.59,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@5.6 quiet=False",
+    "state": "idle",
+    "elapsed": 5.6,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@5.6 quiet=True",
+    "state": "idle",
+    "elapsed": 5.6,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@5.61 quiet=False",
+    "state": "idle",
+    "elapsed": 5.61,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@5.61 quiet=True",
+    "state": "idle",
+    "elapsed": 5.61,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@12.0 quiet=False",
+    "state": "idle",
+    "elapsed": 12.0,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default idle@12.0 quiet=True",
+    "state": "idle",
+    "elapsed": 12.0,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default off@0.0 quiet=False",
+    "state": "off",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.0 quiet=True",
+    "state": "off",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.05 quiet=False",
+    "state": "off",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.05 quiet=True",
+    "state": "off",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.14 quiet=False",
+    "state": "off",
+    "elapsed": 0.14,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.14 quiet=True",
+    "state": "off",
+    "elapsed": 0.14,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.279 quiet=False",
+    "state": "off",
+    "elapsed": 0.279,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.279 quiet=True",
+    "state": "off",
+    "elapsed": 0.279,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.28 quiet=False",
+    "state": "off",
+    "elapsed": 0.28,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.28 quiet=True",
+    "state": "off",
+    "elapsed": 0.28,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.29 quiet=False",
+    "state": "off",
+    "elapsed": 0.29,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.29 quiet=True",
+    "state": "off",
+    "elapsed": 0.29,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.42 quiet=False",
+    "state": "off",
+    "elapsed": 0.42,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.42 quiet=True",
+    "state": "off",
+    "elapsed": 0.42,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.56 quiet=False",
+    "state": "off",
+    "elapsed": 0.56,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.56 quiet=True",
+    "state": "off",
+    "elapsed": 0.56,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.7 quiet=False",
+    "state": "off",
+    "elapsed": 0.7,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@0.7 quiet=True",
+    "state": "off",
+    "elapsed": 0.7,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@1.12 quiet=False",
+    "state": "off",
+    "elapsed": 1.12,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@1.12 quiet=True",
+    "state": "off",
+    "elapsed": 1.12,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@2.24 quiet=False",
+    "state": "off",
+    "elapsed": 2.24,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@2.24 quiet=True",
+    "state": "off",
+    "elapsed": 2.24,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@5.59 quiet=False",
+    "state": "off",
+    "elapsed": 5.59,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@5.59 quiet=True",
+    "state": "off",
+    "elapsed": 5.59,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@5.6 quiet=False",
+    "state": "off",
+    "elapsed": 5.6,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@5.6 quiet=True",
+    "state": "off",
+    "elapsed": 5.6,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@5.61 quiet=False",
+    "state": "off",
+    "elapsed": 5.61,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@5.61 quiet=True",
+    "state": "off",
+    "elapsed": 5.61,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@12.0 quiet=False",
+    "state": "off",
+    "elapsed": 12.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default off@12.0 quiet=True",
+    "state": "off",
+    "elapsed": 12.0,
+    "quiet": true,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "default stopping@0.0 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.0 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.05 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.05 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.14 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.14,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.14 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.14,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.279 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.279,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.279 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.279,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.28 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.28,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.28 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.28,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.29 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.29,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.29 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.29,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.42 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.42,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.42 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.42,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.56 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.56,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.56 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.56,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.7 quiet=False",
+    "state": "stopping",
+    "elapsed": 0.7,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@0.7 quiet=True",
+    "state": "stopping",
+    "elapsed": 0.7,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@1.12 quiet=False",
+    "state": "stopping",
+    "elapsed": 1.12,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@1.12 quiet=True",
+    "state": "stopping",
+    "elapsed": 1.12,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@2.24 quiet=False",
+    "state": "stopping",
+    "elapsed": 2.24,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@2.24 quiet=True",
+    "state": "stopping",
+    "elapsed": 2.24,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@5.59 quiet=False",
+    "state": "stopping",
+    "elapsed": 5.59,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@5.59 quiet=True",
+    "state": "stopping",
+    "elapsed": 5.59,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@5.6 quiet=False",
+    "state": "stopping",
+    "elapsed": 5.6,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@5.6 quiet=True",
+    "state": "stopping",
+    "elapsed": 5.6,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@5.61 quiet=False",
+    "state": "stopping",
+    "elapsed": 5.61,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@5.61 quiet=True",
+    "state": "stopping",
+    "elapsed": 5.61,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@12.0 quiet=False",
+    "state": "stopping",
+    "elapsed": 12.0,
+    "quiet": false,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   },
+   {
+    "name": "default stopping@12.0 quiet=True",
+    "state": "stopping",
+    "elapsed": 12.0,
+    "quiet": true,
+    "expect": [
+     40,
+     40,
+     40
+    ]
+   }
+  ]
+ },
+ {
+  "name": "custom palette",
+  "config": {
+   "appearance": {
+    "blink": {
+     "period_ms": 400,
+     "duty": 0.25
+    },
+    "states": {
+     "working": {
+      "color": "#00ff00",
+      "pattern": "blink",
+      "period_ms": 400,
+      "duty": 0.75,
+      "cycles": 0,
+      "then": "steady",
+      "brightness": 255
+     },
+     "done": {
+      "color": "#ff8800",
+      "pattern": "blink",
+      "period_ms": 400,
+      "duty": 0.25,
+      "cycles": 3,
+      "then": "off",
+      "brightness": 200
+     },
+     "blocked": {
+      "label": "Blocked",
+      "icon": "alert",
+      "pattern": "blink",
+      "color": "#ff0000",
+      "brightness": 255,
+      "cycles": 0,
+      "then": "steady"
+     },
+     "error": {
+      "label": "Error",
+      "icon": "x",
+      "pattern": "steady",
+      "color": "#ff0000",
+      "brightness": 255
+     },
+     "idle": {
+      "color": "#336699",
+      "pattern": "breathe",
+      "period_ms": 1000,
+      "duty": 0.5,
+      "cycles": 2,
+      "then": "steady",
+      "brightness": 180
+     },
+     "off": {
+      "label": "Off",
+      "icon": "off",
+      "pattern": "off",
+      "color": "#000000",
+      "brightness": 0
+     }
+    }
+   }
+  },
+  "cases": [
+   {
+    "name": "custom done@0.0 quiet=False",
+    "state": "done",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.0 quiet=True",
+    "state": "done",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.05 quiet=False",
+    "state": "done",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.05 quiet=True",
+    "state": "done",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.1 quiet=False",
+    "state": "done",
+    "elapsed": 0.1,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.1 quiet=True",
+    "state": "done",
+    "elapsed": 0.1,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.2 quiet=False",
+    "state": "done",
+    "elapsed": 0.2,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.2 quiet=True",
+    "state": "done",
+    "elapsed": 0.2,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.399 quiet=False",
+    "state": "done",
+    "elapsed": 0.399,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.399 quiet=True",
+    "state": "done",
+    "elapsed": 0.399,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.4 quiet=False",
+    "state": "done",
+    "elapsed": 0.4,
+    "quiet": false,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.4 quiet=True",
+    "state": "done",
+    "elapsed": 0.4,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.6 quiet=False",
+    "state": "done",
+    "elapsed": 0.6,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.6 quiet=True",
+    "state": "done",
+    "elapsed": 0.6,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.8 quiet=False",
+    "state": "done",
+    "elapsed": 0.8,
+    "quiet": false,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@0.8 quiet=True",
+    "state": "done",
+    "elapsed": 0.8,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.0 quiet=False",
+    "state": "done",
+    "elapsed": 1.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.0 quiet=True",
+    "state": "done",
+    "elapsed": 1.0,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.2 quiet=False",
+    "state": "done",
+    "elapsed": 1.2,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.2 quiet=True",
+    "state": "done",
+    "elapsed": 1.2,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.4 quiet=False",
+    "state": "done",
+    "elapsed": 1.4,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.4 quiet=True",
+    "state": "done",
+    "elapsed": 1.4,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.6001 quiet=False",
+    "state": "done",
+    "elapsed": 1.6001,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@1.6001 quiet=True",
+    "state": "done",
+    "elapsed": 1.6001,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@2.0 quiet=False",
+    "state": "done",
+    "elapsed": 2.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@2.0 quiet=True",
+    "state": "done",
+    "elapsed": 2.0,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom done@3.0 quiet=False",
+    "state": "done",
+    "elapsed": 3.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom done@3.0 quiet=True",
+    "state": "done",
+    "elapsed": 3.0,
+    "quiet": true,
+    "expect": [
+     200,
+     107,
+     0
+    ]
+   },
+   {
+    "name": "custom idle@0.0 quiet=False",
+    "state": "idle",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom idle@0.0 quiet=True",
+    "state": "idle",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@0.05 quiet=False",
+    "state": "idle",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     1,
+     2,
+     3
+    ]
+   },
+   {
+    "name": "custom idle@0.05 quiet=True",
+    "state": "idle",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@0.1 quiet=False",
+    "state": "idle",
+    "elapsed": 0.1,
+    "quiet": false,
+    "expect": [
+     3,
+     7,
+     10
+    ]
+   },
+   {
+    "name": "custom idle@0.1 quiet=True",
+    "state": "idle",
+    "elapsed": 0.1,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@0.2 quiet=False",
+    "state": "idle",
+    "elapsed": 0.2,
+    "quiet": false,
+    "expect": [
+     12,
+     25,
+     37
+    ]
+   },
+   {
+    "name": "custom idle@0.2 quiet=True",
+    "state": "idle",
+    "elapsed": 0.2,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@0.399 quiet=False",
+    "state": "idle",
+    "elapsed": 0.399,
+    "quiet": false,
+    "expect": [
+     32,
+     65,
+     97
+    ]
+   },
+   {
+    "name": "custom idle@0.399 quiet=True",
+    "state": "idle",
+    "elapsed": 0.399,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@0.4 quiet=False",
+    "state": "idle",
+    "elapsed": 0.4,
+    "quiet": false,
+    "expect": [
+     33,
+     65,
+     98
+    ]
+   },
+   {
+    "name": "custom idle@0.4 quiet=True",
+    "state": "idle",
+    "elapsed": 0.4,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@0.6 quiet=False",
+    "state": "idle",
+    "elapsed": 0.6,
+    "quiet": false,
+    "expect": [
+     33,
+     65,
+     98
+    ]
+   },
+   {
+    "name": "custom idle@0.6 quiet=True",
+    "state": "idle",
+    "elapsed": 0.6,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@0.8 quiet=False",
+    "state": "idle",
+    "elapsed": 0.8,
+    "quiet": false,
+    "expect": [
+     12,
+     25,
+     37
+    ]
+   },
+   {
+    "name": "custom idle@0.8 quiet=True",
+    "state": "idle",
+    "elapsed": 0.8,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@1.0 quiet=False",
+    "state": "idle",
+    "elapsed": 1.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom idle@1.0 quiet=True",
+    "state": "idle",
+    "elapsed": 1.0,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@1.2 quiet=False",
+    "state": "idle",
+    "elapsed": 1.2,
+    "quiet": false,
+    "expect": [
+     12,
+     25,
+     37
+    ]
+   },
+   {
+    "name": "custom idle@1.2 quiet=True",
+    "state": "idle",
+    "elapsed": 1.2,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@1.4 quiet=False",
+    "state": "idle",
+    "elapsed": 1.4,
+    "quiet": false,
+    "expect": [
+     33,
+     65,
+     98
+    ]
+   },
+   {
+    "name": "custom idle@1.4 quiet=True",
+    "state": "idle",
+    "elapsed": 1.4,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@1.6001 quiet=False",
+    "state": "idle",
+    "elapsed": 1.6001,
+    "quiet": false,
+    "expect": [
+     33,
+     65,
+     98
+    ]
+   },
+   {
+    "name": "custom idle@1.6001 quiet=True",
+    "state": "idle",
+    "elapsed": 1.6001,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@2.0 quiet=False",
+    "state": "idle",
+    "elapsed": 2.0,
+    "quiet": false,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@2.0 quiet=True",
+    "state": "idle",
+    "elapsed": 2.0,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@3.0 quiet=False",
+    "state": "idle",
+    "elapsed": 3.0,
+    "quiet": false,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom idle@3.0 quiet=True",
+    "state": "idle",
+    "elapsed": 3.0,
+    "quiet": true,
+    "expect": [
+     36,
+     72,
+     108
+    ]
+   },
+   {
+    "name": "custom working@0.0 quiet=False",
+    "state": "working",
+    "elapsed": 0.0,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.0 quiet=True",
+    "state": "working",
+    "elapsed": 0.0,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.05 quiet=False",
+    "state": "working",
+    "elapsed": 0.05,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.05 quiet=True",
+    "state": "working",
+    "elapsed": 0.05,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.1 quiet=False",
+    "state": "working",
+    "elapsed": 0.1,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.1 quiet=True",
+    "state": "working",
+    "elapsed": 0.1,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.2 quiet=False",
+    "state": "working",
+    "elapsed": 0.2,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.2 quiet=True",
+    "state": "working",
+    "elapsed": 0.2,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.399 quiet=False",
+    "state": "working",
+    "elapsed": 0.399,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.399 quiet=True",
+    "state": "working",
+    "elapsed": 0.399,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.4 quiet=False",
+    "state": "working",
+    "elapsed": 0.4,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.4 quiet=True",
+    "state": "working",
+    "elapsed": 0.4,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.6 quiet=False",
+    "state": "working",
+    "elapsed": 0.6,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.6 quiet=True",
+    "state": "working",
+    "elapsed": 0.6,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.8 quiet=False",
+    "state": "working",
+    "elapsed": 0.8,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@0.8 quiet=True",
+    "state": "working",
+    "elapsed": 0.8,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.0 quiet=False",
+    "state": "working",
+    "elapsed": 1.0,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.0 quiet=True",
+    "state": "working",
+    "elapsed": 1.0,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.2 quiet=False",
+    "state": "working",
+    "elapsed": 1.2,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.2 quiet=True",
+    "state": "working",
+    "elapsed": 1.2,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.4 quiet=False",
+    "state": "working",
+    "elapsed": 1.4,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.4 quiet=True",
+    "state": "working",
+    "elapsed": 1.4,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.6001 quiet=False",
+    "state": "working",
+    "elapsed": 1.6001,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@1.6001 quiet=True",
+    "state": "working",
+    "elapsed": 1.6001,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@2.0 quiet=False",
+    "state": "working",
+    "elapsed": 2.0,
+    "quiet": false,
+    "expect": [
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "name": "custom working@2.0 quiet=True",
+    "state": "working",
+    "elapsed": 2.0,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@3.0 quiet=False",
+    "state": "working",
+    "elapsed": 3.0,
+    "quiet": false,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   },
+   {
+    "name": "custom working@3.0 quiet=True",
+    "state": "working",
+    "elapsed": 3.0,
+    "quiet": true,
+    "expect": [
+     0,
+     255,
+     0
+    ]
+   }
+  ]
+ }
+]

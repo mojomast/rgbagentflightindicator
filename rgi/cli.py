@@ -3,6 +3,7 @@
     rgi detect                      what backends can see, and what lights up
     rgi map [--backend X]           walk the lamps one at a time (calibration)
     rgi daemon [--backend X]        run the panel
+    rgi ui                          open the web configuration UI
     rgi watch                       report OpenCode sessions to the panel
     rgi push <state> [--lane N]     set one lane by hand (testing, scripts)
 """
@@ -300,6 +301,39 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ui(args: argparse.Namespace) -> int:
+    """Open the web configuration UI in the default browser.
+
+    The token travels in the URL fragment, which browsers never send to the
+    server: the page reads it once, keeps it in sessionStorage and strips it
+    from the address bar. No cookies, so no CSRF surface.
+    """
+    import webbrowser
+    from urllib.parse import quote
+    from .daemon import resolve_token
+
+    url = resolve_url(args.url).rstrip("/")
+    token = resolve_token(args.token)
+    target = (f"{url}/ui/#token={quote(token, safe='')}" if token else f"{url}/ui/")
+    print(target)
+    from urllib.parse import urlsplit
+    hostname = urlsplit(url).hostname or ""
+    if hostname not in ("localhost", "127.0.0.1", "::1", "[::1]"):
+        port = urlsplit(url).port or 8730
+        print(f"note: webcam mapping needs a secure context; on the panel machine "
+              f"open http://127.0.0.1:{port}/ui/ instead")
+    if args.no_open:
+        return 0
+    try:
+        opened = webbrowser.open(target)
+    except Exception as exc:                    # no browser in this session
+        print(f"could not open a browser ({exc}); open the URL above")
+        return 1
+    if not opened:
+        print("no browser opened; open the URL above")
+    return 0
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     """What is installed on this machine, and what is fighting what.
 
@@ -463,6 +497,15 @@ def build_parser() -> argparse.ArgumentParser:
     st.add_argument("--follow", action="store_true", help="keep watching, print on change")
     st.add_argument("--interval", type=float, default=2.0)
     st.set_defaults(func=cmd_status)
+
+    ui = sub.add_parser("ui", help="open the web configuration UI")
+    ui.add_argument("--url", default=None,
+                    help="panel address (default: RGI_URL, then ~/.config/rgi/url, "
+                         "then localhost:8730)")
+    ui.add_argument("--token", default=None)
+    ui.add_argument("--no-open", action="store_true",
+                    help="print the URL instead of opening a browser")
+    ui.set_defaults(func=cmd_ui)
 
     lm = sub.add_parser("lane-map", help="which agent gets which lane")
     lm.add_argument("--file", default=None, help="default ~/.config/rgi/lanes.json")

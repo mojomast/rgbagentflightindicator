@@ -1,0 +1,80 @@
+/* Design tokens. Dark-first; hardware state colours are the only saturated
+   colours in the chrome, and they are runtime-editable (CSSOM) so the preview
+   reflects the actual values written to the lamps. */
+
+:root {
+  color-scheme: dark light;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --leading: 1.5;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 48px;
+
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.40);
+  --shadow-2: 0 8px 24px rgb(0 0 0 / 0.50);
+
+  --bg: #111113;
+  --surface-1: #18191b;
+  --surface-2: #212225;
+  --surface-3: #272a2d;
+  --surface-active: #2e3135;
+  --border-subtle: #2e3135;
+  --border: #43484e;
+  --border-strong: #5a6169;
+  --text-muted: #afb3ba;
+  --text: #edeef0;
+
+  --accent: #5b9dff;
+  --accent-hover: #79b1ff;
+  --on-accent: #0b1220;
+  --danger: #ff6b6b;
+
+  --state-working: #00ff00;
+  --state-done: #ffffff;
+  --state-blocked: #ff0000;
+  --state-error: #ff0000;
+  --state-idle: #282828;
+  --state-off: #000000;
+
+  --focus: var(--accent);
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --z-sticky: 100;
+  --z-popover: 500;
+  --z-dialog: 1000;
+  --z-toast: 1100;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-subtle: #5a6169;
+    --border: #8b9199;
+    --text-muted: #d7d9dd;
+  }
+}

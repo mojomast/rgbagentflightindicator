@@ -228,3 +228,33 @@ accepted a body with no `sessionID` and quietly claimed a lamp called `unknown`.
   change that lands in it - a flash, a new lane - is held and painted in one
   frame once typing pauses. `--no-quiet` turns this off; `--quiet-ms` (default
   1500) is how long "typing" lasts after the last keystroke.
+
+## The web UI API
+
+Served by the same daemon, same origin, behind the same `X-LED-Token`. The
+static shell (`/ui/`, `/ui/<asset>`) carries no data and needs no token; every
+API call does. Full usage and the config schema are in
+[docs/webui.md](webui.md); the route table is:
+
+```
+GET    /ui/                      the shell (static assets under /ui/<asset>)
+GET    /ui/api/status            /status shape + revision + active test overlays
+GET    /ui/api/config            effective config + device capabilities
+PUT    /ui/api/config            validate, write atomically, apply (If-Match: revision)
+POST   /ui/api/validate          field-level validation without writing
+GET    /ui/api/defaults          the built-in config, for resets
+POST   /ui/api/test              time-boxed hardware overlay (one device)
+DELETE /ui/api/test              cancel overlays, restore lane rendering
+POST   /ui/api/paint             short mapping probe; consumed by the render loop
+GET    /ui/api/events            coalesced snapshot stream (text/event-stream)
+GET    /ui/api/health            per-device status and configured endpoints
+GET    /ui/api/logs?since=N      the daemon's in-memory ring buffer
+POST   /ui/api/agents/<id>/test  start, land and release a synthetic test lane
+```
+
+Errors use one envelope with a field path where one exists:
+`{"error": {"code", "message", "field?", "hint?", "details?"}}`. A `PUT` with a
+stale `If-Match` is a `409 revision_conflict`; validation failures are `422`
+with every field path listed; the config file is never partially written. The
+HTTP layer never writes a backend directly — overlays are consumed by the one
+render loop.

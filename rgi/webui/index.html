@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rgbafi · panel configuration</title>
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">rgbafi</span>
+    <span class="brand-ver" id="app-version"></span>
+  </div>
+  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+  <span class="spacer"></span>
+  <span class="conn" id="conn" role="status" aria-live="polite">connecting…</span>
+  <div class="dirtybar" id="dirtybar" hidden>
+    <span id="dirty-count">0 changes</span>
+    <button class="btn sm" id="btn-undo" type="button" title="Undo (Ctrl+Z)">Undo</button>
+    <button class="btn sm" id="btn-redo" type="button" title="Redo (Ctrl+Shift+Z)">Redo</button>
+    <button class="btn sm" id="btn-discard" type="button">Discard</button>
+    <button class="btn sm primary" id="btn-apply" type="button">Apply</button>
+  </div>
+  <button class="btn sm ghost" id="btn-token" type="button" title="Panel token">Token</button>
+</header>
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Sections"></nav>
+  <main id="main" tabindex="-1"></main>
+  <aside class="preview" id="preview" aria-label="Live preview"></aside>
+</div>
+<div class="toaster" id="toaster" role="status" aria-live="polite"></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
