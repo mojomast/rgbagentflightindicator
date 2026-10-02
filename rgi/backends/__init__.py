@@ -17,11 +17,11 @@ __all__ = ["OFF", "RGB", "Backend", "BackendUnavailable", "Lamp", "fill",
 # against can blank it or interfere with typing, and "it is plugged in" is not
 # consent for that. See docs/backends.md.
 #
-# Empty at the moment: sinowealth was opt-in while its mode entry was
-# unconfirmed (2026-10-01), and graduated back to auto once the vendor's game
-# commit was recovered and verified on hardware (2026-10-02). The machinery
-# stays so the next unknown board gets the same caution.
-OPT_IN = frozenset()
+# lamparray, gamesense and http-light are new in 0.8 and none has been verified
+# on hardware here: lamparray can fight Windows Dynamic Lighting, gamesense
+# needs SteelSeries Engine, and http-light needs a user-supplied URL. They stay
+# opt-in until someone confirms them on a real device.
+OPT_IN = frozenset({"lamparray", "gamesense", "http-light"})
 
 
 def _registry():
@@ -45,6 +45,20 @@ def _registry():
     try:                                    # optional, see docs/backends.md
         from .lamparray import LampArrayBackend
         out["lamparray"] = LampArrayBackend
+    except Exception:                       # pragma: no cover - optional module
+        try:
+            from .lamparray import LamparrayBackend as LampArrayBackend
+            out["lamparray"] = LampArrayBackend
+        except Exception:
+            pass
+    try:
+        from .gamesense import GamesenseBackend
+        out["gamesense"] = GamesenseBackend
+    except Exception:                       # pragma: no cover - optional module
+        pass
+    try:
+        from .http_light import HttpLightBackend
+        out["http-light"] = HttpLightBackend
     except Exception:                       # pragma: no cover - optional module
         pass
     try:

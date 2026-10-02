@@ -182,6 +182,24 @@ never leave the machine and the stream stops when you leave the wizard.
   polling fallback that pauses while the tab is hidden.
 - Timers tick client-side from `changed_at`/`idle_at` anchors, so they never
   freeze on a stale snapshot.
+- **Context and cost** appear in the lane table when the reporter sends them:
+  `42% · 128k` and `$4.12`, amber from 70% and red from 90% context. They are
+  annotations, never new lane states.
+- **Ack** per row (`POST /session/ack`): a done lane dims to idle without being
+  released, and a blocked or errored lane keeps its colour but stops blinking
+  and stops re-notifying. A new state or a new wait re-arms it; a real wait is
+  never auto-expired.
+- **Stale, not wrong:** when a working lane has sent nothing (state, info or
+  heartbeat) for `settings.stale_s` (default 900 s), the row gets a `stale?`
+  marker whose tooltip says the reporter may have died and that the state shown
+  is the last one sent. The lamp is never changed by staleness alone.
+- **While you were away**: the Live page offers a digest card from
+  `/ui/api/history` - counts, spend and the longest wait since your last visit.
+  "Mark all seen" moves the baseline. The underlying ring is the JSONL file
+  `~/.config/rgi/history/events.jsonl`, also readable with `rgi digest`.
+- **Reach** (Settings): the notify, MQTT, OTLP and history blocks are shown
+  read-only for now, including the exact notification command that would run.
+  Enabling them is a config + daemon-restart change.
 - The draft autosaves to `sessionStorage` (debounced) and offers to restore
   after a reload; the dirty bar counts real changes and Apply is disabled when
   clean. Apply shows a grouped diff review; a stale `If-Match` gives

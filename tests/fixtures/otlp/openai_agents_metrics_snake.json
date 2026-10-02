@@ -1,0 +1,52 @@
+{
+  "resource_metrics": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service_name", "value": {"string_value": "openai-agents"}},
+          {"key": "gen_ai.conversation.id", "value": {"string_value": "conv_9f2c"}}
+        ]
+      },
+      "scope_metrics": [
+        {
+          "scope": {"name": "openai-agents"},
+          "metrics": [
+            {
+              "name": "gen_ai.client.token.usage",
+              "sum": {
+                "data_points": [
+                  {
+                    "as_int": "420",
+                    "time_unix_nano": "1759428200000000000",
+                    "attributes": [
+                      {"key": "gen_ai.token.type", "value": {"string_value": "input"}}
+                    ]
+                  },
+                  {
+                    "as_int": "77",
+                    "time_unix_nano": "1759428200000000000",
+                    "attributes": [
+                      {"key": "gen_ai.token.type", "value": {"string_value": "output"}}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "gen_ai.client.cost",
+              "sum": {
+                "data_points": [
+                  {
+                    "as_double": 0.0067,
+                    "time_unix_nano": "1759428200000000000",
+                    "attributes": []
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

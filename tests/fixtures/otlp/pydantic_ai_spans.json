@@ -1,0 +1,61 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "pydantic-ai"}},
+          {"key": "service.instance.id", "value": {"stringValue": "run-7f3a91c2"}},
+          {"key": "telemetry.sdk.name", "value": {"stringValue": "opentelemetry"}}
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {"name": "openinference.instrumentation.pydantic_ai", "version": "0.1.0"},
+          "spans": [
+            {
+              "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+              "spanId": "00f067aa0ba902b7",
+              "name": "invoke_agent",
+              "kind": 1,
+              "startTimeUnixNano": "1759428100000000000",
+              "endTimeUnixNano": "1759428102500000000",
+              "attributes": [
+                {"key": "gen_ai.operation.name", "value": {"stringValue": "invoke_agent"}},
+                {"key": "gen_ai.request.model", "value": {"stringValue": "claude-sonnet-4-5"}},
+                {"key": "gen_ai.usage.input_tokens", "value": {"intValue": "1350"}},
+                {"key": "gen_ai.usage.output_tokens", "value": {"intValue": "220"}},
+                {"key": "gen_ai.usage.cost", "value": {"doubleValue": 0.0512}},
+                {"key": "gen_ai.prompt.0.content", "value": {"stringValue": "write a haiku about lamps"}},
+                {"key": "input.value", "value": {"stringValue": "secret input"}}
+              ]
+            },
+            {
+              "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+              "spanId": "a1b2c3d4e5f60718",
+              "name": "execute_tool search",
+              "startTimeUnixNano": "1759428101000000000",
+              "attributes": [
+                {"key": "gen_ai.operation.name", "value": {"stringValue": "execute_tool"}},
+                {"key": "gen_ai.tool.name", "value": {"stringValue": "search"}},
+                {"key": "gen_ai.tool.call.arguments", "value": {"stringValue": "{\"q\":\"lamps\"}"}}
+              ]
+            },
+            {
+              "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+              "spanId": "bbbbbbbbbbbbbbbb",
+              "name": "chat",
+              "startTimeUnixNano": "1759428102000000000",
+              "attributes": [
+                {"key": "gen_ai.operation.name", "value": {"stringValue": "chat"}},
+                {"key": "gen_ai.response.model", "value": {"stringValue": "claude-sonnet-4-5"}},
+                {"key": "gen_ai.usage.input_tokens", "value": {"intValue": "150"}},
+                {"key": "gen_ai.usage.output_tokens", "value": {"intValue": "30"}},
+                {"key": "gen_ai.usage.cache_read.input_tokens", "value": {"intValue": "600"}}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

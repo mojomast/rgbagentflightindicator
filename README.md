@@ -152,6 +152,47 @@ harness calls with one JSON payload on stdin; the per-harness settings examples
 are on each page. The integration index with the supported-version matrix is
 [docs/integrations.md](docs/integrations.md).
 
+### One ingest for everyone else
+
+Harnesses now converge on the Claude Code hook schema, so the panel can also
+map native hook and webhook payloads server-side: point a harness at
+`POST /hook/<source>` (Claude Code and Continue can POST directly with their
+HTTP hook handlers - no `rgi` binary on the machine), or run
+`rgi hook --source <name>` as a one-line command shim. Sources include Codex,
+Cursor, Copilot, Continue, Amazon Q, Devin/Windsurf, Gemini CLI and GitHub
+Actions checks; CI re-runs land on the same lane. See [docs/ingest.md](docs/ingest.md).
+
+The AgentAPI watcher adds eleven more CLI agents (Aider, Goose, Amp, Auggie,
+Cursor CLI and others) through one adapter: [docs/agentapi.md](docs/agentapi.md).
+
+## Reach: attention when you are not at the desk
+
+A lamp only works while you are looking at it. The 0.8 line adds the last mile:
+
+- **Ack** (`POST /session/ack`, or the button in the web UI and the sidebar):
+  a done lane dims without being released; a blocked lane keeps its colour but
+  stops blinking and stops re-notifying. A new state or a new wait re-arms it,
+  and a real wait is never auto-expired. Lanes whose reporter has gone quiet
+  get a `stale?` marker instead of a confident lie.
+- **Attention notifier**: on `blocked`/`error` transitions (configurable), the
+  daemon can run a command with the event as JSON on stdin and `RGI_*` env -
+  deduplicated per wait, with a minimum duration, a global cooldown, one
+  capped repeat, and quiet hours where only `blocked` breaks through. The
+  recipes for ntfy, Pushover, desktop notifications and Home Assistant live in
+  [docs/notify.md](docs/notify.md); rgi itself ships no channel code.
+- **MQTT with Home Assistant discovery**: opt-in publisher with retained
+  per-lane state, discovery configs, availability + Last Will (so a dead bridge
+  shows `offline`, not `idle`), and command topics for clear/ack. This unlocks
+  AWTRIX, ESPHome and Node-RED displays too: [docs/mqtt.md](docs/mqtt.md).
+- **OTLP receiver**: enable it and point Claude Code, Gemini CLI or any
+  OpenTelemetry-instrumented agent framework at the panel's `/v1/metrics`,
+  `/v1/logs` and `/v1/traces` for model, token, cost and context metadata
+  (state still comes from hooks): [docs/otlp.md](docs/otlp.md).
+- **History and digest**: transitions are appended to
+  `~/.config/rgi/history/events.jsonl` (bounded and rotated) and summarized by
+  `rgi digest --since 8h` or the web UI's "while you were away" card:
+  [docs/digest.md](docs/digest.md).
+
 ## Private ChatGPT and Codex testing
 
 Install the optional MCP adapter with `pip install -e '.[openai]'`. It exposes
@@ -183,7 +224,7 @@ rgi status --follow   # reprint on every change
 ```
 
 ```
-rgbafi 0.7.0  http://127.0.0.1:8730
+rgbafi 0.8.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
@@ -321,6 +362,15 @@ on.
 | [docs/protocols.md](docs/protocols.md) | the wire formats: Sinowealth, EVision, QMK/VIA, OpenRGB, LampArray |
 | [docs/api.md](docs/api.md) | the HTTP API in full |
 | [docs/webui.md](docs/webui.md) | the web configuration UI, the config schema, and the mapping wizard |
+| [docs/ingest.md](docs/ingest.md) | native hook/webhook ingest: sources, state mapping, CI |
+| [docs/agentapi.md](docs/agentapi.md) | one watcher covering eleven CLI agents |
+| [docs/notify.md](docs/notify.md) | attention notifications and the ntfy/Pushover/desktop recipes |
+| [docs/mqtt.md](docs/mqtt.md) | MQTT publisher with Home Assistant discovery |
+| [docs/otlp.md](docs/otlp.md) | the OTLP/HTTP receiver for tokens, cost and context |
+| [docs/digest.md](docs/digest.md) | transition history and `rgi digest` |
+| [docs/lamparray.md](docs/lamparray.md) | HID LampArray (Windows Dynamic Lighting) backend |
+| [docs/gamesense.md](docs/gamesense.md) | SteelSeries GameSense backend |
+| [docs/http-light.md](docs/http-light.md) | single-LED desk lights over HTTP (blink(1), busylight, Luxafor) |
 | [docs/agents.md](docs/agents.md) | wiring agents, watchers and other tools |
 | [docs/machines.md](docs/machines.md) | running the panel across machines: install, update, verify |
 | [docs/opencode.md](docs/opencode.md) | the OpenCode plugin, and its four sharp edges |

@@ -2,8 +2,24 @@
 
 import { h } from "../lib/dom.js";
 import { api } from "../lib/api.js";
-import { banner, button, checkbox, confirmDialog, field, numberInput, textInput, toast } from "../components/ui.js";
+import { banner, button, checkbox, confirmDialog, dialog, field, numberInput, textInput, toast } from "../components/ui.js";
 import { deepClone } from "../lib/commands.js";
+
+const REACH_BLOCKS = [
+  { id: "notify", label: "Notifications",
+    note: "Runs a command when a lane enters an attention state (blocked, error, …).",
+    fields: ["enabled", "states", "min_duration_s", "cooldown_s", "repeat_s",
+             "quiet_hours", "dry_run", "command"] },
+  { id: "mqtt", label: "MQTT",
+    note: "Publishes lane state and Home Assistant discovery.",
+    fields: ["enabled", "host", "port", "username", "password", "base_topic",
+             "discovery", "tls"] },
+  { id: "otlp", label: "OTLP", note: "Exports traces/metrics to a collector.",
+    fields: ["enabled"] },
+  { id: "history", label: "History",
+    note: "The digest ring that feeds this page's \"While you were away\" card.",
+    fields: ["enabled", "max_bytes"] },
+];
 
 export function render(ctx) {
   const draft = ctx.draft;
@@ -72,7 +88,91 @@ export function render(ctx) {
     h("div", {}, `Schema version ${draft.schema_version}, revision ${ctx.revision}`),
     h("div", {}, `Config file: ~/.config/rgi/config.json (backup chain and history snapshots kept beside it)`),
     h("div", {}, `Panel: ${location.origin}`)));
+
+  root.appendChild(h("h2", {}, "Reach"));
+  root.appendChild(h("p", { class: "muted" },
+    "Read-only: the notify, MQTT, OTLP and history blocks come from the active config. " +
+    "Editing them here will come in a later version; for now change the file (and restart if the daemon caches it)."));
+  const source = ctx.config && typeof ctx.config === "object" ? ctx.config : (draft || {});
+  const blocks = REACH_BLOCKS.filter((block) =>
+    source[block.id] && typeof source[block.id] === "object");
+  if (!blocks.length) {
+    root.appendChild(h("p", { class: "muted" },
+      "This config has no notify, mqtt, otlp or history blocks — the daemon may predate them."));
+  } else {
+    root.appendChild(h("div", { class: "grid wide" },
+      blocks.map((block) => reachCard(block, source[block.id]))));
+  }
   return root;
+}
+
+function reachCard(block, values) {
+  const card = h("section", { class: "card reach-card" });
+  card.appendChild(h("h3", null, block.label,
+    values.enabled === false ? h("span", { class: "muted small" }, " · off") : null));
+  card.appendChild(h("p", { class: "muted small" }, block.note));
+  const list = h("dl", { class: "reach-list" });
+  for (const key of block.fields) {
+    if (!(key in values)) continue;
+    list.appendChild(h("dt", { class: "mono" }, key));
+    list.appendChild(h("dd", null, reachValue(key, values[key])));
+  }
+  if (block.id === "notify" && Array.isArray(values.command) && values.command.length) {
+    card.appendChild(h("div", { class: "toolbar" }, testNotification(values.command)));
+  }
+  card.appendChild(list);
+  return card;
+}
+
+function reachValue(key, value) {
+  if (key === "password") {
+    return h("span", { class: "muted" }, value ? "set (hidden)" : "not set");
+  }
+  if (value == null || value === "") return h("span", { class: "muted" }, "—");
+  if (typeof value === "boolean") {
+    return h("span", { class: `badge${value ? " ok" : ""}` }, value ? "on" : "off");
+  }
+  if (typeof value === "number") return h("span", { class: "mono" }, String(value));
+  if (Array.isArray(value)) {
+    if (!value.length) return h("span", { class: "muted" }, "—");
+    if (key === "command") return h("code", { class: "mono" }, value.map(shellQuote).join(" "));
+    return h("span", null, value.join(", "));
+  }
+  return h("span", null, String(value));
+}
+
+/** Quote one argv entry so the copied text can run in a POSIX shell too. */
+function shellQuote(arg) {
+  const text = String(arg ?? "");
+  if (text === "") return "''";
+  if (/^[A-Za-z0-9_@%+=:,./-]+$/.test(text)) return text;
+  return `'${text.replaceAll("'", `'\\''`)}'`;
+}
+
+function testNotification(command) {
+  const text = command.map(shellQuote).join(" ");
+  return button("Test notification", () => {
+    const copy = button("Copy command", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("Command copied");
+      } catch {
+        toast("Copy failed — select the command text and copy it by hand", "bad");
+      }
+    }, { sm: true });
+    dialog({
+      title: "Test notification",
+      body: h("div", { class: "stack" },
+        h("p", {}, "Sending a test is not wired up yet — there is no endpoint for it, " +
+          "so this cannot actually run the command. When a lane notification fires, it runs exactly:"),
+        h("pre", { class: "mono reach-command" }, text),
+        h("p", { class: "muted small" },
+          "The daemon runs the argv directly, not through a shell; the event arrives as JSON " +
+          "on stdin and in RGI_* environment variables. Copy it to a terminal to verify it works."),
+        copy),
+      actions: [{ label: "Close", value: null, primary: true }],
+    });
+  }, { variant: "ghost", sm: true, title: "Show the exact command a notification would run" });
 }
 
 function importButton(ctx) {

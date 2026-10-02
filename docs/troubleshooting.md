@@ -190,6 +190,54 @@ refreshes, and they were listed by a record timestamp that does not move while a
 child works. Fetch `rgi-watch.py` from `/files` again, restart it, and any lamp a
 child is holding is handed back on the next pass.
 
+## Reach (notifications, ack, MQTT, ingest)
+
+**A blocked lane keeps blinking after I answered the prompt.**
+That is the ecosystem-wide stale-wait problem: a hook-driven reporter can only
+clear a wait when a later event resolves the same request id. If the agent's
+tool ran long, the lamp can stay red until its next event. Click **Ack** (web UI
+or sidebar) or `POST /session/ack`: the lane keeps its colour but stops blinking
+and stops notifying; the next real state change re-arms it. If the reporter is
+one you wrote, resolve waits by id, never with a timeout.
+
+**A lane stays green although the agent died.**
+`settings.stale_s` (default 900) is how long a working lane may go without a
+state change, info update or `heartbeat` before the UI marks it `stale?`. That
+marker is display-only; the lamp itself is never changed by staleness. Long
+tools should send `heartbeat()` from the reporter to stay honest.
+
+**No notification arrived for a blocked lane.**
+Check, in order: `notify.enabled` is true; `states` includes `blocked`;
+`dry_run` is off; the lane is blocked longer than `min_duration_s`; the global
+`cooldown_s` has elapsed; `quiet_hours` is not suppressing it (blocked should
+break through); and the command itself works when run by hand with the payload
+on stdin. Every decision the notifier makes lands in the Logs page.
+
+**The notifier fires too much.**
+Raise `min_duration_s` (quick turns stop qualifying), raise `cooldown_s`, set
+`states` to just `["blocked"]`, or add quiet hours. Never notify on `done`
+unless you actually want a per-turn push; that is the classic way to train
+yourself to ignore the channel.
+
+**MQTT entities do not appear in Home Assistant.**
+Install the optional dependency (`pip install paho-mqtt`), confirm the broker
+address/credentials, and make sure the daemon was restarted after enabling
+`mqtt` (the Reach settings are restart-required). Entities are published under
+`{base_topic}/{ident}/...` with discovery configs under
+`homeassistant/sensor/<ident>/...`; the availability topic flips to `offline`
+via Last Will if the daemon dies.
+
+**A hook or webhook did nothing.**
+The response to `POST /hook/<source>` says how many actions were applied, and
+the Logs page records "no free lane" and delivery dedup decisions. A second
+delivery with the same id (GitHub/GitLab re-delivery, Codex retry) is ignored on
+purpose. Unknown event names map to zero actions rather than guessing.
+
+**`rgi digest` says there is no history yet.**
+History starts when the feature is enabled and lanes change; the file is
+`~/.config/rgi/history/events.jsonl`, capped and rotated. `--since 8h`, `30m`,
+`2d` or an epoch all work.
+
 ## Debugging checklist
 
 1. `rgi detect` — is the device there, and how many lamps?

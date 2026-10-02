@@ -60,6 +60,11 @@ ALLOW = [
     "<token>",
     "$TOKEN",
     "your token",
+    # token-counter vocabulary from usage metadata (OTLP, agent reports), not
+    # credentials; long names here would otherwise trip the length heuristic
+    "cache_read_input_tokens",
+    "cache_creation_input_tokens",
+    "cache_creation_tokens",
 ]
 
 

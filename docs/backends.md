@@ -141,12 +141,18 @@ If you have to go this far, this is the path that worked here:
 | Sinowealth `258A:0049` (white-label "Gaming Keyboard", READSON, many rebrands) | vendor HID feature reports on usage page `0xFF00` (Col05 command, Col06 data), planar B/G/R blocks, per-key ("game") mode entered at open | `sinowealth` | yes, on hardware - live lanes paint |
 | EVision/SONiX `320F:501D` (Magic Refiner MK 17) and siblings | 64-byte command protocol on usage page `0xFF1C` | `evision` | yes, on hardware |
 | Other EVision boards (Redragon, Husky, EvoFox, Kreo, VGN/ATK�) | same protocol, v1 or v2 | `evision` (v2) / OpenRGB | protocol family confirmed; per-board maps differ |
-| Any OpenRGB-supported keyboard | OpenRGB SDK over TCP | `openrgb` | SDK implemented + unit tested; not yet against a board |
-| HID LampArray keyboards | USB HID usage page `0x59` feature reports | `lamparray` (planned) | protocol documented here |
-| QMK on Vial firmware (`VIALRGB_ENABLE`) | raw HID `0xFF60`/`0x61`, VialRGB per-LED HSV | `qmk` | protocol to source; needs a board to confirm |
+| Any OpenRGB-supported keyboard | OpenRGB SDK over TCP, protocol 6 (unique ids, zones, matrix maps, display names); protocol <6 still parsed | `openrgb` | protocol 6 rewritten + unit tested against a mock server; not yet against a board |
+| HID LampArray keyboards (Windows Dynamic Lighting, many Logitech/Razer/HP/HyperX models) | USB HID usage page `0x59` feature reports per HUTRR84 | `lamparray` (**opt-in**, unverified on hardware) | protocol implemented + unit tested; keep Dynamic Lighting off for the device |
+| SteelSeries Engine devices | documented GameSense HTTP (`coreProps.json` -> `/game_event`), `rgb-per-key-zones` bitmap | `gamesense` (**opt-in**, unverified on hardware) | protocol implemented + unit tested against a mock engine |
+| Single-LED desk lights (blink(1) tiny-server, busylight, Luxafor, any HTTP endpoint) | user-supplied HTTP request template (`{r} {g} {b} {hex} {on}`) | `http-light` (**opt-in**) | mocked in tests; no hardware here |
+| QMK on Vial firmware (`VIALRGB_ENABLE`) | raw HID `0xFF60`/`0x61`, VialRGB per-LED HSV plus the `get_led_info` LED map | `qmk` | protocol to source; needs a board to confirm |
 | QMK on stock VIA firmware | same channel, VIA rgb_matrix = one colour | `qmk` (single colour) | protocol to source; needs a board to confirm |
 | QMK with the OpenRGB or SignalRGB module | their own raw HID protocols | not driven — use that project's host, or flash Vial | detected and reported only |
-| Logitech G LIGHTSYNC | Logi LED SDK | not yet | — |
+| Logitech G LIGHTSYNC | Logi LED SDK; or HID LampArray / OpenRGB | `lamparray` / `openrgb` preferred | vendor SDK deliberately not built |
+
+Opt-in backends are never opened by auto-detection (`rgi detect` shows `YES*`);
+start them by name (`--backend lamparray`) and only on a board you are willing
+to test. The consent rule is in `rgi/backends/__init__.py`.
 
 ### `sinowealth` graduated from opt-in, and why it was there
 

@@ -1,0 +1,149 @@
+{
+  "source": "claude-code",
+  "cases": [
+    {
+      "name": "session_start",
+      "payload": {
+        "hook_event_name": "SessionStart",
+        "session_id": "cc-0001",
+        "cwd": "/srv/project",
+        "source": "startup",
+        "transcript_path": "/srv/project/.transcript.jsonl"
+      }
+    },
+    {
+      "name": "prompt_submit",
+      "payload": {
+        "hook_event_name": "UserPromptSubmit",
+        "session_id": "cc-0001",
+        "cwd": "/srv/project",
+        "prompt": "make the failing test pass"
+      }
+    },
+    {
+      "name": "pre_tool",
+      "payload": {
+        "hook_event_name": "PreToolUse",
+        "session_id": "cc-0001",
+        "cwd": "/srv/project",
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_A",
+        "tool_input": {"command": "npm test"}
+      }
+    },
+    {
+      "name": "post_tool",
+      "payload": {
+        "hook_event_name": "PostToolUse",
+        "session_id": "cc-0001",
+        "cwd": "/srv/project",
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_A",
+        "tool_response": {"stdout": "ok"}
+      }
+    },
+    {
+      "name": "post_tool_without_id",
+      "payload": {
+        "hook_event_name": "PostToolUse",
+        "session_id": "cc-0001",
+        "cwd": "/srv/project",
+        "tool_name": "Read",
+        "tool_response": {}
+      }
+    },
+    {
+      "name": "permission_with_id",
+      "payload": {
+        "hook_event_name": "Notification",
+        "session_id": "cc-0001",
+        "cwd": "/srv/project",
+        "notification_type": "permission_prompt",
+        "message": "Claude needs your permission to use Bash",
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_B"
+      }
+    },
+    {
+      "name": "permission_synthetic_id",
+      "payload": {
+        "hook_event_name": "Notification",
+        "session_id": "cc-0001",
+        "cwd": "/srv/project",
+        "notification_type": "elicitation_dialog",
+        "message": "Claude is waiting for your input"
+      }
+    },
+    {
+      "name": "notification_not_a_wait",
+      "payload": {
+        "hook_event_name": "Notification",
+        "session_id": "cc-0001",
+        "notification_type": "auth_success"
+      }
+    },
+    {
+      "name": "stop",
+      "payload": {
+        "hook_event_name": "Stop",
+        "session_id": "cc-0001",
+        "stop_hook_active": false
+      }
+    },
+    {
+      "name": "stop_failure",
+      "payload": {
+        "hook_event_name": "StopFailure",
+        "session_id": "cc-0001",
+        "error_type": "rate_limit"
+      }
+    },
+    {
+      "name": "subagent_start",
+      "payload": {
+        "hook_event_name": "SubagentStart",
+        "session_id": "cc-0001",
+        "agent_id": "agent-7",
+        "agent_type": "Explore"
+      }
+    },
+    {
+      "name": "subagent_stop",
+      "payload": {
+        "hook_event_name": "SubagentStop",
+        "session_id": "cc-0001",
+        "agent_id": "agent-7",
+        "agent_type": "Explore"
+      }
+    },
+    {
+      "name": "pre_compact",
+      "payload": {
+        "hook_event_name": "PreCompact",
+        "session_id": "cc-0001",
+        "trigger": "auto"
+      }
+    },
+    {
+      "name": "session_end",
+      "payload": {
+        "hook_event_name": "SessionEnd",
+        "session_id": "cc-0001",
+        "reason": "other"
+      }
+    },
+    {
+      "name": "unknown_event",
+      "payload": {
+        "hook_event_name": "TeammateIdle",
+        "session_id": "cc-0001"
+      }
+    },
+    {
+      "name": "missing_session_id",
+      "payload": {
+        "hook_event_name": "Stop"
+      }
+    }
+  ]
+}

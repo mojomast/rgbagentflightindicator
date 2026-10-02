@@ -55,7 +55,7 @@ const PANEL = PANEL_INFO.url
 
 // What the sidebar block calls itself. Keep in step with VERSION_LABEL in
 // rgi/__init__.py and the version in pyproject.toml.
-const VERSION_LABEL = "rgbafi v0.7"
+const VERSION_LABEL = "rgbafi v0.8"
 
 // A paste-ready handover: whichever prompt fits the machine, with the token, so
 // the human does not have to assemble it under pressure.
@@ -96,8 +96,9 @@ function copyToClipboard(text: string): { ok: boolean; why?: string } {
   return { ok: false, why: `no clipboard tool of ${attempts.map((a) => a[0]).join(", ")}` }
 }
 
-// Details are hidden by default so the block stays one line per lane. Alt+L or
-// /lanes toggles them; RGI_EXPAND=1 starts expanded.
+// Details are hidden by default so the block stays one line per lane. Clicking a
+// lane toggles that lane and clicking the title toggles them all; RGI_EXPAND=1
+// starts expanded.
 const START_EXPANDED = process.env.RGI_EXPAND === "1"
 
 // How wide the block aims to stay when a full task wraps: continuation lines use
@@ -189,6 +190,7 @@ type Lane = {
   host?: string
   ident?: string
   state?: string
+  stale?: boolean
   in_flight_s?: number
   idle_s?: number
   info?: {
@@ -237,7 +239,7 @@ export default {
 
     const [lanes, setLanes] = createSignal<Lane[]>([])
     const [online, setOnline] = createSignal(false)
-    // Detail is per lane and toggled by clicking it; alt+l (or /lanes) does all.
+    // Detail is per lane and toggled by clicking it; the title toggles all.
     const [openLanes, setOpenLanes] = createSignal<string[]>([])
     const [allOpen, setAllOpen] = createSignal(START_EXPANDED)
     const [copied, setCopied] = createSignal<"idle" | "ok" | "failed">("idle")
@@ -305,6 +307,35 @@ export default {
 
     void poll()
     const timer = setInterval(() => void poll(), POLL_MS)
+
+    // Ack is presentational: it tells the daemon the human has seen this lane.
+    // Older daemons have no /session/ack and answer 404; that is not an error
+    // here, and nothing in this path may throw into the TUI.
+    const ack = async (sessionID: string) => {
+      for (const base of PANEL === FALLBACK ? [FALLBACK] : [PANEL, FALLBACK]) {
+        try {
+          const signal = (AbortSignal as any)?.timeout?.(4000)
+          const res = await fetch(`${base}/session/ack`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(TOKEN ? { "X-LED-Token": TOKEN } : {}),
+            },
+            body: JSON.stringify({ sessionID }),
+            ...(signal ? { signal } : {}),
+          })
+          if (res.ok) {
+            void poll()                                  // show the result now
+          } else {
+            log(`ack ${sessionID}: panel answered ${res.status}`)
+          }
+          return
+        } catch {
+          /* network error: try the fallback address */
+        }
+      }
+      log(`ack ${sessionID}: no panel answered`)
+    }
 
     const sessionTitle = (id: string): string | undefined => {
       try {
@@ -435,39 +466,93 @@ export default {
       }
     }
 
+    // Pressure sits between "fine" and "needs a human": amber from 70% context,
+    // red from 90%, so the badge says a lane is filling up without changing its
+    // state. The theme's warning colour wins when it has one.
+    const warningFg = (): string => {
+      try {
+        const t = context.theme?.text
+        return t?.warning ?? t?.warn ?? "#d29922"
+      } catch {
+        return "#d29922"
+      }
+    }
+
+    // The collapsed lane's context/cost badge: `42% · $4.12`, or whichever half
+    // the reporter sent. No percentage and no spend means no badge.
+    const ctxBadge = (l: Lane): { text: string; fg: string } | undefined => {
+      const info = l.info ?? {}
+      const raw = info.context?.percent
+      const pct = typeof raw === "number" ? raw : Number(raw)
+      const hasPct = raw !== undefined && raw !== null && isFinite(pct)
+      const spend = money(info.tokens?.cost)
+      if (!hasPct && !spend) return undefined
+      const text = [hasPct ? `${Math.round(pct)}%` : "", spend].filter(Boolean).join(" \u00b7 ")
+      const fg =
+        hasPct && pct >= 90 ? stateFg("blocked") : hasPct && pct >= 70 ? warningFg() : dimFg()
+      return { text, fg }
+    }
+
     // One clickable row. OpenTUI delivers mouse events to the topmost cell and
     // bubbles them, so a box containing the text is the clickable unit; the text
     // itself is made non-selectable or it swallows the click as a selection.
     // `getParts` returns strings and {text, fg} spans, so one segment can be
     // coloured differently from the rest of the line.
+    //
+    // The ack affordance is a nested box: it is the topmost cell under its own
+    // text, so its click acks the lane instead of toggling it. `title` is passed
+    // to the host for rows with a hover hint; a host without tooltips ignores it.
+    const ackButton = (sessionID: string) => {
+      if (!jsxFn) return null
+      return jsxFn("box", {
+        onMouseUp: (event: any) => {
+          if (event?.button !== 0) return          // left click only
+          event?.stopPropagation?.()
+          void ack(sessionID)
+        },
+        get children() {
+          return jsxFn("text", {
+            fg: dimFg(),
+            selectable: false,
+            get children() {
+              return " \u00b7 ack"
+            },
+          })
+        },
+      })
+    }
+
     const row = (
       getParts: () => Array<string | { text: string; fg?: string }>,
       onClick?: () => void,
+      options?: { title?: string; ackFor?: string },
     ) => {
       if (!jsxFn) return null
+      const text = jsxFn("text", {
+        fg: themeFg(),
+        selectable: false,
+        get children() {
+          return getParts().map((part) =>
+            typeof part === "string"
+              ? part
+              : jsxFn("span", {
+                  fg: part.fg ?? themeFg(),
+                  selectable: false,
+                  get children() {
+                    return part.text
+                  },
+                }),
+          )
+        },
+      })
       const props: Record<string, unknown> = {
         flexDirection: "row",
         height: 1,
         get children() {
-          return jsxFn("text", {
-            fg: themeFg(),
-            selectable: false,
-            get children() {
-              return getParts().map((part) =>
-                typeof part === "string"
-                  ? part
-                  : jsxFn("span", {
-                      fg: part.fg ?? themeFg(),
-                      selectable: false,
-                      get children() {
-                        return part.text
-                      },
-                    }),
-              )
-            },
-          })
+          return options?.ackFor ? [text, ackButton(options.ackFor)] : text
         },
       }
+      if (options?.title) props.title = options.title
       if (onClick) {
         props.onMouseUp = (event: any) => {
           if (event?.button !== 0) return          // left click only
@@ -485,8 +570,7 @@ export default {
       if (!jsxFn) return null
       const build = () => {
         const rows: unknown[] = []
-        // the header is the "all of them" toggle: the keymap API is not
-        // registering commands in this build, so the mouse is the reliable path
+        // the header is the "all of them" toggle
         rows.push(
           row(
             () => [online() ? `\u2328 ${VERSION_LABEL}` : `\u2328 ${VERSION_LABEL} \u00b7 offline`],
@@ -512,23 +596,42 @@ export default {
           const lead = `${here ? "\u25B8" : " "}| `
           const name = `${who}(${mark})`
           const toggle = () => toggleLane(l.id)
-          const headed = (tail: string, fg: string) => () => [
+          // `stale` is optional and sent by newer reporters only; it never changes
+          // the mark or colour, it just admits the report may be the last one.
+          const stale = l.stale === true
+          const staleMark = stale ? " stale?" : ""
+          const hint = stale
+            ? "stale: no recent report - the reporter may have died; this is the last state it sent"
+            : undefined
+          const headed = (tail: string, fg: string, badge?: { text: string; fg: string }) => () => [
             { text: lamp, fg: digitFg() },
             { text: lead, fg: dimFg() },
             { text: name, fg: stateFg(l.state) },
+            ...(staleMark ? [{ text: staleMark, fg: dimFg() }] : []),
             { text: tail ? ` ${tail}` : "", fg },
+            ...(badge ? [{ text: `  ${badge.text}`, fg: badge.fg }] : []),
           ]
+          const laneRow = (
+            parts: () => Array<string | { text: string; fg?: string }>,
+            onClick: () => void,
+          ) => row(parts, onClick, { title: hint, ackFor: l.id })
           if (!open) {
             // collapsed: the name, and the task abbreviated onto the same line,
-            // dim so the coloured name is the thing that stands out
-            const short = task.length > 24 ? task.slice(0, 23) + "\u2026" : task
-            rows.push(row(headed(short, dimFg()), toggle))
+            // dim so the coloured name is the thing that stands out, then the
+            // context/cost badge. The task gives up the room the badge takes.
+            const badge = ctxBadge(l)
+            const room = Math.max(8, 24 - staleMark.length - (badge ? badge.text.length + 3 : 0))
+            const short = task.length > room ? task.slice(0, room - 1) + "\u2026" : task
+            rows.push(laneRow(headed(short, dimFg(), badge), toggle))
           } else {
             // expanded: the whole task, starting on the name's line and wrapping
             // beneath it, then the detail lines
-            const firstBudget = Math.max(16, TASK_WRAP - lamp.length - lead.length - name.length - 1)
+            const firstBudget = Math.max(
+              16,
+              TASK_WRAP - lamp.length - lead.length - name.length - 1 - staleMark.length,
+            )
             const wrapped = task ? wrapTask(task, firstBudget, TASK_WRAP - 4) : []
-            rows.push(row(headed(wrapped[0] ?? "", themeFg()), toggle))
+            rows.push(laneRow(headed(wrapped[0] ?? "", themeFg()), toggle))
             for (const extra of wrapped.slice(1)) {
               rows.push(textRow(() => `    ${extra}`, toggle))
             }
@@ -623,69 +726,6 @@ export default {
 
     place("sidebar.content", ({ sessionID }: any) => sidebar(sessionID))
     place("home.footer.status", () => line(footerText))
-
-    // The keymap can only be claimed from inside a rendered component: setup()
-    // runs in an async microtask with no Solid owner, so calling layer() there
-    // throws "Keymap.Provider is missing" and the shortcut silently never exists.
-    // The host's own plugins register from a slot render for exactly this reason.
-    let keymapClaimed = false
-    const claimKeymap = () => {
-      if (keymapClaimed) return
-      keymapClaimed = true
-      try {
-        context.keymap.layer(() => ({
-          mode: "global",
-          priority: 5,
-          commands: [
-            {
-              id: "rgi.details",
-              title: "rgbafi: lane details",
-              group: "rgbafi",
-              bind: "alt+l",
-              palette: true,
-              slash: { name: "lanes", aliases: ["rgbafi"] },
-              run: () => toggleDetails(),
-            },
-          ],
-          // no `bindings`: a named command's own `bind` is activated for it
-        }))
-        const shortcuts = context.keymap.shortcuts?.("rgi.details") ?? []
-        log(`keymap layer registered (alt+l, /lanes) shortcuts=${JSON.stringify(shortcuts)}`)
-      } catch (err: any) {
-        log(`keymap layer failed: ${err?.message ?? err}`)
-      }
-    }
-    place("app", () => {
-      claimKeymap()
-      return null
-    })
-
-    // One-shot self-diagnosis of the keymap, because "the shortcut does nothing"
-    // has three different causes and they need different fixes: the layer never
-    // compiled, the command compiled but the key never reaches it, or the command
-    // runs and the panel does not repaint. Ask the host directly.
-    const diagnoseKeymap = () => {
-      try {
-        const commands = context.keymap?.commands?.() ?? []
-        const mine = commands.filter((c: any) => c && c.id === "rgi.details")
-        log(`keymap diag: ${commands.length} command(s) visible, mine=${mine.length}`)
-        const shortcuts = context.keymap?.shortcuts?.("rgi.details") ?? []
-        log(`keymap diag: shortcuts for rgi.details = ${JSON.stringify(shortcuts)}`)
-        const before = allOpen()
-        const dispatched = context.keymap?.dispatch?.("rgi.details")
-        const after = allOpen()
-        log(`keymap diag: dispatch returned ${dispatched === undefined ? "undefined" : typeof dispatched}, state changed: ${before !== after}`)
-        if (before !== after) {
-          context.keymap?.dispatch?.("rgi.details")     // put it back
-          log("keymap diag: state restored")
-        }
-        const palette = commands.filter((c: any) => c && c.palette).map((c: any) => c.id)
-        log(`keymap diag: palette entries = ${JSON.stringify(palette.slice(0, 8))}`)
-      } catch (err: any) {
-        log(`keymap diag failed: ${err?.message ?? err}`)
-      }
-    }
-    setTimeout(diagnoseKeymap, 4000)
 
     return () => {
       clearInterval(timer)

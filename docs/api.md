@@ -251,7 +251,13 @@ POST   /ui/api/paint             short mapping probe; consumed by the render loo
 GET    /ui/api/events            coalesced snapshot stream (text/event-stream)
 GET    /ui/api/health            per-device status and configured endpoints
 GET    /ui/api/logs?since=N      the daemon's in-memory ring buffer
+GET    /ui/api/aggregate         one aggregate state plus every blocked wait
+GET    /ui/api/history?since=N   the transition history ring (JSONL on disk)
 POST   /ui/api/agents/<id>/test  start, land and release a synthetic test lane
+POST   /session/ack              mark a lane seen: done dims, blocked stops blinking
+POST   /hook/<source>            native hook/webhook payloads for the generic ingest
+POST   /ingest                   {"source": ..., ...} - the same, source in the body
+POST   /v1/metrics|logs|traces   OTLP/HTTP JSON telemetry (otlp must be enabled)
 ```
 
 Errors use one envelope with a field path where one exists:

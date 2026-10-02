@@ -110,6 +110,7 @@ def default_config() -> dict:
             "count": 12,
             "quiet": True,
             "quiet_ms": 1500,
+            "stale_s": 900,          # display-only: "no heartbeat for this long"
             "reduce_motion": False,
         },
         "appearance": {
@@ -124,6 +125,28 @@ def default_config() -> dict:
         "zone_overrides": [],   # [{device, zone, mode: static, color}]
         "agents": [],           # [{id, label, match, enabled, notes}]
         "endpoints": [],        # [{id, kind, url, ...}]
+        "notify": {             # outbound attention notifications (optional)
+            "enabled": False,
+            "states": ["blocked", "error"],
+            "min_duration_s": 3.0,
+            "cooldown_s": 30.0,
+            "repeat_s": 0.0,
+            "quiet_hours": "",
+            "dry_run": False,
+            "command": [],      # argv; the event is JSON on stdin and in RGI_* env
+        },
+        "mqtt": {
+            "enabled": False,
+            "host": "127.0.0.1",
+            "port": 1883,
+            "username": "",
+            "password": "",
+            "base_topic": "rgi",
+            "discovery": True,
+            "tls": False,
+        },
+        "otlp": {"enabled": False},
+        "history": {"enabled": True, "max_bytes": 2_000_000},
     }
 
 
@@ -435,6 +458,9 @@ def validate_config(config: dict) -> tuple[list[dict], list[dict]]:
     quiet_ms = settings.get("quiet_ms")
     if not _is_int(quiet_ms) or not 0 <= quiet_ms <= 60000:
         err("settings.quiet_ms", "quiet_ms must be 0..60000")
+    stale_s = settings.get("stale_s", 900)
+    if not _is_int(stale_s) or stale_s < 0:
+        err("settings.stale_s", "stale_s must be zero or a positive integer")
     for key in ("quiet", "reduce_motion"):
         if not isinstance(settings.get(key), bool):
             err(f"settings.{key}", f"{key} must be true or false")
@@ -805,6 +831,64 @@ def validate_config(config: dict) -> tuple[list[dict], list[dict]]:
                     err(path + ".match", "match needs an agent or ident name")
             if section == "endpoints" and not isinstance(entry.get("kind"), str):
                 err(path + ".kind", "kind must be a string (openrgb, wled, ...)")
+
+    notify = config.get("notify") or {}
+    if not isinstance(notify, dict):
+        err("notify", "notify must be an object")
+    else:
+        notify_states = notify.get("states", ["blocked", "error"])
+        if (not isinstance(notify_states, list)
+                or any(not isinstance(state, str) for state in notify_states)):
+            err("notify.states", "states must be a list of state names")
+        else:
+            for state in notify_states:
+                if state not in STATE_NAMES:
+                    err("notify.states", f"unknown state {state!r}")
+        for key in ("min_duration_s", "cooldown_s", "repeat_s"):
+            value = notify.get(key, 0)
+            if not _is_number(value) or float(value) < 0:
+                err(f"notify.{key}", f"{key} must be zero or a positive number")
+        if not isinstance(notify.get("dry_run", False), bool):
+            err("notify.dry_run", "dry_run must be true or false")
+        quiet = notify.get("quiet_hours", "")
+        if not isinstance(quiet, str) or (quiet and not re.match(
+                r"^\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}$", quiet)):
+            err("notify.quiet_hours", "quiet_hours must look like 22:00-07:00")
+        command = notify.get("command", [])
+        if (not isinstance(command, list)
+                or any(not isinstance(part, str) for part in command)):
+            err("notify.command", "command must be a list of argv strings")
+
+    mqtt = config.get("mqtt") or {}
+    if not isinstance(mqtt, dict):
+        err("mqtt", "mqtt must be an object")
+    else:
+        if not isinstance(mqtt.get("host"), str) or not mqtt.get("host"):
+            err("mqtt.host", "host must be a non-empty string")
+        port = mqtt.get("port", 1883)
+        if not _is_int(port) or not 1 <= port <= 65535:
+            err("mqtt.port", "port must be between 1 and 65535")
+        if not isinstance(mqtt.get("base_topic"), str) or not mqtt.get("base_topic"):
+            err("mqtt.base_topic", "base_topic must be a non-empty string")
+        for key in ("discovery", "tls", "enabled"):
+            if not isinstance(mqtt.get(key, False), bool):
+                err(f"mqtt.{key}", f"{key} must be true or false")
+
+    otlp = config.get("otlp") or {}
+    if not isinstance(otlp, dict):
+        err("otlp", "otlp must be an object")
+    elif not isinstance(otlp.get("enabled", False), bool):
+        err("otlp.enabled", "enabled must be true or false")
+
+    history = config.get("history") or {}
+    if not isinstance(history, dict):
+        err("history", "history must be an object")
+    else:
+        if not isinstance(history.get("enabled", True), bool):
+            err("history.enabled", "enabled must be true or false")
+        max_bytes = history.get("max_bytes", 2_000_000)
+        if not _is_int(max_bytes) or max_bytes < 10_000:
+            err("history.max_bytes", "max_bytes must be at least 10000")
 
     return errors, warnings
 

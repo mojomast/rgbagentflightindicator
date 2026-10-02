@@ -1,0 +1,135 @@
+{
+  "source": "github",
+  "cases": [
+    {
+      "name": "check_run_created",
+      "headers": {
+        "X-GitHub-Event": "check_run",
+        "X-GitHub-Delivery": "gh-delivery-1"
+      },
+      "payload": {
+        "action": "created",
+        "check_run": {
+          "id": 101,
+          "name": "tests",
+          "status": "queued",
+          "conclusion": null,
+          "head_branch": "main",
+          "html_url": "https://github.com/o/r/runs/101",
+          "check_suite": {"head_branch": "main"}
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    },
+    {
+      "name": "check_run_in_progress",
+      "headers": {"X-GitHub-Event": "check_run"},
+      "payload": {
+        "action": "in_progress",
+        "check_run": {
+          "id": 101,
+          "name": "tests",
+          "status": "in_progress",
+          "conclusion": null,
+          "head_branch": "main"
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    },
+    {
+      "name": "check_run_success",
+      "headers": {"X-GitHub-Event": "check_run"},
+      "payload": {
+        "action": "completed",
+        "check_run": {
+          "id": 101,
+          "name": "tests",
+          "status": "completed",
+          "conclusion": "success",
+          "head_branch": "main"
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    },
+    {
+      "name": "check_run_failure",
+      "headers": {"X-GitHub-Event": "check_run"},
+      "payload": {
+        "action": "completed",
+        "check_run": {
+          "id": 101,
+          "name": "tests",
+          "status": "completed",
+          "conclusion": "failure",
+          "head_branch": "main"
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    },
+    {
+      "name": "check_run_action_required",
+      "headers": {"X-GitHub-Event": "check_run"},
+      "payload": {
+        "action": "completed",
+        "check_run": {
+          "id": 101,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "action_required",
+          "head_branch": "release"
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    },
+    {
+      "name": "check_run_cancelled",
+      "headers": {"X-GitHub-Event": "check_run"},
+      "payload": {
+        "action": "completed",
+        "check_run": {
+          "id": 101,
+          "name": "tests",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "head_branch": "main"
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    },
+    {
+      "name": "workflow_run_pull_request",
+      "headers": {
+        "X-GitHub-Event": "workflow_run",
+        "X-GitHub-Delivery": "gh-delivery-2"
+      },
+      "payload": {
+        "action": "in_progress",
+        "workflow_run": {
+          "id": 202,
+          "name": "CI",
+          "status": "in_progress",
+          "conclusion": null,
+          "head_branch": "feature/auth",
+          "pull_requests": [{"number": 42}],
+          "run_attempt": 2
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    },
+    {
+      "name": "check_run_queued_again",
+      "headers": {"X-RGI-Event": "check_run"},
+      "payload": {
+        "action": "queued",
+        "check_run": {
+          "id": 101,
+          "name": "tests",
+          "status": "queued",
+          "conclusion": null,
+          "head_branch": "main"
+        },
+        "repository": {"full_name": "o/r"}
+      }
+    }
+  ]
+}

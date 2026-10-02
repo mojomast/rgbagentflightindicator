@@ -1,0 +1,98 @@
+{
+  "pre_user_prompt": [
+    {
+      "op": "attention",
+      "session": "devin:traj-1",
+      "agent": "devin",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreUserPrompt",
+        "at": 1790964252.0,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "devin:traj-1",
+      "agent": "devin",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreUserPrompt",
+        "at": 1790964252.0
+      }
+    }
+  ],
+  "pre_run_command": [
+    {
+      "op": "state",
+      "session": "devin:traj-1",
+      "agent": "devin",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreRunCommand",
+        "at": 1790964253.0
+      }
+    }
+  ],
+  "post_cascade_response": [
+    {
+      "op": "attention",
+      "session": "devin:traj-1",
+      "agent": "devin",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostCascadeResponse",
+        "at": 1790964254.0,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "devin:traj-1",
+      "agent": "devin",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostCascadeResponse",
+        "at": 1790964254.0
+      }
+    }
+  ],
+  "post_setup_worktree": [
+    {
+      "op": "state",
+      "session": "devin:traj-1",
+      "agent": "devin",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostSetupWorktree",
+        "at": 1790964255.0
+      }
+    }
+  ]
+}

@@ -19,6 +19,8 @@ const GLOSSARY = [
   ["ident", "An agent's own stable name for the machine or project it runs on; overrides the agent name when both match."],
   ["pool", "The ordered lamps that lanes 0..N-1 are painted on."],
   ["state", "What an agent is doing: working, done, blocked, error, idle. Colour is decoration; the icon and label carry the meaning."],
+  ["stale", "The reporter has sent no heartbeat for settings.stale_s. The lane keeps its last state and starts ticking from the last change; it may be a dead reporter, so the UI marks it stale instead of pretending nothing happened."],
+  ["acked", "A lane you have marked as seen. A done lane becomes idle; a blocked lane keeps its colour but stops blinking and stops notifying until its next state change."],
   ["overlay", "A time-boxed frame for testing or mapping. The render loop consumes it and then restores the lanes."],
 ];
 
@@ -60,5 +62,8 @@ export function render(ctx) {
     "Agents POST session events to the daemon. The daemon assigns each session a lane, renders the lane states to a colour per lamp, and writes a frame only when something changes. While you are typing it writes nothing at all, so a status light can never cost you a keystroke."));
   root.appendChild(h("p", { class: "muted" },
     "The draft / Apply model: every control in this UI edits a draft in your browser. Hardware is only touched when you press Apply, or a time-boxed test button."));
+  root.appendChild(h("h2", {}, "The fleet table"));
+  root.appendChild(h("p", { class: "muted" },
+    "Context is the model context window in use: it goes amber at 70% and red at 90%. Cost is the spend the session reports. For is the time in the current state and keeps ticking from the daemon's timestamps even when a report is stale. The While you were away card is built from the daemon's history ring; Mark all seen moves it forward, and nothing is shown when history is empty or unavailable."));
   return root;
 }

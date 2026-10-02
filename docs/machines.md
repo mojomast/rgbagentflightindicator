@@ -127,7 +127,7 @@ up before the rename have them in their environment.
 3. **The plugin loaded and authenticated**: `~/.config/rgi/plugin.log` shows
    `setup() called … token=yes`, `OpenTUI runtime support installed`,
    `jsx runtime ready`, and two `slot registered:` lines.
-4. **The sidebar block** is labelled `⌨ rgbafi v0.7` and names each lane after its
+4. **The sidebar block** is labelled `⌨ rgbafi v0.8` and names each lane after its
    machine by default (`RGI_IDENT`, then `~/.config/rgi/name`, then the hostname),
    or after the `ident` an agent set, with the task on the line beneath.
 
@@ -160,7 +160,7 @@ Agents sharing a machine must share the *installation*, not each make their own:
 `rgi doctor` answers the whole question in one command:
 
 ```
-rgbafi 0.7.0 - this machine
+rgbafi 0.8.0 - this machine
   panel     reachable at http://127.0.0.1:8730: 1 device(s), 3 lane(s)
   token     found (--token, RGI_TOKEN, or ~/.config/rgi/token)
   watcher   running (pid 45680)

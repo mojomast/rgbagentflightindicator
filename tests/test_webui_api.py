@@ -7,6 +7,7 @@ import time
 import unittest
 import urllib.error
 import urllib.request
+import importlib.util as importlib_util
 from unittest import mock
 
 from rgi import webconfig
@@ -243,6 +244,86 @@ class TestDiagnostics(UiCase):
                     break
                 lines.append(line)
         self.assertTrue(any(b"event: snapshot" in line for line in lines), lines)
+
+
+class TestReachApi(UiCase):
+    def test_ack_dims_a_done_lane(self):
+        self.call("/session/start", "POST", {"agent": "reacher", "sessionID": "r-1"})
+        self.call("/session/state", "POST", {"sessionID": "r-1", "state": "done"})
+        status, _, body = self.call("/session/ack", "POST", {"sessionID": "r-1"})
+        result = json.loads(body)
+        self.assertEqual(status, 200)
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["state"], "idle")
+        self.assertEqual(self.lanes.state["r-1"], "idle")
+
+    def test_ack_keeps_a_blocked_lane_and_rearms_on_new_state(self):
+        self.call("/session/start", "POST", {"agent": "reacher", "sessionID": "r-2"})
+        self.call("/session/state", "POST", {"sessionID": "r-2", "state": "blocked"})
+        status, _, body = self.call("/session/ack", "POST", {"sessionID": "r-2"})
+        result = json.loads(body)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["state"], "blocked")
+        self.assertTrue(result["acked"])
+        view = self.daemon.lane_view("r-2", self.lanes.slot["r-2"])
+        self.assertTrue(view["acked"])
+        self.call("/session/state", "POST", {"sessionID": "r-2", "state": "working"})
+        view = self.daemon.lane_view("r-2", self.lanes.slot["r-2"])
+        self.assertFalse(view["acked"])
+
+    def test_ack_unknown_session_is_a_404(self):
+        status, _, _ = self.call("/session/ack", "POST", {"sessionID": "nope"})
+        self.assertEqual(status, 404)
+
+    def test_aggregate_reports_counts_and_blocked_waits(self):
+        self.call("/session/start", "POST", {"agent": "a", "sessionID": "agg-1"})
+        self.call("/session/start", "POST", {"agent": "b", "sessionID": "agg-2"})
+        self.call("/session/state", "POST", {"sessionID": "agg-1", "state": "working"})
+        self.call("/session/state", "POST", {"sessionID": "agg-2", "state": "blocked"})
+        status, _, body = self.call("/ui/api/aggregate")
+        result = json.loads(body)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["state"], "blocked")
+        self.assertEqual(result["counts"]["working"], 1)
+        self.assertEqual(result["counts"]["blocked"], 1)
+        self.assertEqual(result["blocked"][0]["session"], "agg-2")
+
+    def test_history_endpoint_serves_the_tail(self):
+        self.daemon.history_path = os.path.join(self.dir.name, "events.jsonl")
+        with open(self.daemon.history_path, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps({"at": time.time(), "state": "done"}) + "\n")
+        status, _, body = self.call("/ui/api/history?since=0")
+        entries = json.loads(body)["entries"]
+        self.assertEqual(status, 200)
+        self.assertEqual(len(entries), 1)
+
+    def test_stale_lane_is_annotated_but_never_changed(self):
+        self.daemon.config["settings"]["stale_s"] = 1
+        self.call("/session/start", "POST", {"agent": "a", "sessionID": "stale-1"})
+        self.call("/session/state", "POST", {"sessionID": "stale-1", "state": "working"})
+        self.lanes.changed["stale-1"] = time.monotonic() - 60
+        self.lanes.updated["stale-1"] = time.time() - 60
+        _, _, body = self.call("/session/stale-1")
+        lane = json.loads(body)
+        self.assertTrue(lane["stale"])
+        self.assertEqual(lane["state"], "working")
+
+    def test_hook_ingest_maps_a_claude_event(self):
+        if importlib_util.find_spec("rgi.ingest") is None:
+            self.skipTest("ingest module not present yet")
+        payload = {"hook_event_name": "SessionStart",
+                   "session_id": "abc-123", "cwd": "/repo",
+                   "source": "startup"}
+        status, _, body = self.call("/hook/claude-code", "POST", payload)
+        self.assertEqual(status, 200)
+        result = json.loads(body)
+        self.assertEqual(result["source"], "claude-code")
+        self.assertIn("claude-code:abc-123", self.lanes.slot)
+        status, _, _ = self.call("/hook/claude-code", "POST",
+                                 {"hook_event_name": "UserPromptSubmit",
+                                  "session_id": "abc-123"})
+        self.assertEqual(status, 200)
+        self.assertEqual(self.lanes.state["claude-code:abc-123"], "working")
 
 
 if __name__ == "__main__":

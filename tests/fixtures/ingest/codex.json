@@ -1,0 +1,80 @@
+{
+  "source": "codex",
+  "cases": [
+    {
+      "name": "session_start_snake_variant",
+      "payload": {
+        "hook_event_name": "session_start",
+        "session_id": "thr_0001",
+        "cwd": "/w/repo",
+        "source": "startup",
+        "model": "gpt-5"
+      }
+    },
+    {
+      "name": "permission_request",
+      "payload": {
+        "hook_event_name": "PermissionRequest",
+        "session_id": "thr_0001",
+        "cwd": "/w/repo",
+        "turn_id": "turn_1",
+        "tool_name": "Bash",
+        "tool_input": {"command": "git push"}
+      }
+    },
+    {
+      "name": "pre_tool_use_snake_variant",
+      "payload": {
+        "hook_event_name": "pre_tool_use",
+        "session_id": "thr_0001",
+        "turn_id": "turn_1",
+        "tool_name": "apply_patch",
+        "tool_use_id": "call_9",
+        "tool_input": {"patch": "..."}
+      }
+    },
+    {
+      "name": "post_tool_use",
+      "payload": {
+        "hook_event_name": "PostToolUse",
+        "session_id": "thr_0001",
+        "turn_id": "turn_1",
+        "tool_name": "apply_patch",
+        "tool_use_id": "call_9"
+      }
+    },
+    {
+      "name": "interrupt",
+      "payload": {
+        "hook_event_name": "Interrupt",
+        "session_id": "thr_0001",
+        "turn_id": "turn_1"
+      }
+    },
+    {
+      "name": "stop",
+      "payload": {
+        "hook_event_name": "Stop",
+        "session_id": "thr_0001",
+        "turn_id": "turn_1",
+        "stop_hook_active": false
+      }
+    },
+    {
+      "name": "post_compact",
+      "payload": {
+        "hook_event_name": "PostCompact",
+        "session_id": "thr_0001",
+        "trigger": "auto"
+      }
+    },
+    {
+      "name": "session_end",
+      "payload": {
+        "hook_event_name": "SessionEnd",
+        "session_id": "thr_0001",
+        "reason": "other"
+      }
+    }
+  ]
+}

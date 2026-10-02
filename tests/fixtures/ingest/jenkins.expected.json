@@ -1,0 +1,365 @@
+{
+  "queued": [
+    {
+      "op": "begin",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": "nightly build-41",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "queued",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": "idle",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "queued",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "jenkins",
+          "phase": "queued",
+          "number": 41,
+          "url": "https://ci.example.com/job/nightly/41/"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "queued",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    }
+  ],
+  "started": [
+    {
+      "op": "begin",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": "nightly build-41",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "started",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "started",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "jenkins",
+          "phase": "started",
+          "number": 41,
+          "url": "https://ci.example.com/job/nightly/41/"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "started",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    }
+  ],
+  "completed_success": [
+    {
+      "op": "begin",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": "nightly build-41",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "jenkins",
+          "phase": "completed",
+          "status": "SUCCESS",
+          "number": 41,
+          "url": "https://ci.example.com/job/nightly/41/"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    }
+  ],
+  "completed_failure": [
+    {
+      "op": "begin",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": "nightly build-41",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": "error",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "jenkins",
+          "phase": "completed",
+          "status": "FAILURE",
+          "number": 41,
+          "url": "https://ci.example.com/job/nightly/41/"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    }
+  ],
+  "aborted": [
+    {
+      "op": "begin",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": "nightly build-41",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "jenkins",
+          "phase": "completed",
+          "status": "ABORTED",
+          "number": 41,
+          "url": "https://ci.example.com/job/nightly/41/"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "end",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    }
+  ],
+  "not_built": [
+    {
+      "op": "begin",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": "nightly build-41",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "jenkins",
+          "phase": "completed",
+          "status": "NOT_BUILT",
+          "number": 41,
+          "url": "https://ci.example.com/job/nightly/41/"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    },
+    {
+      "op": "end",
+      "session": "ci:nightly:build-41:job",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/nightly/41/"
+      }
+    }
+  ],
+  "branch_parameter": [
+    {
+      "op": "begin",
+      "session": "ci:release/1.x:build-7:release/1.x",
+      "agent": "jenkins",
+      "label": "release/1.x",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/release/1.x/7/"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:release/1.x:build-7:release/1.x",
+      "agent": "jenkins",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/release/1.x/7/"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:release/1.x:build-7:release/1.x",
+      "agent": "jenkins",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "jenkins",
+          "phase": "completed",
+          "status": "SUCCESS",
+          "number": 7,
+          "url": "https://ci.example.com/job/release/1.x/7/"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "https://ci.example.com/job/release/1.x/7/"
+      }
+    }
+  ],
+  "not_a_notification": []
+}

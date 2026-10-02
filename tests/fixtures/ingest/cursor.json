@@ -1,0 +1,103 @@
+{
+  "source": "cursor",
+  "cases": [
+    {
+      "name": "session_start",
+      "payload": {
+        "hook_event_name": "sessionStart",
+        "session_id": "conv-1",
+        "conversation_id": "conv-1",
+        "cwd": "/w/proj",
+        "workspace_roots": ["/w/proj"],
+        "composer_mode": "agent"
+      }
+    },
+    {
+      "name": "before_submit_prompt",
+      "payload": {
+        "hook_event_name": "beforeSubmitPrompt",
+        "conversation_id": "conv-1",
+        "prompt": "fix the tests",
+        "attachments": []
+      }
+    },
+    {
+      "name": "pre_tool",
+      "payload": {
+        "hook_event_name": "preToolUse",
+        "conversation_id": "conv-1",
+        "cwd": "/w/proj",
+        "tool_name": "Shell",
+        "tool_use_id": "tc-1",
+        "tool_input": {"command": "npm test"},
+        "agent_message": "running tests"
+      }
+    },
+    {
+      "name": "post_tool",
+      "payload": {
+        "hook_event_name": "postToolUse",
+        "conversation_id": "conv-1",
+        "tool_name": "Shell",
+        "tool_use_id": "tc-1",
+        "tool_output": "{\"exitCode\":0}"
+      }
+    },
+    {
+      "name": "subagent_stop",
+      "payload": {
+        "hook_event_name": "subagentStop",
+        "conversation_id": "conv-1",
+        "subagent_type": "generalPurpose",
+        "status": "completed",
+        "summary": "done"
+      }
+    },
+    {
+      "name": "pre_compact",
+      "payload": {
+        "hook_event_name": "preCompact",
+        "conversation_id": "conv-1",
+        "trigger": "auto",
+        "context_usage_percent": 85,
+        "context_tokens": 120000,
+        "context_window_size": 128000
+      }
+    },
+    {
+      "name": "stop_completed",
+      "payload": {
+        "hook_event_name": "stop",
+        "conversation_id": "conv-1",
+        "status": "completed",
+        "loop_count": 0
+      }
+    },
+    {
+      "name": "stop_aborted",
+      "payload": {
+        "hook_event_name": "stop",
+        "conversation_id": "conv-1",
+        "status": "aborted",
+        "loop_count": 0
+      }
+    },
+    {
+      "name": "session_end",
+      "payload": {
+        "hook_event_name": "sessionEnd",
+        "session_id": "conv-1",
+        "reason": "completed",
+        "duration_ms": 45000
+      }
+    },
+    {
+      "name": "workspace_open_is_not_a_lane",
+      "payload": {
+        "hook_event_name": "workspaceOpen",
+        "cursor_version": "1.7.2",
+        "workspace_roots": ["/w/proj"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "source": "amazon-q",
+  "cases": [
+    {
+      "name": "agent_spawn_derived",
+      "payload": {
+        "hook_event_name": "agentSpawn",
+        "cwd": "/work/q"
+      }
+    },
+    {
+      "name": "agent_spawn_derived_with_pid",
+      "payload": {
+        "hook_event_name": "agentSpawn",
+        "cwd": "/work/q",
+        "gpid": 777
+      }
+    },
+    {
+      "name": "prompt_submit_derived",
+      "payload": {
+        "hook_event_name": "userPromptSubmit",
+        "cwd": "/work/q",
+        "pid": 901,
+        "prompt": "add a test"
+      }
+    },
+    {
+      "name": "pre_tool",
+      "payload": {
+        "hook_event_name": "preToolUse",
+        "cwd": "/work/q",
+        "pid": 901,
+        "tool_name": "fs_read",
+        "tool_input": {"operations": [{"mode": "Line", "path": "/work/q/x.py"}]}
+      }
+    },
+    {
+      "name": "post_tool",
+      "payload": {
+        "hook_event_name": "postToolUse",
+        "cwd": "/work/q",
+        "pid": 901,
+        "tool_name": "fs_read",
+        "tool_response": {"success": true}
+      }
+    },
+    {
+      "name": "stop",
+      "payload": {
+        "hook_event_name": "stop",
+        "cwd": "/work/q",
+        "pid": 901
+      }
+    }
+  ]
+}

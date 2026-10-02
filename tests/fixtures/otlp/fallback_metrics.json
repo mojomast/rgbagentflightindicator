@@ -1,0 +1,31 @@
+{
+  "resource_metrics": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "claude-code"}}
+        ]
+      },
+      "scope_metrics": [
+        {
+          "metrics": [
+            {
+              "name": "gen_ai.client.token.usage",
+              "sum": {
+                "data_points": [
+                  {
+                    "as_int": "123",
+                    "time_unix_nano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "gen_ai.token.type", "value": {"string_value": "input"}}
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

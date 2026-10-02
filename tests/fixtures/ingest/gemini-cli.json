@@ -1,0 +1,84 @@
+{
+  "source": "gemini-cli",
+  "cases": [
+    {
+      "name": "session_start",
+      "payload": {
+        "hook_event_name": "SessionStart",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:12.310Z"
+      }
+    },
+    {
+      "name": "before_agent",
+      "payload": {
+        "hook_event_name": "BeforeAgent",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:13.310Z"
+      }
+    },
+    {
+      "name": "tool_permission_synthetic",
+      "payload": {
+        "hook_event_name": "Notification",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:14.310Z",
+        "notification_type": "ToolPermission",
+        "message": "Tool Shell requires execution",
+        "details": {"type": "exec", "title": "Shell", "command": "make deploy"}
+      }
+    },
+    {
+      "name": "tool_permission_with_id",
+      "payload": {
+        "hook_event_name": "Notification",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:15.310Z",
+        "notification_type": "ToolPermission",
+        "details": {"toolName": "Shell", "id": "req-9"}
+      }
+    },
+    {
+      "name": "after_tool",
+      "payload": {
+        "hook_event_name": "AfterTool",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:16.310Z",
+        "tool_name": "Shell",
+        "tool_response": {"exitCode": 0}
+      }
+    },
+    {
+      "name": "after_agent",
+      "payload": {
+        "hook_event_name": "AfterAgent",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:17.310Z"
+      }
+    },
+    {
+      "name": "pre_compress",
+      "payload": {
+        "hook_event_name": "PreCompress",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:18.310Z"
+      }
+    },
+    {
+      "name": "session_end",
+      "payload": {
+        "hook_event_name": "SessionEnd",
+        "session_id": "gc-1",
+        "cwd": "/srv/gemini",
+        "timestamp": "2026-10-02T18:04:19.310Z"
+      }
+    }
+  ]
+}

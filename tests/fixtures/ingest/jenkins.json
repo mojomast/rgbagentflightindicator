@@ -1,0 +1,106 @@
+{
+  "source": "jenkins",
+  "cases": [
+    {
+      "name": "queued",
+      "payload": {
+        "name": "nightly",
+        "url": "job/nightly/",
+        "build": {
+          "full_url": "https://ci.example.com/job/nightly/41/",
+          "number": 41,
+          "phase": "QUEUED",
+          "url": "job/nightly/41/"
+        }
+      }
+    },
+    {
+      "name": "started",
+      "payload": {
+        "name": "nightly",
+        "url": "job/nightly/",
+        "build": {
+          "full_url": "https://ci.example.com/job/nightly/41/",
+          "number": 41,
+          "phase": "STARTED",
+          "url": "job/nightly/41/"
+        }
+      }
+    },
+    {
+      "name": "completed_success",
+      "payload": {
+        "name": "nightly",
+        "url": "job/nightly/",
+        "build": {
+          "full_url": "https://ci.example.com/job/nightly/41/",
+          "number": 41,
+          "phase": "COMPLETED",
+          "status": "SUCCESS",
+          "url": "job/nightly/41/"
+        }
+      }
+    },
+    {
+      "name": "completed_failure",
+      "payload": {
+        "name": "nightly",
+        "url": "job/nightly/",
+        "build": {
+          "full_url": "https://ci.example.com/job/nightly/41/",
+          "number": 41,
+          "phase": "COMPLETED",
+          "status": "FAILURE",
+          "url": "job/nightly/41/"
+        }
+      }
+    },
+    {
+      "name": "aborted",
+      "payload": {
+        "name": "nightly",
+        "url": "job/nightly/",
+        "build": {
+          "full_url": "https://ci.example.com/job/nightly/41/",
+          "number": 41,
+          "phase": "COMPLETED",
+          "status": "ABORTED",
+          "url": "job/nightly/41/"
+        }
+      }
+    },
+    {
+      "name": "not_built",
+      "payload": {
+        "name": "nightly",
+        "url": "job/nightly/",
+        "build": {
+          "full_url": "https://ci.example.com/job/nightly/41/",
+          "number": 41,
+          "phase": "COMPLETED",
+          "status": "NOT_BUILT",
+          "url": "job/nightly/41/"
+        }
+      }
+    },
+    {
+      "name": "branch_parameter",
+      "payload": {
+        "name": "release/1.x",
+        "url": "job/release/",
+        "build": {
+          "full_url": "https://ci.example.com/job/release/1.x/7/",
+          "number": 7,
+          "phase": "COMPLETED",
+          "status": "SUCCESS",
+          "parameters": {"BRANCH_NAME": "release/1.x"},
+          "url": "job/release/1.x/7/"
+        }
+      }
+    },
+    {
+      "name": "not_a_notification",
+      "payload": {"hello": "world"}
+    }
+  ]
+}

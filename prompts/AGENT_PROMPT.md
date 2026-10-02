@@ -223,9 +223,10 @@ are scarce. List it under its parent's `children` instead, with its own `state`,
 and it appears indented when the human uncollapses that lane.
 
 Where the human sees it: clicking a lane in OpenCode's sidebar expands it, and
-clicking the block's title expands or collapses every lane. `alt+l` and `/lanes`
-are meant to do the same, but the keymap registers no command on current builds —
-the plugin's log records what the host reports.
+clicking the block's title expands or collapses every lane. Each row also has a
+small **ack** affordance (done lanes dim, blocked lanes stop blinking without
+being released), a context/spend badge once the reporter sends it, and a
+`stale?` marker when a working lane has not reported for a while.
 
 ### If your runtime has an integration, use it
 

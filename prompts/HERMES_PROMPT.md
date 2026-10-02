@@ -61,7 +61,7 @@ rgi status                      # add --url http://<panel-host>:8730 if remote
 ```
 
 ```
-rgbafi 0.7.0  http://127.0.0.1:8730
+rgbafi 0.8.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003

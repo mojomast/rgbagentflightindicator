@@ -15,7 +15,7 @@ HTTP. See README.md and docs/ for the full picture.
 
 # Keep this in step with pyproject.toml and, for the displayed short form, with
 # VERSION_LABEL in plugin/tui.ts.
-VERSION = "0.7.0"
-VERSION_LABEL = "rgbafi v0.7"
+VERSION = "0.8.0"
+VERSION_LABEL = "rgbafi v0.8"
 
 __version__ = VERSION

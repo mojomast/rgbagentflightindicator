@@ -1,0 +1,57 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "claude-code"}},
+          {"key": "service.version", "value": {"stringValue": "2.1.4"}}
+        ]
+      },
+      "scopeLogs": [
+        {
+          "scope": {"name": "com.anthropic.claude_code.events"},
+          "logRecords": [
+            {
+              "timeUnixNano": "1759428010000000000",
+              "observedTimeUnixNano": "1759428010100000000",
+              "severityText": "INFO",
+              "body": {"stringValue": "claude_code.user_prompt"},
+              "attributes": [
+                {"key": "session.id", "value": {"stringValue": "ses_01J8CLAUDE"}},
+                {"key": "prompt_length", "value": {"intValue": "42"}},
+                {"key": "prompt", "value": {"stringValue": "deploy the thing to prod"}},
+                {"key": "cwd", "value": {"stringValue": "/srv/app"}}
+              ]
+            },
+            {
+              "timeUnixNano": "1759428011000000000",
+              "body": {"stringValue": "claude_code.api_request"},
+              "attributes": [
+                {"key": "session.id", "value": {"stringValue": "ses_01J8CLAUDE"}},
+                {"key": "model", "value": {"stringValue": "claude-sonnet-4-5"}},
+                {"key": "input_tokens", "value": {"intValue": "5000"}},
+                {"key": "output_tokens", "value": {"intValue": "120"}},
+                {"key": "cache_read_tokens", "value": {"intValue": "2000"}},
+                {"key": "cache_creation_tokens", "value": {"intValue": "500"}},
+                {"key": "cost_usd", "value": {"doubleValue": 0.031}},
+                {"key": "duration_ms", "value": {"intValue": "1100"}}
+              ]
+            },
+            {
+              "timeUnixNano": "1759428012000000000",
+              "body": {"stringValue": "claude_code.tool_result"},
+              "attributes": [
+                {"key": "session.id", "value": {"stringValue": "ses_01J8CLAUDE"}},
+                {"key": "tool_name", "value": {"stringValue": "Bash"}},
+                {"key": "tool_use_id", "value": {"stringValue": "toolu_01ABC"}},
+                {"key": "tool_input", "value": {"stringValue": "rm -rf build"}},
+                {"key": "content", "value": {"stringValue": "deleted the build directory"}},
+                {"key": "success", "value": {"boolValue": true}}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

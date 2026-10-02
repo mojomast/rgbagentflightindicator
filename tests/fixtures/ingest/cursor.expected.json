@@ -1,0 +1,288 @@
+{
+  "session_start": [
+    {
+      "op": "begin",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": "proj",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    },
+    {
+      "op": "attention",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    }
+  ],
+  "before_submit_prompt": [
+    {
+      "op": "attention",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "BeforeSubmitPrompt",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "BeforeSubmitPrompt"
+      }
+    }
+  ],
+  "pre_tool": [
+    {
+      "op": "state",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "Shell",
+            "id": "tc-1"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    }
+  ],
+  "post_tool": [
+    {
+      "op": "attention",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": "tc-1",
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse",
+        "open": false
+      }
+    },
+    {
+      "op": "state",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "Shell",
+            "id": "tc-1"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    }
+  ],
+  "subagent_stop": [
+    {
+      "op": "info",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {
+        "children": [
+          {
+            "id": "cursor-sub-2d51eb713649",
+            "label": "generalPurpose",
+            "state": "done"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SubagentStop"
+      }
+    }
+  ],
+  "pre_compact": [
+    {
+      "op": "state",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreCompact"
+      }
+    }
+  ],
+  "stop_completed": [
+    {
+      "op": "attention",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop"
+      }
+    }
+  ],
+  "stop_aborted": [
+    {
+      "op": "attention",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": "error",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop"
+      }
+    }
+  ],
+  "session_end": [
+    {
+      "op": "attention",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "end",
+      "session": "cursor:conv-1",
+      "agent": "cursor",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd"
+      }
+    }
+  ],
+  "workspace_open_is_not_a_lane": []
+}

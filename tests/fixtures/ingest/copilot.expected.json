@@ -1,0 +1,297 @@
+{
+  "session_start_pascal": [
+    {
+      "op": "begin",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": "repo",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1790964252.0
+      }
+    },
+    {
+      "op": "attention",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1790964252.0,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1790964252.0
+      }
+    }
+  ],
+  "session_start_camel_derived": [
+    {
+      "op": "begin",
+      "session": "copilot:auto-5df836db1bb4",
+      "agent": "copilot",
+      "label": "repo",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1759428252.31
+      }
+    },
+    {
+      "op": "attention",
+      "session": "copilot:auto-5df836db1bb4",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1759428252.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "copilot:auto-5df836db1bb4",
+      "agent": "copilot",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1759428252.31
+      }
+    }
+  ],
+  "prompt_camel_inferred": [
+    {
+      "op": "attention",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "UserPromptSubmit",
+        "at": 1759428252.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "UserPromptSubmit",
+        "at": 1759428252.31
+      }
+    }
+  ],
+  "pre_tool_camel_inferred": [
+    {
+      "op": "state",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse",
+        "at": 1759428252.31
+      }
+    },
+    {
+      "op": "activity",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "bash"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse",
+        "at": 1759428252.31
+      }
+    }
+  ],
+  "tool_failure_camel_inferred": [
+    {
+      "op": "attention",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUseFailure",
+        "at": 1759428252.31,
+        "open": false,
+        "match": "bash"
+      }
+    },
+    {
+      "op": "state",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUseFailure",
+        "at": 1759428252.31
+      }
+    },
+    {
+      "op": "activity",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "bash"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUseFailure",
+        "at": 1759428252.31
+      }
+    }
+  ],
+  "error_occurred": [
+    {
+      "op": "attention",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "ErrorOccurred",
+        "at": 1759428252.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": "error",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "ErrorOccurred",
+        "at": 1759428252.31
+      }
+    }
+  ],
+  "agent_stop_camel_inferred": [
+    {
+      "op": "attention",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "at": 1759428252.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "at": 1759428252.31
+      }
+    }
+  ],
+  "notification_permission": [
+    {
+      "op": "attention",
+      "session": "copilot:cp-1",
+      "agent": "copilot",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "permission"
+      },
+      "request": "copilot-permission-748e638f9457",
+      "slot": null,
+      "meta": {
+        "event": "Notification",
+        "at": 1759428252.31,
+        "open": true
+      }
+    }
+  ]
+}

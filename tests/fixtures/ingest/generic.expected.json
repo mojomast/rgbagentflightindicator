@@ -1,0 +1,175 @@
+{
+  "session_payload": [
+    {
+      "op": "begin",
+      "session": "hermes:job-123",
+      "agent": "hermes",
+      "label": "nightly sync",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "ident": "hermes-3",
+        "host": "kimi"
+      }
+    },
+    {
+      "op": "state",
+      "session": "hermes:job-123",
+      "agent": "hermes",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "ident": "hermes-3",
+        "host": "kimi"
+      }
+    },
+    {
+      "op": "info",
+      "session": "hermes:job-123",
+      "agent": "hermes",
+      "label": null,
+      "state": null,
+      "info": {
+        "repo": "nightly",
+        "branch": "main",
+        "tokens": {
+          "input": 2400000,
+          "output": 940000
+        },
+        "running": [
+          {
+            "tool": "bash",
+            "detail": "npm test"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "ident": "hermes-3",
+        "host": "kimi"
+      }
+    }
+  ],
+  "session_payload_prefixed_id": [
+    {
+      "op": "begin",
+      "session": "opencode:ses_1",
+      "agent": "hermes",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {}
+    },
+    {
+      "op": "state",
+      "session": "opencode:ses_1",
+      "agent": "hermes",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {}
+    }
+  ],
+  "session_payload_cancel_maps_to_error": [
+    {
+      "op": "begin",
+      "session": "x:a-1",
+      "agent": "x",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {}
+    },
+    {
+      "op": "state",
+      "session": "x:a-1",
+      "agent": "x",
+      "label": null,
+      "state": "error",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {}
+    }
+  ],
+  "cloud_event_begin": [
+    {
+      "op": "begin",
+      "session": "codex:thr-9",
+      "agent": "codex",
+      "label": "fix flaky test",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": 3,
+      "meta": {
+        "ident": "kimi",
+        "host": "kimi",
+        "at": 1790964252.31,
+        "delivery": "evt-01J8ZP"
+      }
+    }
+  ],
+  "cloud_event_attention_open": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-9",
+      "agent": "claude-code",
+      "label": null,
+      "state": "blocked",
+      "info": {},
+      "request": "toolu_01ABC",
+      "slot": null,
+      "meta": {
+        "delivery": "evt-2",
+        "open": true
+      }
+    }
+  ],
+  "cloud_event_attention_close": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-9",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": "toolu_01ABC",
+      "slot": null,
+      "meta": {
+        "delivery": "evt-3",
+        "open": false
+      }
+    }
+  ],
+  "snapshot": [
+    {
+      "op": "snapshot",
+      "session": "hermes:job-123",
+      "agent": "hermes",
+      "label": "nightly sync",
+      "state": "working",
+      "info": {
+        "repo": "nightly"
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "lease_s": 30.0
+      }
+    }
+  ],
+  "missing_session": []
+}

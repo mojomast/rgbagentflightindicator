@@ -1,0 +1,231 @@
+{
+  "agent_spawn_derived": [
+    {
+      "op": "begin",
+      "session": "amazon-q:auto-293157208555",
+      "agent": "amazon-q",
+      "label": "q",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AgentSpawn"
+      }
+    },
+    {
+      "op": "attention",
+      "session": "amazon-q:auto-293157208555",
+      "agent": "amazon-q",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AgentSpawn",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "amazon-q:auto-293157208555",
+      "agent": "amazon-q",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AgentSpawn"
+      }
+    }
+  ],
+  "agent_spawn_derived_with_pid": [
+    {
+      "op": "begin",
+      "session": "amazon-q:auto-b0a3a385804d",
+      "agent": "amazon-q",
+      "label": "q",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AgentSpawn"
+      }
+    },
+    {
+      "op": "attention",
+      "session": "amazon-q:auto-b0a3a385804d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AgentSpawn",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "amazon-q:auto-b0a3a385804d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AgentSpawn"
+      }
+    }
+  ],
+  "prompt_submit_derived": [
+    {
+      "op": "attention",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "UserPromptSubmit",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "UserPromptSubmit"
+      }
+    }
+  ],
+  "pre_tool": [
+    {
+      "op": "state",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "fs_read"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    }
+  ],
+  "post_tool": [
+    {
+      "op": "attention",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse",
+        "open": false,
+        "match": "fs_read"
+      }
+    },
+    {
+      "op": "state",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "fs_read"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    }
+  ],
+  "stop": [
+    {
+      "op": "attention",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "amazon-q:auto-8bf69923973d",
+      "agent": "amazon-q",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop"
+      }
+    }
+  ]
+}

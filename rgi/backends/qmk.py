@@ -5,8 +5,9 @@ reports, 64 on boards built with the OpenRGB module). What can be done over it
 depends entirely on the firmware, so this backend *probes* rather than assuming:
 
 1. **VialRGB** (Vial firmware, ``VIALRGB_ENABLE=yes``) - per-LED HSV, with a real
-   LED map. This is the good one: every lane gets its own key. Tested by probing
-   ``0x08 0x40`` for the lighting-info reply.
+   LED map. This is the good one: every lane gets its own key, and the map
+   (``0x08 0x44``) labels the number row, keys, underglow and indicators.
+   Tested by probing ``0x08 0x40`` for the lighting-info reply.
 2. **VIA rgb_matrix** (stock QMK + VIA, which is most QMK keyboards) - brightness,
    effect and colour for the *whole board*. No per-LED command exists in stock
    QMK, so this backend reports ``per_lamp = False`` and the daemon shows the most
@@ -50,9 +51,21 @@ VIALRGB_GET_INFO = 0x40
 VIALRGB_SET_MODE = 0x41
 VIALRGB_GET_SUPPORTED = 0x42
 VIALRGB_GET_NUMBER_LEDS = 0x43
+VIALRGB_GET_LED_INFO = 0x44
 VIALRGB_DIRECT_FASTSET = 0x42
 VIALRGB_EFFECT_DIRECT = 1
 VIALRGB_LEDS_PER_PACKET = 9          # 32 - 2 header - 2 index - 1 count, / 3
+
+# VialRGB LED map (get_led_info): QMK LED points live in a 0..224 by 0..64
+# space, and row/col 0xFF means the LED is not in the key matrix. Flags are
+# QMK's LED_FLAG_* bits.
+LED_FLAG_UNDERGLOW = 0x02
+LED_FLAG_INDICATOR = 0x08
+LED_MAP_X_MAX = 224
+LED_MAP_Y_MAX = 64
+LED_MAP_UNMAPPED = 0xFF
+NUMBER_ROW_LEGENDS = ("`", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                      "0", "-", "=")
 
 # other people's firmware, detected but not driven
 SIGNALRGB_GET_PROTOCOL_VERSION = 0x22
@@ -66,6 +79,96 @@ def rgb_to_hsv_qmk(rgb: RGB) -> tuple[int, int, int]:
     r, g, b = (c / 255.0 for c in rgb)
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
     return int(round(h * 255)) & 0xFF, int(round(s * 255)), int(round(v * 255))
+
+
+def _valid_led_info(entry) -> tuple[int, int, int, int, int] | None:
+    """Return a validated ``(x, y, flags, row, col)`` tuple, or None.
+
+    Anything missing, the wrong shape, or outside the coordinate space QMK
+    documents is treated as junk: the map commands are probed, not trusted.
+    """
+    if entry is None:
+        return None
+    try:
+        x, y, flags, row, col = entry
+    except (TypeError, ValueError):
+        return None
+    if any(not isinstance(value, int) or not 0 <= value <= 0xFF
+           for value in (x, y, flags, row, col)):
+        return None
+    if x > LED_MAP_X_MAX or y > LED_MAP_Y_MAX:
+        return None
+    return x, y, flags, row, col
+
+
+def _default_label(in_matrix: bool, row: int, col: int, flags: int) -> str:
+    if in_matrix:
+        return f"{row}:{col}"
+    if flags & LED_FLAG_UNDERGLOW:
+        return "underglow"
+    if flags & LED_FLAG_INDICATOR:
+        return "indicator"
+    return "key"
+
+
+def lamps_from_led_map(entries, count: int) -> list[Lamp] | None:
+    """Label ``count`` LEDs from VialRGB ``get_led_info`` replies.
+
+    ``entries`` holds one ``(x, y, flags, row, col)`` tuple per LED, in lamp
+    index order, with ``None`` wherever the board did not answer. It is the
+    only input, so the labelling is testable without a keyboard.
+
+    The number row is the LEDs on the top matrix row; when the board reports
+    no matrix positions at all (row/col 0xFF) the smallest-y row is used
+    instead. Its keys take the standard `` ` 1 2 ... 0 - = `` legends in x
+    order. Every other LED is labelled by matrix position (``<row>:<col>``)
+    or by its flags (underglow, indicator, key). Returns None when no reply
+    was usable at all, so the caller can fall back to plain index labels.
+    """
+    entries = list(entries or [])
+    parsed = [_valid_led_info(entries[i]) if i < len(entries) else None
+              for i in range(count)]
+    if not any(entry is not None for entry in parsed):
+        return None
+
+    matrix_rows = [entry[3] for entry in parsed
+                   if entry is not None and entry[3] != LED_MAP_UNMAPPED]
+    if matrix_rows:
+        in_top = [entry is not None and entry[3] == min(matrix_rows)
+                  for entry in parsed]
+    else:
+        top_y = min(entry[1] for entry in parsed if entry is not None)
+        in_top = [entry is not None and entry[1] == top_y for entry in parsed]
+
+    legends: dict[int, str] = {}
+    for position, index in enumerate(sorted(
+            (i for i, top in enumerate(in_top) if top),
+            key=lambda i: (parsed[i][0], i))):
+        if position < len(NUMBER_ROW_LEGENDS):
+            legends[index] = NUMBER_ROW_LEGENDS[position]
+
+    lamps = []
+    for i in range(count):
+        entry = parsed[i]
+        if entry is None:
+            lamps.append(Lamp(index=i, label=str(i), group="unmapped"))
+            continue
+        x, y, flags, row, col = entry
+        in_matrix = row != LED_MAP_UNMAPPED and col != LED_MAP_UNMAPPED
+        if in_top[i]:
+            label = legends.get(i, _default_label(in_matrix, row, col, flags))
+            group = "number-row"
+        elif flags & LED_FLAG_UNDERGLOW:
+            label, group = "underglow", "underglow"
+        elif flags & LED_FLAG_INDICATOR:
+            label, group = "indicator", "indicator"
+        elif in_matrix:
+            label, group = f"{row}:{col}", "key"
+        else:
+            label, group = "key", "key"
+        lamps.append(Lamp(index=i, label=label, group=group,
+                          x=x / LED_MAP_X_MAX, y=y / LED_MAP_Y_MAX))
+    return lamps
 
 
 class RawHid:
@@ -189,9 +292,8 @@ class QmkBackend(Backend):
             count = self.forced_leds or self._vialrgb_led_count() or 0
             if not count:
                 raise BackendUnavailable("VialRGB did not report an LED count")
-            self._lamps = [Lamp(index=i, label=str(i), group="unmapped")
-                           for i in range(count)]
             self._enter_vialrgb_direct()
+            self._lamps = self._build_vialrgb_lamps(count)
         else:
             # one physical colour, exposed as `lane_count` identical lamps so the
             # daemon can still report per-lane state on the API - it just cannot
@@ -282,6 +384,29 @@ class QmkBackend(Backend):
         if reply and reply[0] == VIA_GET and reply[1] == VIALRGB_GET_NUMBER_LEDS:
             return reply[2] | (reply[3] << 8)
         return 0
+
+    def _vialrgb_led_info(self, index: int) -> tuple[int, int, int, int, int] | None:
+        """One `get_led_info` read: (x, y, flags, row, col) or None."""
+        reply = self.transport.request([VIA_GET, VIALRGB_GET_LED_INFO,
+                                        index & 0xFF, (index >> 8) & 0xFF])
+        if not reply or len(reply) < 7:
+            return None
+        if reply[0] != VIA_GET or reply[1] != VIALRGB_GET_LED_INFO:
+            return None
+        return _valid_led_info(tuple(reply[2:7]))
+
+    def _build_vialrgb_lamps(self, count: int) -> list[Lamp]:
+        """Ask the board for its LED map and label the lamps from it.
+
+        A board that does not answer (or answers junk) keeps the plain index
+        labels: the map is a bonus, never a requirement.
+        """
+        entries = [self._vialrgb_led_info(i) for i in range(count)]
+        lamps = lamps_from_led_map(entries, count)
+        if lamps is None:
+            return [Lamp(index=i, label=str(i), group="unmapped")
+                    for i in range(count)]
+        return lamps
 
     def _probe_openrgb(self) -> bool:
         reply = self.transport.request([0x01])       # GET_PROTOCOL_VERSION

@@ -101,7 +101,7 @@ mark carry the lamps' colours: green in flight, white complete, red for needs a
 human, dim for idle.
 
 ```
-⌨ rgbafi v0.7
+⌨ rgbafi v0.8
 ▸0| opencode(▶) Keyboard status: LED daemon…
  7| hermes-3(!) Verify the nightly artifacts
  3| opencode(✔) OpenCode2 updates and n…
@@ -123,10 +123,11 @@ appear on their own line because neither is the agent's name:
 ```
 
 Rows are **clickable**: clicking a lane uncollapses just that lane; clicking the
-block's title line uncollapses all of them. `alt+l` and `/lanes` are meant to do
-the same, but `context.keymap.layer()` registers no command on current OpenCode
-builds — the plugin's own diagnosis records what the host reports (`mine=0` in
-`plugin.log`) — so the mouse is the path that works.
+block's title line uncollapses all of them. Each row carries an **ack**
+affordance (`POST /session/ack`: a done lane dims, a blocked lane stops
+blinking without releasing the lane), a compact context/spend badge when the
+reporter sends `info.context.percent` or `info.tokens.cost`, and a dim `stale?`
+marker when a working lane has not reported for a while.
 
 - **repository and branch** — which project the lane is actually working in,
   derived from the session's directory.
@@ -190,7 +191,7 @@ sidebar does not pick the change up.
 ## What it draws
 
 ```
-⌨ rgbafi v0.7
+⌨ rgbafi v0.8
 ▸1| hermes(▶)
     nightly sync
  2| build-box(✔)

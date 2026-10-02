@@ -1,0 +1,423 @@
+{
+  "check_run_created": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": "tests main",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "created",
+        "delivery": "gh-delivery-1"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": "idle",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "created",
+        "delivery": "gh-delivery-1"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "check_run",
+          "status": "queued",
+          "action": "created",
+          "run": 101,
+          "url": "https://github.com/o/r/runs/101"
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "created",
+        "delivery": "gh-delivery-1"
+      }
+    }
+  ],
+  "check_run_in_progress": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": "tests main",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "in_progress",
+        "delivery": "check_run:101:in_progress"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "in_progress",
+        "delivery": "check_run:101:in_progress"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "check_run",
+          "status": "in_progress",
+          "action": "in_progress",
+          "run": 101
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "in_progress",
+        "delivery": "check_run:101:in_progress"
+      }
+    }
+  ],
+  "check_run_success": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": "tests main",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:success"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:success"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "check_run",
+          "status": "completed",
+          "conclusion": "success",
+          "action": "completed",
+          "run": 101
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:success"
+      }
+    }
+  ],
+  "check_run_failure": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": "tests main",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:failure"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": "error",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:failure"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "check_run",
+          "status": "completed",
+          "conclusion": "failure",
+          "action": "completed",
+          "run": 101
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:failure"
+      }
+    }
+  ],
+  "check_run_action_required": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:deploy:release",
+      "agent": "github",
+      "label": "deploy release",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:action_required"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:o/r:deploy:release",
+      "agent": "github",
+      "label": null,
+      "state": "blocked",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:action_required"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:deploy:release",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "check_run",
+          "status": "completed",
+          "conclusion": "action_required",
+          "action": "completed",
+          "run": 101
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:action_required"
+      }
+    }
+  ],
+  "check_run_cancelled": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": "tests main",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:cancelled"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "check_run",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "action": "completed",
+          "run": 101
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:cancelled"
+      }
+    },
+    {
+      "op": "end",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "completed",
+        "delivery": "check_run:101:cancelled"
+      }
+    }
+  ],
+  "workflow_run_pull_request": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:CI:pr-42",
+      "agent": "github",
+      "label": "CI pr-42",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "in_progress",
+        "delivery": "gh-delivery-2"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:o/r:CI:pr-42",
+      "agent": "github",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "in_progress",
+        "delivery": "gh-delivery-2"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:CI:pr-42",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "workflow_run",
+          "status": "in_progress",
+          "action": "in_progress",
+          "run": 202
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "in_progress",
+        "delivery": "gh-delivery-2"
+      }
+    }
+  ],
+  "check_run_queued_again": [
+    {
+      "op": "begin",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": "tests main",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "queued",
+        "delivery": "check_run:101:queued"
+      }
+    },
+    {
+      "op": "state",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": "idle",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "queued",
+        "delivery": "check_run:101:queued"
+      }
+    },
+    {
+      "op": "info",
+      "session": "ci:o/r:tests:main",
+      "agent": "github",
+      "label": null,
+      "state": null,
+      "info": {
+        "ci": {
+          "provider": "github",
+          "kind": "check_run",
+          "status": "queued",
+          "action": "queued",
+          "run": 101
+        }
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "queued",
+        "delivery": "check_run:101:queued"
+      }
+    }
+  ]
+}

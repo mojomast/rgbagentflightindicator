@@ -277,6 +277,17 @@ def handle_api_get(handler, path: str) -> bool:
             "next": (lines[-1]["seq"] + 1) if lines else since,
         })
         return True
+    if path == "/ui/api/history":
+        query = parse_qs(urlsplit(handler.path).query)
+        try:
+            since = float(query.get("since", ["0"])[0])
+        except (TypeError, ValueError):
+            since = 0.0
+        handler._send(200, {"entries": daemon.history_tail(since or None)})
+        return True
+    if path == "/ui/api/aggregate":
+        handler._send(200, daemon.aggregate())
+        return True
     return False
 
 

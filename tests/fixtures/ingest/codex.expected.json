@@ -1,0 +1,253 @@
+{
+  "session_start_snake_variant": [
+    {
+      "op": "begin",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": "repo",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    },
+    {
+      "op": "attention",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    }
+  ],
+  "permission_request": [
+    {
+      "op": "attention",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "permission",
+        "tool": "Bash"
+      },
+      "request": "codex-permission-1489d630debb",
+      "slot": null,
+      "meta": {
+        "event": "PermissionRequest",
+        "open": true
+      }
+    }
+  ],
+  "pre_tool_use_snake_variant": [
+    {
+      "op": "state",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "apply_patch",
+            "id": "call_9"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    }
+  ],
+  "post_tool_use": [
+    {
+      "op": "attention",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": "call_9",
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse",
+        "open": false
+      }
+    },
+    {
+      "op": "state",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "apply_patch",
+            "id": "call_9"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    }
+  ],
+  "interrupt": [
+    {
+      "op": "attention",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Interrupt",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": "error",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Interrupt"
+      }
+    }
+  ],
+  "stop": [
+    {
+      "op": "attention",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop"
+      }
+    }
+  ],
+  "post_compact": [
+    {
+      "op": "state",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostCompact"
+      }
+    }
+  ],
+  "session_end": [
+    {
+      "op": "attention",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "end",
+      "session": "codex:thr_0001",
+      "agent": "codex",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd"
+      }
+    }
+  ]
+}

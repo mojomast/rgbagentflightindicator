@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rgbagentflightindicator"
-version = "0.7.0"
+version = "0.8.0"
 description = "Turn an RGB keyboard into an agent status panel"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,7 +25,8 @@ classifiers = [
 [project.optional-dependencies]
 sinowealth = ["hidapi>=0.14"]
 lamparray = ["hidapi>=0.14"]
-all = ["hidapi>=0.14"]
+mqtt = ["paho-mqtt>=2.0"]
+all = ["hidapi>=0.14", "paho-mqtt>=2.0"]
 openai = ["mcp>=1.30,<2"]
 
 # Integration frameworks. Every adapter imports its framework lazily, so none of

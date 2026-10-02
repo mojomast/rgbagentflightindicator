@@ -1,0 +1,252 @@
+{
+  "session_start": [
+    {
+      "op": "begin",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": "gemini",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1790964252.31
+      }
+    },
+    {
+      "op": "attention",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1790964252.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": "idle",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "at": 1790964252.31
+      }
+    }
+  ],
+  "before_agent": [
+    {
+      "op": "attention",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "BeforeAgent",
+        "at": 1790964253.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "BeforeAgent",
+        "at": 1790964253.31
+      }
+    }
+  ],
+  "tool_permission_synthetic": [
+    {
+      "op": "attention",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "permission",
+        "tool": "Shell"
+      },
+      "request": "gemini-cli-permission-0946285484e5",
+      "slot": null,
+      "meta": {
+        "event": "Notification",
+        "at": 1790964254.31,
+        "open": true
+      }
+    }
+  ],
+  "tool_permission_with_id": [
+    {
+      "op": "attention",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "permission",
+        "tool": "Shell"
+      },
+      "request": "req-9",
+      "slot": null,
+      "meta": {
+        "event": "Notification",
+        "at": 1790964255.31,
+        "open": true
+      }
+    }
+  ],
+  "after_tool": [
+    {
+      "op": "attention",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AfterTool",
+        "at": 1790964256.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AfterTool",
+        "at": 1790964256.31
+      }
+    },
+    {
+      "op": "activity",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "Shell"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AfterTool",
+        "at": 1790964256.31
+      }
+    }
+  ],
+  "after_agent": [
+    {
+      "op": "attention",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AfterAgent",
+        "at": 1790964257.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "AfterAgent",
+        "at": 1790964257.31
+      }
+    }
+  ],
+  "pre_compress": [
+    {
+      "op": "state",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreCompress",
+        "at": 1790964258.31
+      }
+    }
+  ],
+  "session_end": [
+    {
+      "op": "attention",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd",
+        "at": 1790964259.31,
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "end",
+      "session": "gemini-cli:gc-1",
+      "agent": "gemini-cli",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd",
+        "at": 1790964259.31
+      }
+    }
+  ]
+}

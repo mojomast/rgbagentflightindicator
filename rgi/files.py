@@ -41,6 +41,16 @@ PUBLISHED: dict[str, str] = {
     "wled.md": os.path.join(ROOT, "docs", "wled.md"),
     "home-assistant.md": os.path.join(ROOT, "docs", "home-assistant.md"),
     "openai.md": os.path.join(ROOT, "docs", "openai.md"),
+    # reach: ingest, notifications and the extra backends
+    "ingest.md": os.path.join(ROOT, "docs", "ingest.md"),
+    "agentapi.md": os.path.join(ROOT, "docs", "agentapi.md"),
+    "notify.md": os.path.join(ROOT, "docs", "notify.md"),
+    "mqtt.md": os.path.join(ROOT, "docs", "mqtt.md"),
+    "otlp.md": os.path.join(ROOT, "docs", "otlp.md"),
+    "digest.md": os.path.join(ROOT, "docs", "digest.md"),
+    "lamparray.md": os.path.join(ROOT, "docs", "lamparray.md"),
+    "gamesense.md": os.path.join(ROOT, "docs", "gamesense.md"),
+    "http-light.md": os.path.join(ROOT, "docs", "http-light.md"),
     # the Pi extension itself, as one file to drop in place
     "pi-extension.ts": os.path.join(ROOT, "plugin", "pi", "extension.ts"),
 }

@@ -1,0 +1,97 @@
+{
+  "source": "generic",
+  "cases": [
+    {
+      "name": "session_payload",
+      "payload": {
+        "agent": "hermes",
+        "sessionID": "job-123",
+        "label": "nightly sync",
+        "state": "running",
+        "host": "kimi",
+        "ident": "hermes-3",
+        "info": {
+          "repo": "nightly",
+          "branch": "main",
+          "tokens": {"input": 2400000, "output": 940000},
+          "running": [{"tool": "bash", "detail": "npm test"}]
+        }
+      }
+    },
+    {
+      "name": "session_payload_prefixed_id",
+      "payload": {
+        "agent": "hermes",
+        "sessionID": "opencode:ses_1",
+        "state": "done"
+      }
+    },
+    {
+      "name": "session_payload_cancel_maps_to_error",
+      "payload": {
+        "agent": "x",
+        "sessionID": "a-1",
+        "state": "cancel"
+      }
+    },
+    {
+      "name": "cloud_event_begin",
+      "payload": {
+        "specversion": "1.0",
+        "id": "evt-01J8ZP",
+        "source": "harness://codex/machine-kimi",
+        "type": "dev.rgi.session.begin",
+        "subject": "codex:thr-9",
+        "time": "2026-10-02T18:04:12.310Z",
+        "data": {
+          "harness": "codex",
+          "label": "fix flaky test",
+          "machine": "kimi",
+          "ident": "kimi",
+          "slot": 3
+        }
+      }
+    },
+    {
+      "name": "cloud_event_attention_open",
+      "payload": {
+        "id": "evt-2",
+        "type": "dev.rgi.attention.open",
+        "subject": "claude-code:cc-9",
+        "data": {
+          "request": "toolu_01ABC",
+          "action": "bash",
+          "state": "blocked"
+        }
+      }
+    },
+    {
+      "name": "cloud_event_attention_close",
+      "payload": {
+        "id": "evt-3",
+        "type": "dev.rgi.attention.close",
+        "subject": "claude-code:cc-9",
+        "data": {"request": "toolu_01ABC"}
+      }
+    },
+    {
+      "name": "snapshot",
+      "payload": {
+        "op": "snapshot",
+        "agent": "hermes",
+        "sessionID": "job-123",
+        "label": "nightly sync",
+        "state": "working",
+        "info": {"repo": "nightly"},
+        "lease_s": 30
+      }
+    },
+    {
+      "name": "missing_session",
+      "payload": {
+        "agent": "x",
+        "state": "working"
+      }
+    }
+  ]
+}

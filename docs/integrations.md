@@ -32,8 +32,14 @@ than speaking HTTP on its own, so they all behave the same way:
 | CrewAI | event bus | `crewai:` | [crewai.md](crewai.md) |
 | Microsoft Agent Framework | middleware | `ms-agent:` | [ms-agent.md](ms-agent.md) |
 | ChatGPT and Codex | stdio MCP | `rgi-openai:` | [openai.md](openai.md) |
+| Native hook/webhook ingest | server-side mapping (Claude Code schema + CI webhooks) | harness or `ci:` | [ingest.md](ingest.md) |
+| AgentAPI | `/status` + `/events` watcher (11+ CLI agents) | `agentapi:` | [agentapi.md](agentapi.md) |
 | WLED | display backend | — | [wled.md](wled.md) |
 | Home Assistant | state publisher | — | [home-assistant.md](home-assistant.md) |
+
+Hook-capable harnesses can also POST **directly** to `POST /hook/<source>` (no
+client binary on the machine) when they support HTTP hook handlers; the mapping
+tables and the per-harness field differences are in [ingest.md](ingest.md).
 
 ## Supported versions
 
@@ -56,6 +62,8 @@ panel itself — the keyboards, the OpenCode watcher and the plugin.
 | CrewAI | `crewai` | 1.15.23 | mock panel, fake bus events |
 | Microsoft Agent Framework | `agent-framework` | 1.19.0 | mock panel, fake middleware contexts |
 | ChatGPT / Codex | `mcp` | `>=1.30,<2` | transport tests skip when the SDK is absent |
+| Hook/webhook ingest | Claude Code hook schema (cross-vendor), GitHub/GitLab/Jenkins webhooks | recorded-shape fixtures | offline fixtures; no live harness |
+| AgentAPI | `coder/agentapi` | OpenAPI schema 0.12.2 | mock AgentAPI server; **no live instance** |
 | WLED | firmware | 16.0.1 | mock WLED server — **no strip was available** |
 | Home Assistant | Core | 2026.9 | mock REST server — **no live instance** |
 

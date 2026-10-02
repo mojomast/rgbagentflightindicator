@@ -1,0 +1,399 @@
+{
+  "session_start": [
+    {
+      "op": "begin",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": "project",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    },
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    }
+  ],
+  "prompt_submit": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "UserPromptSubmit",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "UserPromptSubmit"
+      }
+    }
+  ],
+  "pre_tool": [
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "Bash",
+            "id": "toolu_A"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreToolUse"
+      }
+    }
+  ],
+  "post_tool": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": "toolu_A",
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse",
+        "open": false
+      }
+    },
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "Bash",
+            "id": "toolu_A"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    }
+  ],
+  "post_tool_without_id": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse",
+        "open": false,
+        "match": "Read"
+      }
+    },
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    },
+    {
+      "op": "activity",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {
+        "running": [
+          {
+            "tool": "Read"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PostToolUse"
+      }
+    }
+  ],
+  "permission_with_id": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "permission",
+        "tool": "Bash"
+      },
+      "request": "toolu_B",
+      "slot": null,
+      "meta": {
+        "event": "Notification",
+        "open": true
+      }
+    }
+  ],
+  "permission_synthetic_id": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "elicitation"
+      },
+      "request": "claude-code-elicitation-dfb6aac5af75",
+      "slot": null,
+      "meta": {
+        "event": "Notification",
+        "open": true
+      }
+    }
+  ],
+  "notification_not_a_wait": [],
+  "stop": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop"
+      }
+    }
+  ],
+  "stop_failure": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "StopFailure",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "error",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "StopFailure"
+      }
+    }
+  ],
+  "subagent_start": [
+    {
+      "op": "info",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {
+        "children": [
+          {
+            "id": "agent-7",
+            "label": "Explore",
+            "state": "working"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SubagentStart"
+      }
+    }
+  ],
+  "subagent_stop": [
+    {
+      "op": "info",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {
+        "children": [
+          {
+            "id": "agent-7",
+            "label": "Explore",
+            "state": "done"
+          }
+        ]
+      },
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SubagentStop"
+      }
+    }
+  ],
+  "pre_compact": [
+    {
+      "op": "state",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "PreCompact"
+      }
+    }
+  ],
+  "session_end": [
+    {
+      "op": "attention",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "end",
+      "session": "claude-code:cc-0001",
+      "agent": "claude-code",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd"
+      }
+    }
+  ],
+  "unknown_event": [],
+  "missing_session_id": []
+}

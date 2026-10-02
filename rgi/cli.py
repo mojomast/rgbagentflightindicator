@@ -4,6 +4,7 @@
     rgi map [--backend X]           walk the lamps one at a time (calibration)
     rgi daemon [--backend X]        run the panel
     rgi ui                          open the web configuration UI
+    rgi digest [--since 8h]         what happened while you were away
     rgi watch                       report OpenCode sessions to the panel
     rgi push <state> [--lane N]     set one lane by hand (testing, scripts)
 """
@@ -20,7 +21,7 @@ import urllib.request
 from . import __version__
 from .backends import OPT_IN, available_backends, auto_backends, load
 from .backends.base import BackendUnavailable
-from .config import DEFAULT_URL, resolve_url     # noqa: F401  (public surface)
+from .config import CONFIG_DIR, DEFAULT_URL, resolve_url     # noqa: F401  (public surface)
 
 def cmd_mcp(args: argparse.Namespace) -> int:
     import asyncio
@@ -176,11 +177,32 @@ def cmd_hook(args: argparse.Namespace) -> int:
 
     if getattr(args, "debug", False):
         os.environ["RGI_HOOK_DEBUG"] = "1"
+    if getattr(args, "source", None):
+        return hooks.run_source(args.source, url=getattr(args, "url", None),
+                                token=getattr(args, "token", None))
     return hooks.run(args.harness)
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
     from .daemon import resolve_token
+
+    if getattr(args, "agentapi", None) or os.environ.get("RGI_AGENTAPI_URL"):
+        # one adapter for every CLI agent an AgentAPI instance hosts
+        from .report import Reporter
+        from .watchers.agentapi import (AgentApiWatcher, lane_name,
+                                        normalize_url)
+        url = normalize_url(args.agentapi or os.environ.get("RGI_AGENTAPI_URL"))
+        reporter = Reporter("agentapi", lane_name(url, args.name),
+                            label=args.label, url=args.url,
+                            token=resolve_token(args.token), ident=args.ident)
+        watcher = AgentApiWatcher(url, reporter=reporter, label=args.label)
+        try:
+            watcher.run()
+        except KeyboardInterrupt:
+            watcher.stop()
+            print("\nstopped")
+        return 0
+
     from .watchers.opencode import Watcher
 
     # the panel requires a token as soon as it is not localhost-only, and the
@@ -334,6 +356,58 @@ def cmd_ui(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_digest(args: argparse.Namespace) -> int:
+    """What happened while you were away, from the transition history ring."""
+    from .history import digest
+
+    path = args.file or os.path.join(CONFIG_DIR, "history", "events.jsonl")
+    since = _parse_since(args.since)
+    try:
+        result = digest(path, since)
+    except FileNotFoundError:
+        print(f"no history yet at {path} - it fills as lanes change state")
+        return 0
+    except ImportError:
+        print("the history module is not installed in this tree")
+        return 1
+    if args.json:
+        print(json.dumps(result, indent=2))
+        return 0
+    print(f"since {args.since or 'the beginning'}: "
+          f"{result.get('lanes', 0)} lane(s), {result.get('done', 0)} done, "
+          f"{result.get('error', 0)} error, {result.get('blocked', 0)} blocked "
+          f"({result.get('blocked_open', 0)} still open)")
+    if result.get("spend"):
+        print(f"  spend: ${result['spend']:.2f}")
+    if result.get("longest_wait_s"):
+        print(f"  longest wait: {int(result['longest_wait_s'])}s")
+    for host, count in (result.get("by_host") or {}).items():
+        print(f"  {host or 'unknown host'}: {count} lane(s)")
+    return 0
+
+
+def _parse_since(value: str | None) -> float | None:
+    """Accept an epoch, a relative span (30m, 8h, 2d) or an ISO timestamp."""
+    if not value:
+        return None
+    text = value.strip().lower()
+    try:
+        return float(text)
+    except ValueError:
+        pass
+    units = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+    if text and text[-1] in units:
+        try:
+            return time.time() - float(text[:-1]) * units[text[-1]]
+        except ValueError:
+            pass
+    try:
+        import datetime
+        return datetime.datetime.fromisoformat(text).timestamp()
+    except ValueError:
+        return None
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     """What is installed on this machine, and what is fighting what.
 
@@ -442,8 +516,13 @@ def build_parser() -> argparse.ArgumentParser:
     mc.set_defaults(func=cmd_mcp)
 
     hk = sub.add_parser("hook", help="one lifecycle hook for a harness (JSON on stdin)")
-    hk.add_argument("harness", help="which harness to speak for, e.g. claude-code, "
-                                    "gemini-cli (see docs/integrations.md)")
+    hk.add_argument("harness", nargs="?", help="which harness to speak for, e.g. claude-code, "
+                                               "gemini-cli (see docs/integrations.md)")
+    hk.add_argument("--source", default=None,
+                    help="generic mode: send the payload to /hook/<source> and let the "
+                         "panel map it (codex, cursor, copilot, continue, q, devin, ...)")
+    hk.add_argument("--url", default=None, help="panel address for --source mode")
+    hk.add_argument("--token", default=None)
     hk.add_argument("--debug", action="store_true", help="log decisions to stderr")
     hk.set_defaults(func=cmd_hook)
 
@@ -478,6 +557,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--quiet-ms", type=int, default=1500,
                    help="hold writes for this long after the last keystroke "
                         "(default 1500)")
+    s.add_argument("--http-light-url", default=None,
+                   help="for --backend http-light: the device endpoint")
+    s.add_argument("--http-light-preset", default=None,
+                   choices=["blink1", "busylight"],
+                   help="for --backend http-light: a known request shape")
+    s.add_argument("--http-light-template", default=None,
+                   help="for --backend http-light: a body template with "
+                        "{r} {g} {b} {hex} {on} placeholders")
     s.add_argument("--verbose", action="store_true")
     s.set_defaults(func=cmd_daemon)
 
@@ -507,6 +594,14 @@ def build_parser() -> argparse.ArgumentParser:
                     help="print the URL instead of opening a browser")
     ui.set_defaults(func=cmd_ui)
 
+    dg = sub.add_parser("digest", help="what happened while you were away")
+    dg.add_argument("--since", default=None,
+                    help="e.g. 30m, 8h, 2d, or an epoch (default: everything kept)")
+    dg.add_argument("--file", default=None,
+                    help="history file (default ~/.config/rgi/history/events.jsonl)")
+    dg.add_argument("--json", action="store_true")
+    dg.set_defaults(func=cmd_digest)
+
     lm = sub.add_parser("lane-map", help="which agent gets which lane")
     lm.add_argument("--file", default=None, help="default ~/.config/rgi/lanes.json")
     lm.add_argument("--set", action="append", metavar="NAME=LANE",
@@ -525,6 +620,13 @@ def build_parser() -> argparse.ArgumentParser:
     w.add_argument("--ident", default=None,
                    help="name every lane this watcher claims (default: RGI_IDENT, "
                         "then ~/.config/rgi/name, then the hostname)")
+    w.add_argument("--agentapi", default=None,
+                   help="watch this AgentAPI base URL instead (one lane for the "
+                        "CLI agent it hosts); also read from RGI_AGENTAPI_URL")
+    w.add_argument("--name", default=None,
+                   help="with --agentapi: lane name (default: the URL host:port)")
+    w.add_argument("--label", default=None,
+                   help="with --agentapi: lane label to display")
     w.set_defaults(func=cmd_watch)
 
     p = sub.add_parser("push", help="set one lane by hand")

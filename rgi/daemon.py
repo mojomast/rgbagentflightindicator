@@ -39,6 +39,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import socket
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -51,6 +52,7 @@ from .appearance import Appearance
 from .backends import (OFF, RGB, Backend, BackendUnavailable, auto_backends,
                        load, opt_in_backends)
 from .config import resolve_token               # noqa: F401  (re-exported)
+from .events import EventHub, LaneEvent
 from .files import published_files, read_published_bytes
 from .webconfig import layout_labels, layout_zone_of
 
@@ -117,6 +119,14 @@ def lane_for(policy: dict[str, int], agent: str, ident: str | None) -> int | Non
     return None
 
 
+def _ident() -> str:
+    """This machine's display name, matching config.resolve_ident's fallback."""
+    try:
+        return socket.gethostname().split(".")[0].lower()
+    except Exception:
+        return "rgi"
+
+
 # --------------------------------------------------------------------------
 # typing-aware quiet mode (Windows): hold a steady frame while keys are pressed
 # --------------------------------------------------------------------------
@@ -154,6 +164,7 @@ class Lanes:
         self.since: dict[str, float] = {}
         self.changed: dict[str, float] = {}
         self.updated: dict[str, float] = {}
+        self.acked: dict[str, float] = {}        # epoch of "I have seen this"
 
     def free(self) -> list[int]:
         with self.lock:
@@ -206,14 +217,36 @@ class Lanes:
                 raise KeyError(state)
             if self.state.get(sid) != state:
                 self.changed[sid] = time.monotonic()
+                # a new state re-arms attention: an ack is never a permanent mute
+                self.acked.pop(sid, None)
             self.state[sid] = state
             self.updated[sid] = time.time()
             return True
 
+    def ack(self, sid: str) -> str | None:
+        """'I have seen this'. Done lanes dim; blocked lanes stop blinking.
+
+        The lane is never released and the state is never faked: a new state or
+        a new wait clears the ack and re-arms attention.
+        """
+        with self.lock:
+            if sid not in self.slot:
+                return None
+            state = self.state.get(sid)
+            if state == "done":
+                self.set_state(sid, "idle")
+                self.acked.pop(sid, None)
+                return "idle"
+            if state in ("blocked", "error"):
+                self.acked[sid] = time.time()
+            self.updated[sid] = time.time()
+            return state
+
     def release(self, sid: str) -> None:
         with self.lock:
             for table in (self.slot, self.state, self.agent, self.label, self.host,
-                          self.ident, self.info, self.since, self.changed, self.updated):
+                          self.ident, self.info, self.since, self.changed, self.updated,
+                          self.acked):
                 table.pop(sid, None)
 
     def set_ident(self, sid: str, ident: str) -> bool:
@@ -237,6 +270,8 @@ class Lanes:
             if sid not in self.slot:
                 return False
             current = self.info.setdefault(sid, {})
+            before = (current.get("blocked_on") or {})
+            before_id = before.get("id") if isinstance(before, dict) else None
             for key, value in fields.items():
                 if value is None:
                     current.pop(key, None)
@@ -244,6 +279,11 @@ class Lanes:
                     current[key].update(value)
                 else:
                     current[key] = value
+            after = current.get("blocked_on") or {}
+            after_id = after.get("id") if isinstance(after, dict) else None
+            if after_id and after_id != before_id:
+                # a new wait re-arms attention even while the state stays blocked
+                self.acked.pop(sid, None)
             self.updated[sid] = time.time()
             return True
 
@@ -319,7 +359,8 @@ class Device:
                 return values
 
             started = lane_state.get(("changed", winner_slot), now)
-            return [app.render(winner_state, now - started, quiet)] * len(lamps)
+            acked = lane_state.get(("acked", winner_slot), False)
+            return [app.render(winner_state, now - started, quiet or acked)] * len(lamps)
 
         for sid_slot, state in lane_state.items():
             if not isinstance(sid_slot, int) or sid_slot >= len(self.pool):
@@ -328,7 +369,8 @@ class Device:
             if not (0 <= lamp < len(values)):
                 continue
             started = lane_state.get(("changed", sid_slot), now)
-            colour = app.render(state, now - started, quiet)
+            acked = lane_state.get(("acked", sid_slot), False)
+            colour = app.render(state, now - started, quiet or acked)
             override = app.lamp_override(self.backend.name, lamp)
             if override is None:
                 zone = self.lamp_zones.get(lamp)
@@ -360,6 +402,24 @@ class Daemon:
         self.broadcaster = ui_api.Broadcaster(self.ui_status)
         self.last_paint = 0.0
         self._device_errors: dict[str, str] = {}
+        self.hub = EventHub(on_error=self._event_error)
+        self._stale: dict[str, bool] = {}
+        self._tickers: list = []
+        self._seen_deliveries: dict[str, float] = {}
+        self._waits: dict[str, list[str]] = {}
+        self._intent: dict[str, str] = {}
+        self.notifier = None
+        self.mqtt = None
+        self.history = None
+        self.otlp = None
+        self.history_path = os.path.join(webconfig.CONFIG_DIR, "history", "events.jsonl")
+
+    def _event_error(self, fn, exc) -> None:
+        try:
+            self.log_event("error", "events",
+                           f"subscriber {getattr(fn, '__qualname__', fn)} failed: {exc}")
+        except Exception:
+            pass
 
     def snapshot(self) -> dict:
         """Slot -> state, plus the blink timestamps, taken under the lane lock."""
@@ -368,6 +428,7 @@ class Daemon:
             for sid, slot in self.lanes.slot.items():
                 out[slot] = self.lanes.state.get(sid, "idle")
                 out[("changed", slot)] = self.lanes.changed.get(sid, time.monotonic())
+                out[("acked", slot)] = sid in self.lanes.acked
         return out
 
     # -- views for the HTTP layer ----------------------------------------
@@ -382,7 +443,21 @@ class Daemon:
         flying = state in ("working", "blocked", "stopping")
         primary = self.devices[0] if self.devices else None
         with lanes.lock:
-            changed_at = (time.time() - (time.monotonic() - changed)) if changed else None
+            now = time.time()
+            changed_at = (now - (time.monotonic() - changed)) if changed else None
+            info = lanes.info.get(sid) or {}
+            try:
+                heartbeat = float(info.get("heartbeat") or 0.0)
+            except (TypeError, ValueError):
+                heartbeat = 0.0
+            try:
+                threshold = float((self.config.get("settings") or {}).get("stale_s", 900) or 0)
+            except (TypeError, ValueError):
+                threshold = 900.0
+            activity = max(changed_at or 0.0, updated or 0.0, heartbeat)
+            stale_s = None
+            if state in ("working", "blocked") and activity:
+                stale_s = max(0.0, now - activity)
             return {
                 "slot": slot,
                 "key": primary.key_name(slot) if primary else f"slot{slot}",
@@ -391,12 +466,15 @@ class Daemon:
                 "host": lanes.host.get(sid),
                 "ident": lanes.ident.get(sid),
                 "state": state,
-                "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
+                "age": round(now - lanes.since.get(sid, now), 1),
                 "in_flight_s": round(time.monotonic() - changed, 1) if (flying and changed) else None,
-                "idle_s": None if flying else (round(time.time() - updated, 1) if updated else None),
+                "idle_s": None if flying else (round(now - updated, 1) if updated else None),
                 "changed_at": changed_at,
                 "idle_at": None if flying else updated,
-                "info": lanes.info.get(sid) or {},
+                "acked": sid in lanes.acked,
+                "stale": bool(stale_s is not None and threshold and stale_s > threshold),
+                "stale_s": round(stale_s, 1) if stale_s is not None else None,
+                "info": info,
             }
 
     def status_payload(self) -> dict:
@@ -557,6 +635,12 @@ class Daemon:
                 restart.append(f"settings.{key}")
         if (old.get("endpoints") or []) != (new.get("endpoints") or []):
             restart.append("endpoints")
+        for key in ("notify", "mqtt", "otlp"):
+            if (old.get(key) or {}) != (new.get(key) or {}):
+                restart.append(key)
+        if ((old.get("history") or {}).get("enabled")
+                != (new.get("history") or {}).get("enabled")):
+            restart.append("history")
         old_devices, new_devices = old.get("devices") or {}, new.get("devices") or {}
         for name in set(old_devices) | set(new_devices):
             if ((old_devices.get(name) or {}).get("enabled")
@@ -609,6 +693,287 @@ class Daemon:
         except Exception:
             pass
 
+    # -- events and optional subsystems -----------------------------------
+    def publish(self, kind: str, sid: str, slot: int, lane: dict | None = None) -> None:
+        if lane is None:
+            try:
+                lane = self.lane_view(sid, slot)
+            except Exception:
+                lane = {}
+        try:
+            self.hub.publish(LaneEvent(kind=kind, session_id=sid, slot=slot, lane=lane))
+        except Exception:
+            pass
+
+    def poll_subsystems(self) -> None:
+        """Per-tick work: stale transitions and subsystem timers."""
+        for sid, slot in list(self.lanes.slot.items()):
+            try:
+                view = self.lane_view(sid, slot)
+            except Exception:
+                continue
+            now_stale = bool(view.get("stale"))
+            if now_stale != self._stale.get(sid, False):
+                self._stale[sid] = now_stale
+                self.publish("stale" if now_stale else "recovered", sid, slot, view)
+        for sid in list(self._stale):
+            if sid not in self.lanes.slot:
+                self._stale.pop(sid, None)
+        for ticker in list(self._tickers):
+            try:
+                ticker()
+            except Exception as exc:
+                self.log_event("error", "tick", f"{ticker}: {exc}")
+
+    def apply_actions(self, actions, source: str = "") -> int:
+        """Apply normalized ingest actions (rgi.ingest.Action-shaped)."""
+        applied = 0
+        for action in actions or []:
+            meta = getattr(action, "meta", None) or {}
+            delivery = meta.get("delivery")
+            if delivery:
+                if delivery in self._seen_deliveries:
+                    continue
+                self._seen_deliveries[delivery] = time.time()
+                if len(self._seen_deliveries) > 500:
+                    cutoff = time.time() - 3600
+                    self._seen_deliveries = {
+                        key: value for key, value in self._seen_deliveries.items()
+                        if value >= cutoff}
+            sid = action.session
+            op = action.op
+            slot = self.lanes.slot.get(sid)
+            meta = meta if isinstance(meta, dict) else {}
+            if op in ("begin", "snapshot"):
+                if slot is None:
+                    slot = self.lanes.claim(sid, action.agent or source or "ingest",
+                                            action.label,
+                                            meta.get("host") or None, None,
+                                            meta.get("ident") or None,
+                                            getattr(action, "slot", None))
+                if slot is None:
+                    self.log_event("warn", "ingest", f"{sid}: no free lane")
+                    continue
+                self.publish("start", sid, slot)
+            elif op == "state" and action.state:
+                if slot is None:
+                    slot = self.lanes.claim(sid, action.agent or source or "ingest",
+                                            action.label, None)
+                    if slot is not None:
+                        self.publish("start", sid, slot)
+                if slot is not None:
+                    try:
+                        if self.lanes.set_state(sid, action.state):
+                            if action.state in ("working", "done", "idle"):
+                                self._intent[sid] = action.state
+                            self.publish("state", sid, slot)
+                    except KeyError:
+                        pass
+            elif op in ("info", "activity") and action.info:
+                if slot is not None and self.lanes.set_info(sid, action.info):
+                    self.publish("info", sid, slot)
+            elif op == "attention":
+                if slot is None:
+                    slot = self.lanes.claim(sid, action.agent or source or "ingest",
+                                            action.label, None)
+                    if slot is not None:
+                        self.publish("start", sid, slot)
+                if slot is None:
+                    continue
+                waits = self._waits.setdefault(sid, [])
+                if meta.get("open"):
+                    wait_id = str(action.request or "wait")
+                    if wait_id not in waits:
+                        waits.append(wait_id)
+                    if self.lanes.state.get(sid) != "blocked":
+                        self._intent[sid] = self.lanes.state.get(sid, "working")
+                    fields = dict(action.info or {})
+                    fields.setdefault("blocked_on", {"id": wait_id})
+                    self.lanes.set_info(sid, fields)
+                    try:
+                        self.lanes.set_state(sid, "blocked")
+                    except KeyError:
+                        pass
+                    self.publish("state", sid, slot)
+                else:
+                    request = action.request
+                    if meta.get("all") or (request is None and not meta.get("match")):
+                        waits.clear()
+                    elif request:
+                        if request in waits:
+                            waits.remove(request)
+                    elif meta.get("match"):
+                        needle = str(meta["match"]).lower()
+                        victim = next((w for w in waits if needle in w.lower()), None)
+                        if victim is None and waits:
+                            victim = waits[0]
+                        if victim is not None:
+                            waits.remove(victim)
+                    self.lanes.set_info(sid, {"blocked_on": None})
+                    if not waits:
+                        self._waits.pop(sid, None)
+                        self.lanes.set_state(sid, self._intent.pop(sid, "working"))
+                    self.publish("info", sid, slot)
+            elif op == "end":
+                if slot is not None:
+                    view = self.lane_view(sid, slot)
+                    self.lanes.release(sid)
+                    self._stale.pop(sid, None)
+                    self._waits.pop(sid, None)
+                    self._intent.pop(sid, None)
+                    self.publish("end", sid, slot, view)
+            applied += 1
+        if applied:
+            self.notify()
+        return applied
+
+    def apply_otlp(self, updates) -> int:
+        applied = 0
+        for update in updates or []:
+            sid = getattr(update, "session", "")
+            if sid not in self.lanes.slot:
+                continue
+            if self.lanes.set_info(sid, getattr(update, "fields", {}) or {}):
+                self.publish("info", sid, self.lanes.slot[sid])
+                applied += 1
+        if applied:
+            self.notify()
+        return applied
+
+    def aggregate(self) -> dict:
+        counts = {name: 0 for name in ("working", "blocked", "error", "done", "idle")}
+        blocked = []
+        with self.lanes.lock:
+            for sid, slot in self.lanes.slot.items():
+                state = self.lanes.state.get(sid, "idle")
+                if state in counts:
+                    counts[state] += 1
+                if state in ("blocked", "error"):
+                    view = self.lane_view(sid, slot)
+                    blocked.append({"session": sid, "slot": slot,
+                                    "label": view.get("label"), "host": view.get("host"),
+                                    "wait_s": view.get("in_flight_s"),
+                                    "what": (view.get("info") or {}).get("blocked_on")})
+        urgent = next((state for state in ("blocked", "error", "working", "done", "idle")
+                       if counts.get(state)), "idle")
+        return {"state": urgent, "counts": counts, "blocked": blocked}
+
+    def history_tail(self, since: float | None = None, limit: int = 500) -> list[dict]:
+        try:
+            with open(self.history_path, encoding="utf-8") as fh:
+                lines = fh.readlines()[-limit:]
+        except OSError:
+            return []
+        out = []
+        for line in lines:
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                continue
+            if since and float(entry.get("at") or 0) < since:
+                continue
+            out.append(entry)
+        return out
+
+    def mqtt_clear(self, session: str | None = None) -> None:
+        if not session:
+            for sid in list(self.lanes.slot):
+                self.mqtt_clear(sid)
+            return
+        slot = self.lanes.slot.get(session)
+        if slot is None:
+            return
+        view = self.lane_view(session, slot)
+        self.lanes.release(session)
+        self._stale.pop(session, None)
+        self.publish("end", session, slot, view)
+        self.notify()
+
+    def mqtt_ack(self, session: str | None = None) -> None:
+        if not session:
+            return
+        slot = self.lanes.slot.get(session)
+        state = self.lanes.ack(session)
+        if state is not None and slot is not None:
+            self.publish("ack", session, slot)
+            self.notify()
+
+    def start_subsystems(self) -> None:
+        """Construct optional observers from the config; never fatal."""
+        cfg = self.config or {}
+        history_cfg = cfg.get("history") or {}
+        if history_cfg.get("enabled", True):
+            try:
+                from .history import HistoryLog
+                self.history = HistoryLog(
+                    self.history_path,
+                    max_bytes=int(history_cfg.get("max_bytes", 2_000_000)))
+                self.hub.subscribe(self.history.handle)
+                self.log_event("info", "history", f"recording transitions to {self.history_path}")
+            except Exception as exc:
+                self.log_event("warn", "history", f"disabled: {exc}")
+
+        notify_cfg = cfg.get("notify") or {}
+        if notify_cfg.get("enabled"):
+            try:
+                from .notify import Notifier
+                self.notifier = Notifier(
+                    self.hub,
+                    [str(part) for part in (notify_cfg.get("command") or [])],
+                    states=tuple(notify_cfg.get("states") or ("blocked", "error")),
+                    min_duration_s=float(notify_cfg.get("min_duration_s", 3.0)),
+                    cooldown_s=float(notify_cfg.get("cooldown_s", 30.0)),
+                    repeat_s=float(notify_cfg.get("repeat_s", 0.0)),
+                    quiet_hours=str(notify_cfg.get("quiet_hours") or ""),
+                    dry_run=bool(notify_cfg.get("dry_run")),
+                    log=lambda level, message: self.log_event(level, "notify", message))
+                self.hub.subscribe(self.notifier.handle)
+                self._tickers.append(self.notifier.poll)
+                self.log_event("info", "notify", "attention notifier armed")
+            except Exception as exc:
+                self.log_event("warn", "notify", f"disabled: {exc}")
+
+        mqtt_cfg = cfg.get("mqtt") or {}
+        if mqtt_cfg.get("enabled"):
+            try:
+                from .mqtt import MqttPublisher
+                self.mqtt = MqttPublisher(
+                    self.hub, self.ui_status, _ident(),
+                    host=str(mqtt_cfg.get("host") or "127.0.0.1"),
+                    port=int(mqtt_cfg.get("port", 1883)),
+                    username=str(mqtt_cfg.get("username") or ""),
+                    password=str(mqtt_cfg.get("password") or ""),
+                    base_topic=str(mqtt_cfg.get("base_topic") or "rgi"),
+                    discovery=bool(mqtt_cfg.get("discovery", True)),
+                    tls=bool(mqtt_cfg.get("tls")),
+                    log=lambda level, message: self.log_event(level, "mqtt", message),
+                    on_clear=self.mqtt_clear, on_ack=self.mqtt_ack)
+                self.mqtt.open()
+                self.log_event("info", "mqtt", f"publishing to {mqtt_cfg.get('host')}:{mqtt_cfg.get('port')}")
+            except Exception as exc:
+                self.log_event("warn", "mqtt", f"disabled: {exc}")
+
+        if (cfg.get("otlp") or {}).get("enabled"):
+            try:
+                from .otlp import OtlpReceiver
+                self.otlp = OtlpReceiver()
+                self.log_event("info", "otlp", "OTLP/HTTP JSON receiver enabled")
+            except Exception as exc:
+                self.log_event("warn", "otlp", f"disabled: {exc}")
+
+    def stop_subsystems(self) -> None:
+        for obj in (self.mqtt, self.notifier, self.history):
+            if obj is None:
+                continue
+            for method in ("stop", "close"):
+                fn = getattr(obj, method, None)
+                if callable(fn):
+                    try:
+                        fn()
+                    except Exception:
+                        pass
+                    break
+
     def tick(self) -> None:
         """One render pass: paint every device whose frame changed.
 
@@ -652,6 +1017,7 @@ class Daemon:
                     for i, c in enumerate(colours) if c != OFF
                 )
                 print(f"[rgi] {device.label}: {lit or '(all off)'}", flush=True)
+        self.poll_subsystems()
 
     def run(self) -> None:
         while True:
@@ -868,6 +1234,7 @@ class Handler(BaseHTTPRequestHandler):
             key = primary.key_name(slot)
             shown = [d.label for d in self.daemon.devices
                      if slot < len(d.pool)]
+            self.daemon.publish("start", sid, slot)
             self.daemon.notify()
             self._send(200, {"slot": slot, "key": key,
                              "devices": shown})
@@ -884,6 +1251,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             ok = lanes.set_state(sid.strip(), state)
             if ok:
+                self.daemon.publish("state", sid.strip(), lanes.slot.get(sid.strip(), -1))
                 self.daemon.notify()
             self._send(200 if ok else 404, {"ok": ok})
             return
@@ -915,6 +1283,7 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(400, {"error": "nothing to record: send an info object, "
                                               "an ident, or both"})
                 return
+            self.daemon.publish("info", sid.strip(), lanes.slot.get(sid.strip(), -1))
             self.daemon.notify()
             self._send(200, {"ok": True})
             return
@@ -924,15 +1293,74 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(sid, str) or not sid.strip():
                 self._send(400, {"error": "sessionID is required and must be a non-empty string"})
                 return
-            lanes.release(sid.strip())
+            key_sid = sid.strip()
+            slot = lanes.slot.get(key_sid)
+            view = self.daemon.lane_view(key_sid, slot) if slot is not None else None
+            lanes.release(key_sid)
+            if slot is not None:
+                self.daemon.publish("end", key_sid, slot, view)
             self.daemon.notify()
             self._send(200, {"ok": True})
             return
 
         if path == "/clear":
+            for key_sid, slot in list(lanes.slot.items()):
+                view = self.daemon.lane_view(key_sid, slot)
+                self.daemon.publish("end", key_sid, slot, view)
             lanes.clear()
             self.daemon.notify()
             self._send(200, {"ok": True})
+            return
+
+        if path == "/session/ack":
+            sid = data.get("sessionID")
+            if not isinstance(sid, str) or not sid.strip():
+                self._send(400, {"error": "sessionID is required and must be a non-empty string"})
+                return
+            key_sid = sid.strip()
+            slot = lanes.slot.get(key_sid)
+            state = lanes.ack(key_sid)
+            if state is None:
+                self._send(404, {"ok": False, "error": "no lane held by that sessionID"})
+                return
+            if slot is not None:
+                self.daemon.publish("ack", key_sid, slot)
+            self.daemon.notify()
+            self._send(200, {"ok": True, "state": state,
+                             "acked": key_sid in lanes.acked})
+            return
+
+        if path == "/ingest" or path.startswith("/hook/"):
+            source = (path[len("/hook/"):] if path.startswith("/hook/")
+                      else str(data.get("source") or "generic"))
+            try:
+                from . import ingest as ingest_module
+            except Exception:
+                self._send(503, ui_api.envelope(
+                    "ingest_unavailable", "the ingest module is not available"))
+                return
+            try:
+                actions = ingest_module.normalize(source, data, self.headers)
+            except Exception as exc:
+                self._send(400, ui_api.envelope("bad_event", str(exc)))
+                return
+            applied_count = self.daemon.apply_actions(actions, source=source)
+            self._send(200, {"ok": True, "source": source, "actions": applied_count})
+            return
+
+        if path in ("/v1/metrics", "/v1/logs", "/v1/traces"):
+            receiver = self.daemon.otlp
+            if receiver is None:
+                self._send(503, ui_api.envelope(
+                    "otlp_disabled", "enable otlp in the config to accept telemetry"))
+                return
+            try:
+                updates = receiver.handle(path, data)
+            except Exception as exc:
+                self._send(400, ui_api.envelope("bad_otlp", str(exc)))
+                return
+            applied_count = self.daemon.apply_otlp(updates)
+            self._send(200, {"partialSuccess": {}, "applied": applied_count})
             return
 
         self._send(404, {"error": "not found"})
@@ -980,6 +1408,13 @@ def build_backend(name: str, args: argparse.Namespace) -> Backend:
         kwargs = {"leds": args.leds, "verbose": args.verbose}
     elif name == "qmk":
         kwargs = {"leds": args.leds, "verbose": args.verbose, "count": args.count}
+    elif name == "gamesense":
+        kwargs = {"verbose": args.verbose}
+    elif name == "http-light":
+        kwargs = {"url": getattr(args, "http_light_url", None),
+                  "preset": getattr(args, "http_light_preset", None),
+                  "body_template": getattr(args, "http_light_template", None),
+                  "verbose": args.verbose}
     return load(name)(**kwargs)
 
 
@@ -1048,6 +1483,7 @@ def run(args: argparse.Namespace) -> int:
     daemon.apply_config(config, pools=not args.lanes)
     if args.quiet_ms != 1500:               # an explicit CLI flag wins at startup
         daemon.quiet_ms = args.quiet_ms     # (later Applies are the user's choice)
+    daemon.start_subsystems()
 
     token = resolve_token(args.token)
     server = make_server(args.host, args.port, daemon, token or "")
@@ -1067,6 +1503,7 @@ def run(args: argparse.Namespace) -> int:
     except KeyboardInterrupt:
         print("\n[rgi] stopping")
     finally:
+        daemon.stop_subsystems()
         for device in devices:
             device.backend.close()
     return 0

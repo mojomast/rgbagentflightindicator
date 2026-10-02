@@ -1,0 +1,124 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "claude-code"}},
+          {"key": "service.version", "value": {"stringValue": "2.1.4"}},
+          {"key": "session.id", "value": {"stringValue": "ses_01J8CLAUDE"}},
+          {"key": "os.type", "value": {"stringValue": "linux"}}
+        ]
+      },
+      "scopeMetrics": [
+        {
+          "scope": {"name": "com.anthropic.claude_code", "version": "2.1.4"},
+          "metrics": [
+            {
+              "name": "claude_code.token.usage",
+              "unit": "tokens",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "asInt": "1200",
+                    "timeUnixNano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "type", "value": {"stringValue": "input"}},
+                      {"key": "model", "value": {"stringValue": "claude-sonnet-4-5"}}
+                    ]
+                  },
+                  {
+                    "asInt": 340,
+                    "timeUnixNano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "type", "value": {"stringValue": "output"}},
+                      {"key": "model", "value": {"stringValue": "claude-sonnet-4-5"}}
+                    ]
+                  },
+                  {
+                    "asInt": "900",
+                    "timeUnixNano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "type", "value": {"stringValue": "cacheRead"}},
+                      {"key": "model", "value": {"stringValue": "claude-sonnet-4-5"}}
+                    ]
+                  },
+                  {
+                    "asInt": "25",
+                    "timeUnixNano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "type", "value": {"stringValue": "cacheCreation"}}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "claude_code.cost.usage",
+              "unit": "USD",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "asDouble": 0.0421,
+                    "timeUnixNano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "model", "value": {"stringValue": "claude-sonnet-4-5"}}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "gen_ai.client.operation.duration",
+              "unit": "s",
+              "histogram": {
+                "aggregationTemporality": 2,
+                "dataPoints": [
+                  {
+                    "count": "3",
+                    "sum": 2.75,
+                    "timeUnixNano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "gen_ai.operation.name", "value": {"stringValue": "chat"}}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "claude_code.context.tokens",
+              "unit": "tokens",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "asInt": "48000",
+                    "timeUnixNano": "1759428000000000000",
+                    "attributes": [
+                      {"key": "limit", "value": {"intValue": "200000"}}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "claude_code.lines_of_code.count",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "asInt": "120",
+                    "attributes": [
+                      {"key": "type", "value": {"stringValue": "added"}}
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "source": "copilot",
+  "cases": [
+    {
+      "name": "session_start_pascal",
+      "payload": {
+        "hook_event_name": "SessionStart",
+        "session_id": "cp-1",
+        "timestamp": "2026-10-02T18:04:12Z",
+        "cwd": "/w/repo",
+        "source": "new"
+      }
+    },
+    {
+      "name": "session_start_camel_derived",
+      "payload": {
+        "cwd": "/w/repo",
+        "pid": 4242,
+        "source": "new",
+        "timestamp": 1759428252310
+      }
+    },
+    {
+      "name": "prompt_camel_inferred",
+      "payload": {
+        "sessionId": "cp-1",
+        "timestamp": 1759428252310,
+        "cwd": "/w/repo",
+        "prompt": "run the tests"
+      }
+    },
+    {
+      "name": "pre_tool_camel_inferred",
+      "payload": {
+        "sessionId": "cp-1",
+        "timestamp": 1759428252310,
+        "cwd": "/w/repo",
+        "toolName": "bash",
+        "toolArgs": {"command": "npm test"}
+      }
+    },
+    {
+      "name": "tool_failure_camel_inferred",
+      "payload": {
+        "sessionId": "cp-1",
+        "timestamp": 1759428252310,
+        "cwd": "/w/repo",
+        "toolName": "bash",
+        "toolArgs": {"command": "npm test"},
+        "error": "command timed out"
+      }
+    },
+    {
+      "name": "error_occurred",
+      "payload": {
+        "hook_event_name": "errorOccurred",
+        "sessionId": "cp-1",
+        "timestamp": 1759428252310,
+        "cwd": "/w/repo",
+        "error": {"message": "model call failed", "name": "Error"},
+        "errorContext": "model_call",
+        "recoverable": false
+      }
+    },
+    {
+      "name": "agent_stop_camel_inferred",
+      "payload": {
+        "sessionId": "cp-1",
+        "timestamp": 1759428252310,
+        "cwd": "/w/repo",
+        "stopReason": "end_turn",
+        "stop_hook_active": false
+      }
+    },
+    {
+      "name": "notification_permission",
+      "payload": {
+        "hook_event_name": "Notification",
+        "sessionId": "cp-1",
+        "timestamp": 1759428252310,
+        "cwd": "/w/repo",
+        "notification_type": "permission_prompt",
+        "title": "Permission needed",
+        "message": "Allow bash to run npm test?"
+      }
+    }
+  ]
+}

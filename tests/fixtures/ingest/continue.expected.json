@@ -1,0 +1,143 @@
+{
+  "session_start": [
+    {
+      "op": "begin",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": "service",
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    },
+    {
+      "op": "attention",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": "working",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionStart"
+      }
+    }
+  ],
+  "permission_request": [
+    {
+      "op": "attention",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "permission",
+        "tool": "Bash"
+      },
+      "request": "tu-3",
+      "slot": null,
+      "meta": {
+        "event": "PermissionRequest",
+        "open": true
+      }
+    }
+  ],
+  "notification_permission_prompt": [
+    {
+      "op": "attention",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": "blocked",
+      "info": {
+        "action": "permission",
+        "tool": "Bash"
+      },
+      "request": "continue-permission-0edb9d9f448c",
+      "slot": null,
+      "meta": {
+        "event": "Notification",
+        "open": true
+      }
+    }
+  ],
+  "stop": [
+    {
+      "op": "attention",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "state",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": "done",
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "Stop"
+      }
+    }
+  ],
+  "session_end": [
+    {
+      "op": "attention",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd",
+        "open": false,
+        "all": true
+      }
+    },
+    {
+      "op": "end",
+      "session": "continue:cn-1",
+      "agent": "continue",
+      "label": null,
+      "state": null,
+      "info": {},
+      "request": null,
+      "slot": null,
+      "meta": {
+        "event": "SessionEnd"
+      }
+    }
+  ]
+}

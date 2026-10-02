@@ -1,0 +1,59 @@
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "gemini-cli"}},
+          {"key": "service.version", "value": {"stringValue": "0.62.0"}},
+          {"key": "session.id", "value": {"stringValue": "gemini-session-8f2"}}
+        ]
+      },
+      "scopeLogs": [
+        {
+          "scope": {"name": "gemini-cli.telemetry"},
+          "logRecords": [
+            {
+              "timeUnixNano": "1759428020000000000",
+              "body": {"stringValue": "gemini_cli.api_request"},
+              "attributes": [
+                {"key": "event.name", "value": {"stringValue": "gemini_cli.api_request"}},
+                {"key": "gen_ai.request.model", "value": {"stringValue": "gemini-2.5-pro"}},
+                {"key": "gen_ai.usage.input_tokens", "value": {"intValue": "800"}},
+                {"key": "gen_ai.usage.output_tokens", "value": {"intValue": "50"}},
+                {"key": "gen_ai.usage.cost", "value": {"doubleValue": 0.0125}},
+                {"key": "contents", "value": {"stringValue": "what does this code do?"}}
+              ]
+            },
+            {
+              "timeUnixNano": "1759428021000000000",
+              "body": {"stringValue": "gemini_cli.tool_call"},
+              "attributes": [
+                {"key": "event.name", "value": {"stringValue": "gemini_cli.tool_call"}},
+                {"key": "function_name", "value": {"stringValue": "read_file"}},
+                {"key": "function_args", "value": {"stringValue": "{\"path\":\"secret.txt\"}"}},
+                {"key": "function_call_id", "value": {"stringValue": "call_7"}}
+              ]
+            },
+            {
+              "timeUnixNano": "1759428022000000000",
+              "body": {"stringValue": "gemini_cli.chat_compression"},
+              "attributes": [
+                {"key": "event.name", "value": {"stringValue": "gemini_cli.chat_compression"}},
+                {"key": "context.compactions", "value": {"intValue": "2"}},
+                {"key": "context.window.percent", "value": {"doubleValue": 73.5}}
+              ]
+            },
+            {
+              "timeUnixNano": "1759428023000000000",
+              "body": {"stringValue": "gemini_cli.agent.finish"},
+              "attributes": [
+                {"key": "event.name", "value": {"stringValue": "gemini_cli.agent.finish"}},
+                {"key": "reason", "value": {"stringValue": "completed"}}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
