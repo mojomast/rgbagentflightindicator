@@ -17,12 +17,11 @@ __all__ = ["OFF", "RGB", "Backend", "BackendUnavailable", "Lamp", "fill",
 # against can blank it or interfere with typing, and "it is plugged in" is not
 # consent for that. See docs/backends.md.
 #
-# sinowealth: the FF00 protocol is accepted by a 258A:0049 board whose firmware
-# exposes it, but on a build that only offers FF00 the frames land without
-# lighting the keys, and sustained writes were measured to drop keystrokes
-# (2026-10-01). The same board driven through evision, on a build exposing
-# FF1C, works. So this driver stays opt-in until it is confirmed on hardware.
-OPT_IN = frozenset({"sinowealth"})
+# Empty at the moment: sinowealth was opt-in while its mode entry was
+# unconfirmed (2026-10-01), and graduated back to auto once the vendor's game
+# commit was recovered and verified on hardware (2026-10-02). The machinery
+# stays so the next unknown board gets the same caution.
+OPT_IN = frozenset()
 
 
 def _registry():

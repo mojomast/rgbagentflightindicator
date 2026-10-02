@@ -47,6 +47,22 @@ HEADER_PERKEY_1 = bytes([0x06, 0x09, 0xBC, 0x00, 0x40, 0x00, 0x00, 0x00])
 HEADER_PERKEY_2 = bytes([0x06, 0x09, 0xC0, 0x00, 0x40, 0x00, 0x00, 0x00])
 MODE_COMMIT = bytes([0x06, 0x03, 0xB6, 0x00, 0x00, 0x00, 0x00, 0x00])
 UNLOCK = bytes([0x05, 0x83, 0xB6, 0x00, 0x00, 0x00])
+INIT_2 = bytes([0x05, 0x88, 0xB8, 0x00, 0x00, 0x00])
+
+try:
+    # The driver's vendor-verbatim game commit enters per-key mode; this
+    # probe's own zero-filled MODE_COMMIT only restarts the lighting engine
+    # and leaves the board on its stock effect. Prefer the real thing.
+    import os as _os
+    import sys as _sys
+    _sys.path.insert(0, _os.path.dirname(_os.path.dirname(
+        _os.path.abspath(__file__))))
+    from rgi.backends.sinowealth import (  # noqa: E402
+        INIT_2 as _INIT_2, UNLOCK as _UNLOCK, game_commit as _game_commit)
+    UNLOCK, INIT_2 = _UNLOCK, _INIT_2
+    MODE_COMMIT = None  # sentinel: use _game_commit() below
+except Exception:
+    _game_commit = None
 
 COLOURS = {
     "off": (0, 0, 0),
@@ -305,7 +321,11 @@ def main() -> int:
 
     try:
         send(cmd_handle, UNLOCK, "unlock   ")
-        send(data_handle, build_frame(MODE_COMMIT, {}), "commit   ")
+        send(cmd_handle, INIT_2, "init2    ")
+        if _game_commit is not None:
+            send(data_handle, _game_commit(), "commit-gm")
+        else:
+            send(data_handle, build_frame(MODE_COMMIT, {}), "commit   ")
         colours: dict[int, tuple[int, int, int]] = {}
         for name, slots in wanted:
             for slot in slots:

@@ -41,7 +41,43 @@ previous colour:
 ```
 06 09 BC 00 40 00 00 00   per-key bank 1
 06 09 C0 00 40 00 00 00   per-key bank 2
-06 03 B6 00 00 00 00 00   mode commit
+```
+
+### Entering per-key ("game") mode
+
+Bank frames only light keys while the board is in per-key mode, and the board
+boots (and returns after a replug or factory reset) in its stock effect. The
+vendor tool enters the mode with this sequence, captured in
+`gk_frames.json`:
+
+```
+Col05   05 83 B6 00 00 00        unlock / initialise (GK_INIT_1)
+Col05   05 88 B8 00 00 00        second init (GK_INIT_2)
+Col06   06 09 BC ...            per-key bank 1
+Col06   06 09 C0 ...            per-key bank 2
+Col06   06 03 B6 ... + state    mode commit (GK_MODE_COMMIT_GAME)
+```
+
+The commit is the whole 1032-byte vendor frame, shipped verbatim as
+`game_commit()`. This is deliberate: byte 21 is the mode (`0x15` per-key,
+`0x01` whole-board colour, `0x00` stock), bytes 14-15 carry the `5a a5` magic,
+and the trailing state is required constants. A commit with the mode bytes but
+zeroed state is accepted and then drops the board back to stock - measured
+2026-10-02, keys dark, stock effect running. The driver's old zero-filled
+commit (`06 03 B6` + zeros) did exactly this: it restarts the lighting engine
+(the visible flicker) without ever entering per-key mode, which is why frames
+were accepted and lit nothing.
+
+Once the mode is entered it holds across frames: steady-state painting is just
+bank 1 + bank 2, no commit per frame.
+
+`tools/sinowealth_probe.py` is the lab tool this was established with - it
+lists the collections with their real report sizes and prints how many bytes
+the firmware accepted for every write:
+
+```sh
+python tools/sinowealth_probe.py --caps        # read-only
+python tools/sinowealth_probe.py --red 0-12    # writes; stop the daemon first
 ```
 
 Colour storage is **planar**: one byte per key inside each of the three planes,
