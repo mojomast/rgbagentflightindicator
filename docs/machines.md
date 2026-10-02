@@ -159,7 +159,7 @@ Agents sharing a machine must share the *installation*, not each make their own:
 `rgi doctor` answers the whole question in one command:
 
 ```
-rgbafi 0.5.1 - this machine
+rgbafi 0.5.2 - this machine
   panel     reachable at http://127.0.0.1:8730: 1 device(s), 3 lane(s)
   token     found (--token, RGI_TOKEN, or ~/.config/rgi/token)
   watcher   running (pid 45680)

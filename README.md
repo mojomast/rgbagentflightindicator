@@ -182,7 +182,7 @@ rgi status --follow   # reprint on every change
 ```
 
 ```
-rgbafi 0.5.1  http://127.0.0.1:8730
+rgbafi 0.5.2  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003

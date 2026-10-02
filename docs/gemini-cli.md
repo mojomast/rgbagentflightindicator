@@ -238,7 +238,7 @@ input.
   and <https://github.com/google-gemini/gemini-cli/blob/v0.62.0/docs/hooks/reference.md>.
   The same pages are published at
   <https://geminicli.com/docs/hooks/reference/>.
-- **Package**: rgbagentflightindicator / rgi, version 0.5.1 in this tree.
+- **Package**: rgbagentflightindicator / rgi, version 0.5.2 in this tree.
 - **How it was verified**: against the released schema and source, and with
   simulated event payloads in [`tests/test_hooks_gemini.py`](../tests/test_hooks_gemini.py).
   The hook was **simulated, not run against the real runtime**; the tests use a
