@@ -55,7 +55,7 @@ const PANEL = PANEL_INFO.url
 
 // What the sidebar block calls itself. Keep in step with VERSION_LABEL in
 // rgi/__init__.py and the version in pyproject.toml.
-const VERSION_LABEL = "rgbafi v0.6"
+const VERSION_LABEL = "rgbafi v0.7"
 
 // A paste-ready handover: whichever prompt fits the machine, with the token, so
 // the human does not have to assemble it under pressure.

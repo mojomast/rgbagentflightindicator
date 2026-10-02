@@ -271,8 +271,26 @@ colours, 54-byte chunks); a v1 board simply does not answer `0x03`.
 
 The lamp *index* map is not published for this board: the protocol addresses LEDs
 by index, but not which index is which key. OpenRGB's v2 driver ships a 106-entry
-map for its own devices; ours reports 126. Use `rgi map` to walk them and note
-which index sits under which key, then pass `--lanes` with the row you want.
+map for its own devices; ours reports 126. Use the web UI's Identify wizard (or
+`rgi map`) to walk them and note which index sits under which key.
+
+### Base/logo LEDs and the physical map (open questions)
+
+- **126 is the direct-colour buffer size, not a count of emitters.** OpenRGB
+  allocates `3 × map_size` bytes and its own boards use only 104/106 of them.
+  Some of the remaining slots may be unused.
+- EVision v2 has `LOGO` (`0x1a`), `LOGO_ON_OFF` (`0x23`) and `EDGE` (`0x24`)
+  parameters, and OpenRGB exposes logo/edge as separate controllers. Whether
+  the MK 17's base LEDs are individually addressable through `0x12` or only via
+  the firmware's edge effect is **unmeasured**.
+- `icl01-tools` documents a read-only v2 command `0x1b` (`read_physical_map`):
+  `map_size` bytes mapping key positions to LED indices, `0xff` for empty. If
+  this board answers it, key identities can be read instead of measured. It is
+  untested on `320F:501D` and not implemented in rgi yet; the web UI's profile
+  records it as a probe.
+- Base LED count, positions and ordering are unmeasured. The Identify wizard
+  measures them when a camera is available and always allows correction; the
+  packaged profile claims geometry only, never lamp identities.
 
 Related: this same device is [OpenRGB issue #4148](https://gitlab.com/CalcProgrammer1/OpenRGB/-/issues/4148)
 (reported, still open). The vendor app is the generic eVision OEM utility rebadged

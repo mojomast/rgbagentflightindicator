@@ -24,6 +24,7 @@ import threading
 import time
 from urllib.parse import parse_qs, urlsplit
 
+from . import profiles
 from . import webconfig
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -251,6 +252,18 @@ def handle_api_get(handler, path: str) -> bool:
         return True
     if path == "/ui/api/health":
         handler._send(200, daemon.health())
+        return True
+    if path == "/ui/api/profiles":
+        handler._send(200, {"profiles": profiles.summaries()})
+        return True
+    if path.startswith("/ui/api/profiles/"):
+        profile_id = path[len("/ui/api/profiles/"):]
+        found = profiles.load(profile_id)
+        if found is None:
+            handler._send(404, envelope("unknown_profile",
+                                        f"no packaged profile {profile_id!r}"))
+        else:
+            handler._send(200, found)
         return True
     if path == "/ui/api/logs":
         query = parse_qs(urlsplit(handler.path).query)

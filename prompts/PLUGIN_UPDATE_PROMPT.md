@@ -143,7 +143,7 @@ The plugin usually reloads when its files change; restart OpenCode if not.
 Success looks like this in the sidebar:
 
 ```
-⌨ rgbafi v0.6
+⌨ rgbafi v0.7
 ▸1| hermes(▶) Verify the nightly artifacts
  2| opencode(✔) Keyboard status: LED upd…
     (click a lane for detail, the title for all)
@@ -168,7 +168,7 @@ slot registered: home.footer.status
 
 Check these three things specifically, because each has been a real failure before:
 
-1. **The header says `rgbafi v0.6`.** If it still says "Keyboard (number row)" or
+1. **The header says `rgbafi v0.7`.** If it still says "Keyboard (number row)" or
    "Panel", you are running the old plugin - go back to step 3.
 2. **The log says `token=yes`.** If it says `token=no`, every poll is a 401 and
    the block will read `offline` - fix step 4.

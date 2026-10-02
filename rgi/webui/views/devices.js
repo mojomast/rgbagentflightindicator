@@ -2,7 +2,7 @@
 
 import { h, clear } from "../lib/dom.js";
 import { button, checkbox, field, selectInput, textInput, banner, table, toast } from "../components/ui.js";
-import { autoLayout, defaultLanePool, layoutFor } from "../lib/layout.js";
+import { autoLayout, defaultLanePool, keysByLamp, layoutFor } from "../lib/layout.js";
 import { setPath } from "../lib/commands.js";
 
 export function render(ctx) {
@@ -48,7 +48,7 @@ export function render(ctx) {
     const layout = layoutFor(draft, cap);
     const pool = Array.isArray(entry.lane_pool) && entry.lane_pool.length
       ? entry.lane_pool : defaultLanePool(layout, ctx.count());
-    const byLamp = new Map(layout.keys.map((key) => [key.lamp, key]));
+    const byLamp = keysByLamp(layout);
     const poolRow = h("div", { class: "row" });
     pool.forEach((lamp, index) => {
       const key = byLamp.get(lamp);

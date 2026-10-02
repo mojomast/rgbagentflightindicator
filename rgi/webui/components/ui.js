@@ -3,9 +3,9 @@
 import { h, clear } from "../lib/dom.js";
 
 export function button(label, onClick, opts = {}) {
-  const { variant = "", title = "", disabled = false, type = "button" } = opts;
+  const { variant = "", title = "", disabled = false, type = "button", sm = false } = opts;
   return h("button", {
-    class: `btn ${variant}`.trim(),
+    class: `btn${sm ? " sm" : ""} ${variant}`.trim(),
     type,
     title,
     disabled,

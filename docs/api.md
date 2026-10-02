@@ -243,6 +243,8 @@ GET    /ui/api/config            effective config + device capabilities
 PUT    /ui/api/config            validate, write atomically, apply (If-Match: revision)
 POST   /ui/api/validate          field-level validation without writing
 GET    /ui/api/defaults          the built-in config, for resets
+GET    /ui/api/profiles          packaged device profiles (metadata only)
+GET    /ui/api/profiles/<id>     one profile including its layout
 POST   /ui/api/test              time-boxed hardware overlay (one device)
 DELETE /ui/api/test              cancel overlays, restore lane rendering
 POST   /ui/api/paint             short mapping probe; consumed by the render loop

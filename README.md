@@ -183,7 +183,7 @@ rgi status --follow   # reprint on every change
 ```
 
 ```
-rgbafi 0.6.0  http://127.0.0.1:8730
+rgbafi 0.7.0  http://127.0.0.1:8730
   device evision       126 lamps  per-key
 
   lane  0  done      Greeting                           [workstation]  evision=0  ses_agent0003
@@ -230,12 +230,17 @@ Full details, including the states and the error codes, are in
 
 ### The web UI
 
-`rgi ui` opens the configuration page: colours and effects for every state,
-layouts and key names, lane pools, preferred lanes, the agents registry, and
-the keyboard mapping wizard. Everything edits a browser draft; hardware is only
-touched when you press **Apply**, or a time-boxed test button. The whole config
-is one versioned file at `~/.config/rgi/config.json`, with backups and history
-snapshots beside it. Full details: [docs/webui.md](docs/webui.md).
+`rgi ui` opens a map-first configuration page. The keyboard is drawn as it is
+actually configured — keycaps, base/underglow strips, logo lamps — and painted
+with the colours the daemon is writing. Drag keys, press-to-label codes, paint
+overrides and lane membership, order a base strip, or run the Identify wizard
+where the board lights one lamp at a time (manual press-to-label), optionally
+with webcam assist that locates lamps and suggests whether each is a key, a
+base LED or a logo. Everything edits a browser draft; hardware is only touched
+when you press **Apply**, or a time-boxed test button. The whole config is one
+versioned file at `~/.config/rgi/config.json` (schema 2: keys, lamps, zones),
+with backups and history snapshots beside it. Full details:
+[docs/webui.md](docs/webui.md).
 
 ### Which agent gets which lane
 

@@ -24,6 +24,7 @@ export function render(ctx) {
 
   const refresh = async () => {
     if (!root.isConnected) { clearInterval(timer); return; }
+    if (document.hidden) return;
     try {
       const result = await api(`/ui/api/logs?since=${since}`, { timeout: 4000 });
       for (const line of result.lines || []) {

@@ -80,6 +80,29 @@ Two tabs were editing the same revision. *Reload from panel* takes the newer
 file and discards the draft; *Overwrite* applies your draft on top. Nothing is
 merged silently, and the previous file stays in the backup chain either way.
 
+**My keyboard looks like a grid of numbered lamps.**
+No layout has been assigned yet, so the UI is drawing an honest approximation
+from lamp order. In Layout, either *Use this template* from the built-in
+profile banner (geometry only, no lamp identities claimed) or run **Identify**
+to map the real keys. The device also reports which kind it thinks each lamp
+is; unknown lamps render dashed.
+
+**The webcam scan put key lamps in the base/logo group.**
+Classification is a suggestion, not a verdict. Check that the four corner
+clicks really landed on the corners of the key area (the overlay shows where it
+expects keys), dim the room, and use *Name…* / *Mark base* in the review table
+to correct rows. Manual press-to-label always works and is the ground truth.
+
+**A "restored an unsaved draft" banner appeared.**
+The UI autosaves the draft to the browser tab's `sessionStorage` and offers it
+back after a reload. *Keep it* continues where you left off; *Discard it* goes
+back to the last applied config. Nothing is applied until you press Apply.
+
+**The map shows dashed outlines or a dashed strip.**
+Dashed means unverified: a lamp whose identity comes from a built-in profile,
+auto-layout, or a webcam detection below 50% confidence. It still paints and
+can be pooled, but Identify is what turns it solid.
+
 **It worked, I replugged, now nothing changes.**
 A replug invalidates the device handle: writes appear to succeed and go nowhere.
 The daemon notices write failures, reopens and repaints; if a backend does not

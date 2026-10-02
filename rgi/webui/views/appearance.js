@@ -88,7 +88,7 @@ function stateCard(ctx, state) {
              minHeight: "64px", display: "flex", alignItems: "center", justifyContent: "center",
              fontWeight: "600" },
   }, `${state} preview`);
-  animateSwatch(swatch, () => stateSpec(ctx.draft, state), ctx.quiet());
+  animateSwatch(swatch, () => stateSpec(ctx.draft, state), ctx.reduceMotion());
   card.appendChild(swatch);
 
   card.appendChild(field("Pattern",

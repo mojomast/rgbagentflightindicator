@@ -43,6 +43,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from . import profiles
 from . import ui as ui_api
 from . import webconfig
 from . import VERSION as RGI_VERSION
@@ -51,6 +52,7 @@ from .backends import (OFF, RGB, Backend, BackendUnavailable, auto_backends,
                        load, opt_in_backends)
 from .config import resolve_token               # noqa: F401  (re-exported)
 from .files import published_files, read_published_bytes
+from .webconfig import layout_labels, layout_zone_of
 
 PALETTE: dict[str, RGB] = {
     "working": (0, 255, 0),      # in flight
@@ -270,9 +272,11 @@ class Device:
         self.pool = list(pool)
         self.label = label or backend.name
         self.last: tuple | None = None
-        # Layout labels and static lamp colours come from the config; both are
-        # display-only and safe to swap between ticks.
+        # Layout labels, zones and static lamp colours come from the config;
+        # all are display-only and safe to swap between ticks.
         self.label_overrides: dict[int, str] = {}
+        self.lamp_zones: dict[int, str] = {}
+        self.layout_origin: str | None = None
         self.override: dict | None = None      # time-boxed test/mapping frame
 
     @property
@@ -326,6 +330,10 @@ class Device:
             started = lane_state.get(("changed", sid_slot), now)
             colour = app.render(state, now - started, quiet)
             override = app.lamp_override(self.backend.name, lamp)
+            if override is None:
+                zone = self.lamp_zones.get(lamp)
+                if zone:
+                    override = app.zone_override(self.backend.name, zone)
             values[lamp] = override if override is not None else colour
         return values
 
@@ -374,6 +382,7 @@ class Daemon:
         flying = state in ("working", "blocked", "stopping")
         primary = self.devices[0] if self.devices else None
         with lanes.lock:
+            changed_at = (time.time() - (time.monotonic() - changed)) if changed else None
             return {
                 "slot": slot,
                 "key": primary.key_name(slot) if primary else f"slot{slot}",
@@ -385,6 +394,8 @@ class Daemon:
                 "age": round(time.time() - lanes.since.get(sid, time.time()), 1),
                 "in_flight_s": round(time.monotonic() - changed, 1) if (flying and changed) else None,
                 "idle_s": None if flying else (round(time.time() - updated, 1) if updated else None),
+                "changed_at": changed_at,
+                "idle_at": None if flying else updated,
                 "info": lanes.info.get(sid) or {},
             }
 
@@ -417,15 +428,55 @@ class Daemon:
     def capabilities(self) -> list[dict]:
         out = []
         for device in self.devices:
+            lamps = device.backend.lamps()
+            layout, origin = profiles.resolve_layout(
+                self.config, device.backend.name, device.backend.name, len(lamps))
+            records = {rec.get("index"): rec
+                       for rec in (layout or {}).get("lamps") or []
+                       if isinstance(rec, dict)}
+            zones = layout_zone_of(layout)
+            labels = layout_labels(layout)
+            lamp_infos = []
+            for lamp in lamps:
+                record = records.get(lamp.index) or {}
+                kind = record.get("kind")
+                if kind is None:
+                    kind = ("key" if lamp.group in ("number-row", "function-row", "key")
+                            else "unknown")
+                lamp_infos.append({
+                    "index": lamp.index,
+                    "label": labels.get(lamp.index, lamp.label),
+                    "group": lamp.group,
+                    "kind": kind,
+                    "zone": zones.get(lamp.index),
+                    "present": record.get("present", True),
+                    "source": record.get("source"),
+                    "confidence": record.get("confidence"),
+                    "verified": record.get("verified", False),
+                })
+            profile = None
+            if origin and origin.startswith("profile:"):
+                pid = origin.split(":", 1)[1]
+                found = profiles.load(pid) or {}
+                profile = {"id": pid, "label": found.get("label"), "active": True,
+                           "verified": found.get("verified", False),
+                           "confidence": found.get("confidence")}
+            else:
+                candidates = profiles.match(device.backend.name, len(lamps))
+                if candidates:
+                    top = candidates[0]
+                    profile = {"id": top.get("id"), "label": top.get("label"),
+                               "active": False, "verified": top.get("verified", False),
+                               "confidence": top.get("confidence")}
             out.append({
                 "name": device.backend.name,
                 "label": device.label,
                 "per_lamp": device.per_lamp,
                 "min_interval": float(getattr(device.backend, "min_interval", 0.0)),
                 "pool": list(device.pool),
-                "lamps": [{"index": lamp.index, "label": lamp.label,
-                           "group": lamp.group}
-                          for lamp in device.backend.lamps()],
+                "layout_origin": origin,
+                "profile": profile,
+                "lamps": lamp_infos,
             })
         return out
 
@@ -492,15 +543,12 @@ class Daemon:
                              and 0 <= p < len(lamps)]
                     if clean:
                         device.pool = clean
-                layout = (new.get("layouts") or {}).get(entry.get("layout"))
-                labels: dict[int, str] = {}
-                if isinstance(layout, dict):
-                    for key in layout.get("keys") or []:
-                        if (isinstance(key, dict)
-                                and isinstance(key.get("lamp"), int)
-                                and isinstance(key.get("label"), str)):
-                            labels[key["lamp"]] = key["label"]
-                device.label_overrides = labels
+                layout, origin = profiles.resolve_layout(
+                    new, device.backend.name, device.backend.name,
+                    len(lamps))
+                device.layout_origin = origin
+                device.label_overrides = layout_labels(layout)
+                device.lamp_zones = layout_zone_of(layout)
                 device.last = None
         restart: list[str] = []
         old_settings, new_settings = old.get("settings") or {}, new.get("settings") or {}

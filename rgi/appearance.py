@@ -17,7 +17,7 @@ from math import cos, pi
 
 from .backends import OFF, RGB
 from .webconfig import (PATTERNS, STATE_NAMES, THEN, default_states,
-                        lamp_overrides_for, parse_colour)
+                        lamp_overrides_for, parse_colour, zone_overrides_for)
 
 
 def _scale(colour: RGB, brightness: int) -> RGB:
@@ -81,9 +81,11 @@ class Appearance:
     """The compiled palette and effects for every state, plus lamp overrides."""
 
     def __init__(self, states: dict[str, StateSpec] | None = None,
-                 overrides: dict[str, dict[int, RGB]] | None = None):
+                 overrides: dict[str, dict[int, RGB]] | None = None,
+                 zone_overrides: dict[str, dict[str, RGB]] | None = None):
         self.states = dict(states or {})
         self.overrides = overrides or {}
+        self.zone_overrides = zone_overrides or {}
 
     @classmethod
     def default(cls) -> "Appearance":
@@ -114,7 +116,8 @@ class Appearance:
                 then=raw.get("then") if raw.get("then") in THEN else "steady",
                 brightness=_int(raw.get("brightness"), 255, 0, 255),
             )
-        return cls(states, lamp_overrides_for(config or {}))
+        return cls(states, lamp_overrides_for(config or {}),
+                   zone_overrides_for(config or {}))
 
     def spec(self, state: str) -> StateSpec:
         return self.states.get(state) or self.states.get("idle") or StateSpec()
@@ -125,3 +128,7 @@ class Appearance:
     def lamp_override(self, device: str, lamp: int) -> RGB | None:
         """A static colour for one lamp, above every lane's state."""
         return (self.overrides.get(device) or {}).get(lamp)
+
+    def zone_override(self, device: str, zone: str) -> RGB | None:
+        """A static colour for a whole strip/zone; a lamp override wins."""
+        return (self.zone_overrides.get(device) or {}).get(zone)

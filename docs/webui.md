@@ -7,164 +7,198 @@ rgi ui                  # opens http://127.0.0.1:8730/ui/#token=<token>
 rgi ui --no-open        # print the URL instead (headless machines)
 ```
 
-The same page is at `http://127.0.0.1:8730/ui/` — or at your tailnet address if
-you bound the daemon to `0.0.0.0`. It edits **everything** the panel paints:
-per-state colours and effects, layouts and key names, which keys carry lanes,
-which agent lands on which lane, the agents registry, and the device settings.
+The page is a **map of your keyboard**. Keys, base/underglow strips and logo
+lamps are drawn as they are configured, painted with the colours the daemon is
+writing, and edited directly. Hardware is never touched until you press
+**Apply**, or a time-boxed **test** button.
 
-The hardware is never touched until you press **Apply**, or press an explicit,
-time-boxed **Test** button. Everything in between is a draft in your browser.
-
-## The draft / Apply model
-
-| Layer | Lives in | Touches hardware |
-|---|---|---|
-| Draft (every edit) | browser `sessionStorage`, undo/redo stack | no |
-| Preview (diagram, swatches) | browser, mirrors the render maths | no |
-| Test / mapping probe | daemon overlay consumed by the render loop | yes, time-boxed |
-| Apply | `~/.config/rgi/config.json` | yes, on the next tick |
-
-- Apply sends the whole draft as one `PUT /ui/api/config` with
-  `If-Match: <revision>`. Two tabs editing at once cannot silently overwrite
-  each other: the stale one gets a 409 and a choice of *Reload* or *Overwrite*.
-- The server validates before writing. Errors (a colour that is not a colour,
-  a lane beyond `settings.count`, a duplicate id) block Apply and point at the
-  field. Warnings (two states that look alike, duplicate match rules) are
-  advisory.
-- `settings.host`, `settings.port`, `settings.count`, device `enabled` flags and
-  endpoint parameters are **startup** concerns. The UI saves them and tells you
-  a restart is required rather than pretending a hot reload happened.
-- The old `~/.config/rgi/lanes.json` is imported once into
-  `lanes.overrides`; the legacy file is left untouched. `rgi lane-map` still
-  reads and writes it, so nothing breaks.
-
-### Where the config lives
-
-One versioned file: `~/.config/rgi/config.json`. Every field has a default, so a
-hand-written file with one key works. Each successful Apply:
-
-- bumps the monotonic `revision` (used for `If-Match`),
-- rotates `config.json.bak.1` … `.bak.5`,
-- writes a snapshot to `~/.config/rgi/history/<revision>.json` (last 50).
-
-Unknown fields are preserved on write-back, so a config written by a newer
-daemon is not stripped by an older browser tab. A file with a higher
-`schema_version` than the daemon understands is refused, never downgraded.
-
-Schema (abridged; see `rgi/webconfig.py` for the source of truth):
-
-```jsonc
-{
-  "schema_version": 1,
-  "revision": 17,
-  "settings": { "host": "127.0.0.1", "port": 8730, "count": 12,
-                "quiet": true, "quiet_ms": 1500, "reduce_motion": false },
-  "appearance": {
-    "blink": { "period_ms": 560, "duty": 0.5 },
-    "states": {
-      "working": { "label": "Working", "icon": "play", "pattern": "steady",
-                   "color": "#00ff00", "brightness": 255 },
-      "done":    { "label": "Done", "icon": "check", "pattern": "blink",
-                   "color": "#ffffff", "brightness": 255, "cycles": 10,
-                   "then": "steady" }
-      // blocked, error, idle, off
-    }
-  },
-  "devices":  { "sinowealth": { "label": "Desk", "enabled": true,
-                                "layout": "sinowealth-default",
-                                "lane_pool": [0, 1, 2, 3] } },
-  "layouts":  { "sinowealth-default": { "format_version": 1, "source": "auto",
-                "keys": [{ "lamp": 0, "label": "`", "code": "Backquote",
-                           "x": 0, "y": 0, "w": 1, "h": 1,
-                           "group": "number-row" }] } },
-  "lanes":    { "overrides": [{ "id": "hermes-3",
-                "match": { "ident": "hermes-3", "agent": "hermes" },
-                "lane": 5, "enabled": true }] },
-  "lamp_overrides": [{ "device": "sinowealth", "lamp": 12,
-                       "mode": "static", "color": "#00aaff" }],
-  "agents":   [{ "id": "opencode", "label": "OpenCode",
-                 "match": { "agent": "opencode" }, "enabled": true }],
-  "endpoints": [{ "id": "openrgb-local", "kind": "openrgb",
-                  "url": "127.0.0.1:6742", "enabled": true }]
-}
-```
-
-`pattern` is a deliberately bounded vocabulary: `off`, `steady`, `blink`,
-`breathe`, with `period_ms`, `duty` (0–1) and `cycles` (`0` = forever), then
-`steady` or `off`. No scripting language, so the browser preview and the daemon
-renderer can be — and are — tested against the same fixture
-(`rgi/webui/tests/fixtures/effects.json`).
-
-## Pages
+## What is on each page
 
 | Page | What it does |
 |---|---|
-| **Dashboard** | every lane live (SSE), per-state counts, clear/end actions, 15 s hardware test |
-| **Devices** | display labels, enabled flags, layout choice, ordered lane pool, endpoint list |
-| **Layout** | SVG keyboard: click/shift-click keys, edit label/code/position, import/export JSON and CSV, flash the selection |
-| **Appearance** | per-state colour, pattern, period, duty, cycles, "then", brightness, label; presets; colour-blind and contrast warnings; static lamp overrides |
-| **Mapping** | live sessions, preferred-lane rules, the lane × device pool matrix |
-| **Mapping wizard** | find which key each lamp is: press-to-label walk, or webcam locate + name |
-| **Agents** | registry of known agents/idents, observed identities, synthetic test lane |
-| **Settings** | quiet mode and window, startup settings, import/export, resets |
-| **Logs** | the daemon's last 500 events (write failures, reconnects, applies) |
-| **Help** | shortcuts, glossary, links to the published integration docs |
+| **Live** | the map, the agent table with ticking timers, and a state-derived setup checklist |
+| **Layout** | drag/resize keys, rename them, press-to-label codes, zones, lamp tray, import/export |
+| **Paint** | brush static overrides and lane membership onto the map; zone overrides; pool order |
+| **Mapping** | preferred-lane rules, live sessions with one-click pin |
+| **Identify** | the mapping wizard: manual press-to-label, or webcam assist with review |
+| **States** | colour, pattern, timing, brightness and presets for every agent state |
+| **Devices / Agents / Settings / Logs / Help** | capability facts, registries, config, diagnostics |
+
+The map is always drawn from the **draft**, so what you see is what Apply will
+write. Live sessions are an overlay on it.
+
+### The map
+
+- **Keys and zones.** A layout has keys (physical identity + geometry), lamps
+  (addressable slots with a kind) and zones (ordered groups; a perimeter zone
+  is a path with its lamps ordered along it). A lamp can be a key, a
+  perimeter/base LED, a logo, an indicator, an accent or unknown; a key can
+  have several lamps; a lamp can have no key.
+- **Honest defaults.** When nothing is known the map shows an "approximate
+  grid" banner. A built-in profile ships key geometry only — it never claims a
+  lamp index. Unverified or low-confidence lamps are dashed in the editor.
+- **Zoom and zones.** `−` / `%` / `+` zoom, zoom remembers per device, zone
+  chips above the map show/hide groups.
+- **Keyboard access.** The map is one tab stop with an `aria-activedescendant`
+  cursor; arrows move, Enter/Space selects, Shift extends. Each lamp is an
+  option with a full label (`"Space — lamp 122, 2 lamps"`). The Layout page
+  also carries a **lamp table** — filterable, with Flash and Select per row —
+  as the equivalent editor for screen readers and bulk work.
+
+### Editing on the map
+
+- **Layout:** drag moves with 0.25u snapping (`Ctrl` disables it), the
+  inspector has numeric x/y/w/h, arrow keys nudge, multi-select aligns left/top,
+  lamps without a key wait in the tray, and deleting a key returns its lamp to
+  the tray rather than forgetting the lamp exists. Perimeter zones have
+  draggable corner handles.
+- **Paint:** Override paints a static colour (a lamp override), Lane appends to
+  the lane pool in click order, Erase removes overrides. Zone overrides paint a
+  whole strip with one colour. The pool order can be rearranged, or rebuilt in
+  reading order from the selection.
+- Every gesture is one undo entry; `Ctrl+Z` walks them back.
+
+## The config file
+
+One versioned file: `~/.config/rgi/config.json`. Every field has a default, so
+a hand-written file with one key works. Each successful Apply bumps `revision`,
+rotates `config.json.bak.1` … `.bak.5`, and keeps a snapshot in
+`~/.config/rgi/history/`. Unknown fields survive write-back; a file with a
+newer `schema_version` is refused, never downgraded.
+
+Schema 2 splits a layout into keys, lamps and zones:
+
+```jsonc
+{
+  "schema_version": 2,
+  "layouts": {
+    "mk17-measured": {
+      "format_version": 2,
+      "source": "mixed",
+      "name": "MK 17",
+      "canvas": { "margin": 0.6 },
+      "case": { "x": -0.55, "y": -0.55, "w": 19.55, "h": 8.05, "rx": 0.4 },
+      "keys": [
+        { "id": "k16", "code": "Backquote", "label": "`", "group": "number-row",
+          "geometry": { "type": "rect", "x": 0, "y": 1.5, "w": 1, "h": 1 } }
+      ],
+      "lamps": [
+        { "index": 16, "kind": "key", "key": "k16",
+          "source": "webcam", "confidence": 0.97, "verified": true,
+          "pixel": { "points": [[412, 288]], "confidence": 0.97 } },
+        { "index": 118, "kind": "perimeter", "zone": "base",
+          "path": { "zone": "base", "t": 0.412 },
+          "source": "webcam", "confidence": 0.88 }
+      ],
+      "zones": [
+        { "id": "base", "label": "Base / underglow", "kind": "perimeter",
+          "geometry": { "type": "path", "closed": true, "width": 0.22,
+                        "points": [[-0.7,-0.7],[19.7,-0.7],[19.7,8.2],[-0.7,8.2]] },
+          "lamps": [116, 117, 118, 119], "ordering": "cw", "source": "webcam" }
+      ]
+    }
+  },
+  "devices": { "evision": { "layout": "mk17-measured",
+                            "lane_pool": [16, 17, 18, 19] } },
+  "zone_overrides": [{ "device": "evision", "zone": "base",
+                       "mode": "static", "color": "#00aaff" }],
+  "profiles": { "evision-320f-501d": { "enabled": true } }
+}
+```
+
+Geometry shapes: `rect` (`x y w h`, optional `rotation`), `point`
+(`x y size`), `path` (`points`, `closed`, `width`) and `union` (`shapes`).
+Coordinates are keyboard units, may be negative, and the case and perimeter
+paths deliberately live outside the key grid.
+
+`source` records how a fact was obtained: `firmware`, `measured`, `webcam`,
+`press`, `hand`, `import:kle`, `import:qmk`, `import:vial`, `builtin-profile`,
+`auto`, `mixed`. The UI never merges guessed and measured data silently:
+`builtin-profile` and low-confidence lamps are flagged wherever they are used.
+
+### Migrating from schema 1
+
+Migration is pure-add: a v1 key gains an `id` and `geometry` copied from
+`x/y/w/h`, each v1 `lamp` becomes a lamp record with `kind: "key"`, and empty
+`zones`/`canvas`/`meta` are defaulted. Legacy fields are preserved. A v1
+`lanes.json` is imported once into `lanes.overrides`.
+
+## Device profiles
+
+Profiles live in `rgi/profiles/data/` and are suggestions, never facts. They
+match on backend + lamp count; a profile is only applied when you use it or
+enable it. The shipped Magic Refiner MK 17 profile (`evision-320f-501d`) carries
+an 87-key ANSI TKL **geometry template** and nothing else:
+
+- `lamp_count` 126 is the size of the EVision direct-colour buffer, not proof
+  of 126 physical emitters.
+- Whether the base LEDs are individually addressable (per-slot `0x12` writes)
+  or only the firmware's `EDGE` parameter is an open question.
+- Base ordering is unmeasured; the wizard measures it or you assign it by hand.
+
+The EVision v2 protocol documents a read-only `0x1b` "physical map" command that
+could fill key identities directly on boards that answer it. It is recorded as a
+probe in the profile but not yet implemented (it needs hardware to confirm the
+reply format).
+
+## Identify: teaching the map
+
+**Manual mode is ground truth and works everywhere.** The board lights one lamp
+at a time; you press the key it is under and the keyboard names itself via
+`KeyboardEvent.code`. Skip and back are supported; results go to Review, then
+the draft.
+
+**Webcam assist** adds evidence, never final answers:
+
+1. References: all lamps off (dark), then all on at 60% (all-on). The probe
+   frame tells us whether there is per-key structure at all.
+2. Calibration: click the four corners of the key area on the video; a
+   normalized four-point homography maps keyboard units to image pixels and the
+   overlay shows where each key is expected. Keycap-grid detection
+   (projection-profile periodicity) reports how regular the board looks.
+3. Sequential evidence: each lamp is painted for a moment, captured, and
+   differenced against the dark frame. Blob statistics (area, elongation,
+   peak, energy) produce a position and an SNR.
+4. Classification: compact blob inside a key cell → **key**; blob on the case
+   path → **perimeter** with an arc-length `t`; compact blob inside the case
+   away from keys → **logo**; otherwise **unknown**. Perimeter lamps are
+   ordered along the path and the wizard offers a two-click
+   "reverse direction" plus a neighbours test.
+5. Review: a table with source and confidence; every row can be named by
+   pressing its key, marked as base, or flashed again. Nothing is saved until
+   **Save to draft**; the normal Apply review follows.
+
+Camera guidance: mount the camera near top-down (15–30° tilt) with the whole
+board plus a margin in frame (the underglow halo lives outside the case), lock
+exposure/white balance/focus if the camera offers it, dim the room, and use a
+matte surface. The webcam needs a secure context: open the page at
+`http://localhost:8730/ui/` (or HTTPS), not at a LAN/Tailscale address. Frames
+never leave the machine and the stream stops when you leave the wizard.
+
+## Live data and the draft
+
+- `GET /ui/api/events` is a coalesced SSE snapshot stream consumed with
+  `fetch()` (because `EventSource` cannot send the token header), with a 2 s
+  polling fallback that pauses while the tab is hidden.
+- Timers tick client-side from `changed_at`/`idle_at` anchors, so they never
+  freeze on a stale snapshot.
+- The draft autosaves to `sessionStorage` (debounced) and offers to restore
+  after a reload; the dirty bar counts real changes and Apply is disabled when
+  clean. Apply shows a grouped diff review; a stale `If-Match` gives
+  Reload/Overwrite, never a silent merge.
+- `settings.host`, `settings.port`, `settings.count`, device `enabled` flags
+  and endpoint parameters are startup concerns; the UI says a restart is
+  required instead of pretending otherwise.
 
 ## Auth and security
 
-- The shell and its assets are static and contain no data, so they are served
-  without a token. Every `/ui/api/*` call requires `X-LED-Token`.
-- `rgi ui` puts the token in the URL **fragment** (`#token=…`), which browsers
-  never send to a server or place in `Referer`; the page moves it to
-  `sessionStorage` and strips the fragment. There are no cookies, so there is
-  no CSRF surface and nothing for another site to ride on.
-- Strict CSP from the daemon: `default-src 'none'; script-src 'self'; …`, no
-  inline script or style, no CDN, no analytics, no font downloads. User data is
+- The shell and its assets are static and carry no data, so they need no token.
+  Every `/ui/api/*` call requires `X-LED-Token`.
+- `rgi ui` puts the token in the URL fragment (`#token=…`), which is never sent
+  to a server or a `Referer`; the page stores it in `sessionStorage` and strips
+  it. No cookies, no CSRF surface.
+- Strict CSP, no inline script or style, no CDN, no analytics; user data is
   rendered with `textContent`, never `innerHTML`.
-- Static serving is path-confined to `rgi/webui/` (realpath check) with an
-  allow-list of content types; traversal attempts are 404s.
-
-## Live updates
-
-`GET /ui/api/events` is a coalesced full-snapshot SSE stream. It is consumed
-with `fetch()` + `ReadableStream` because `EventSource` cannot send the token
-header; the parser also keeps a 2 s polling fallback that pauses while the tab
-is hidden. The render loop never blocks on a slow client: streams are capped
-(four tabs) and dead clients are reaped.
-
-## Hardware tests and the mapping wizard
-
-Hardware is only ever written by the one render-loop thread. Test and mapping
-probes set a time-boxed overlay (`POST /ui/api/test`, `/ui/api/paint`) which the
-loop consumes and then clears, restoring lane rendering. Mapping probes are
-paced by the loop's tick (about 8 frames/s, under the measured keystroke-drop
-threshold) and the paint endpoint refuses bursts.
-
-The wizard has two honest paths:
-
-1. **Manual (always available).** Light lamp *N*, press the key directly above
-   it — the keyboard names itself via `KeyboardEvent.code`. Skip, back, and
-   resume are supported; nothing is saved until *Save to draft*.
-2. **Webcam assist (optional).** For locating lights: lock exposure if the
-   camera allows it, capture a dark baseline, then light each lamp and find the
-   brightest positive blob via differential luma frames. The camera says
-   *where* a light appeared, never *what key it is*, so the webcam pass is
-   followed by the same press-to-label naming pass. Detections are stored as
-   `px`/`py` with a confidence, reviewed, and only then saved.
-
-Camera notes: `getUserMedia` needs a secure context, so the webcam mode only
-works when the page is opened at `http://localhost:8730/ui/` (or via HTTPS) —
-not at a LAN/Tailscale address. Frames never leave the machine. Manual mode
-works everywhere, including boards with opaque keycaps or no camera.
-
-## Not in this version
-
-Deliberately deferred, not forgotten: homography/template fitting against
-standard form factors (60%/TKL/full), coded multi-frame capture, live endpoint
-probing, and keyboard-only accessibility hardening beyond the diagram's roving
-tabindex and the equivalent list views. The roadmap and evidence live in the
-mapping research notes that shaped this feature; the manual path is the
-ground truth those phases will be validated against.
 
 ## Tests
 
@@ -173,7 +207,13 @@ python -m unittest discover -s tests -t .        # Python, including the API
 cd rgi/webui && node --test                      # pure JS modules (Node 18+)
 ```
 
-The Python suite covers config migration/validation/atomic writes and every
-`/ui/api` route against a real HTTP server. The JS suite covers the effect
-maths against the shared fixture, colour/contrast helpers, the undo stack,
-layout generation, and the webcam blob maths.
+The JS suite covers the shared effect fixture (Python/JS parity), topology and
+path maths, the colour and confidence helpers, the homography solver, lattice
+detection, blob statistics, perimeter ordering and the diff/undo logic.
+
+## Not in this version
+
+Deliberately deferred: coded/binary fast capture (sequential is the evidence
+default), lens-distortion self-calibration, automatic profile matching by
+VID:PID, and an OpenCV.js optional path. The manual path is the ground truth
+those phases are validated against.

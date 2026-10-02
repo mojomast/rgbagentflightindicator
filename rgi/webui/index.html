@@ -25,13 +25,14 @@
     <button class="btn sm" id="btn-discard" type="button">Discard</button>
     <button class="btn sm primary" id="btn-apply" type="button">Apply</button>
   </div>
+  <button class="btn sm ghost" id="btn-palette" type="button" title="Command palette (Ctrl+K)">⌘K</button>
   <button class="btn sm ghost" id="btn-token" type="button" title="Panel token">Token</button>
 </header>
 <div class="shell">
   <nav class="rail" id="rail" aria-label="Sections"></nav>
   <main id="main" tabindex="-1"></main>
-  <aside class="preview" id="preview" aria-label="Live preview"></aside>
 </div>
+<footer class="lanestrip" id="lanestrip" aria-label="Live lanes" role="status"></footer>
 <div class="toaster" id="toaster" role="status" aria-live="polite"></div>
 <script type="module" src="./app.js"></script>
 </body>

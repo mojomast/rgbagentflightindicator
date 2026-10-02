@@ -99,7 +99,7 @@ The plugin is found by directory discovery; nothing belongs in `cli.json`.
 sidebar should show a block like:
 
 ```
-⌨ rgbafi v0.6
+⌨ rgbafi v0.7
 ▸0| hermes(▶) Fetch and follow the panel…
  2| opencode(✔) Keyboard status: LED upd…
 ```

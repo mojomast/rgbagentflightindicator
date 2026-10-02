@@ -1,46 +1,35 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { findBlob, frameDiff, median } from "../lib/webcam.js";
+import { classifyEvidence, confidenceFor } from "../lib/webcam.js";
 
-test("median works for odd and even counts", () => {
-  assert.equal(median([3, 1, 2]), 2);
-  assert.equal(median([4, 1, 3, 2]), 2.5);
-  assert.equal(median([]), 0);
+test("a compact blob in a key cell is a key", () => {
+  assert.equal(classifyEvidence({ dCell: 0.2, dPath: 1, elongation: 1.3,
+                                  compact: true, hasCell: true }), "key");
 });
 
-test("frameDiff keeps only positive changes", () => {
-  const diff = frameDiff(Float32Array.from([10, 0, 5]), Float32Array.from([4, 9, 5]));
-  assert.deepEqual([...diff], [6, 0, 0]);
+test("a wide blob on the case path is a perimeter lamp", () => {
+  assert.equal(classifyEvidence({ dCell: 0.9, dPath: 0.15, elongation: 3.4,
+                                  compact: false, hasCell: true }), "perimeter");
 });
 
-test("findBlob locates a synthetic bright spot", () => {
-  const width = 40, height = 30;
-  const lit = new Float32Array(width * height);
-  for (let y = 14; y < 18; y += 1) {
-    for (let x = 19; x < 23; x += 1) lit[y * width + x] = 120;
-  }
-  const blob = findBlob(frameDiff(lit, new Float32Array(width * height)), width, height);
-  assert.ok(blob, "expected a blob");
-  assert.ok(Math.abs(blob.x - 20.5) < 1.5, `x=${blob.x}`);
-  assert.ok(Math.abs(blob.y - 15.5) < 1.5, `y=${blob.y}`);
-  assert.ok(blob.confidence > 0.2, `confidence=${blob.confidence}`);
-  assert.ok(blob.pixels >= 16);
+test("a compact blob inside the case but away from keys is a logo", () => {
+  assert.equal(classifyEvidence({ dCell: 1.2, dPath: 0.9, elongation: 1.2,
+                                  compact: true, hasCell: false, insideCase: true }), "logo");
 });
 
-test("findBlob ignores noise and darkness", () => {
-  const width = 40, height = 30;
-  const dark = new Float32Array(width * height);
-  assert.equal(findBlob(dark, width, height), null);
-  const noise = new Float32Array(width * height).map(() => 2);
-  assert.equal(findBlob(noise, width, height), null);
+test("a blob outside the case is unknown", () => {
+  assert.equal(classifyEvidence({ dCell: 2, dPath: 1.5, insideCase: false }), "unknown");
 });
 
-test("findBlob stays with the strongest of two spots", () => {
-  const width = 60, height = 30;
-  const lit = new Float32Array(width * height);
-  for (let y = 4; y < 8; y += 1) for (let x = 4; x < 8; x += 1) lit[y * width + x] = 40;
-  for (let y = 20; y < 24; y += 1) for (let x = 40; x < 44; x += 1) lit[y * width + x] = 150;
-  const blob = findBlob(lit, width, height);
-  assert.ok(blob.x > 30, `kept the weak spot: x=${blob.x}`);
+test("key wins over the path when both are plausible", () => {
+  assert.equal(classifyEvidence({ dCell: 0.3, dPath: 0.3, elongation: 1.1,
+                                  compact: true, hasCell: true }), "key");
+});
+
+test("confidence rises with snr and falls with distance", () => {
+  const strong = confidenceFor({ snr: 14, dCell: 0.1, margin: 0.5, compact: true });
+  const weak = confidenceFor({ snr: 2.5, dCell: 0.45, margin: 0.05, compact: false });
+  assert.ok(strong > weak, `${strong} should beat ${weak}`);
+  assert.ok(strong <= 1 && weak >= 0.05);
 });

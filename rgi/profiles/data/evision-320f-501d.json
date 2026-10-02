@@ -1,0 +1,1192 @@
+{
+  "id": "evision-320f-501d",
+  "label": "Magic Refiner MK 17 (EVision/SONiX)",
+  "match": {
+    "backend": "evision",
+    "vendor_id": "320F",
+    "product_id": "501D",
+    "lamp_count": 126
+  },
+  "source": "builtin-profile",
+  "verified": false,
+  "confidence": 0.2,
+  "assumptions": [
+    "lamp_count 126 is the size of the direct-colour buffer, not a count of physical emitters",
+    "the board is an 87-key ANSI TKL (the vendor listing says 87 keys; the app screenshot looks full-size)",
+    "key geometry is a hand-authored template; no key is mapped to a lamp index by this profile",
+    "the remaining ~39 slots are probably the logo and base/edge LEDs; count, positions and order are unknown",
+    "the EVision v2 protocol exposes LOGO and EDGE parameters, so base lighting exists on the family"
+  ],
+  "provenance": [
+    "https://gitlab.com/CalcProgrammer1/OpenRGB/-/issues/4148",
+    "https://gitlab.com/CalcProgrammer1/OpenRGB/-/merge_requests/1591",
+    "https://github.com/lephilousophe/icl01-tools"
+  ],
+  "probe": {
+    "kind": "evision.physical_map",
+    "command": "0x1b",
+    "readonly": true
+  },
+  "notes": "Ships key geometry only. Run the mapping wizard; the read-only 0x1b probe may fill key identities directly when the board answers it.",
+  "layout": {
+    "format_version": 2,
+    "source": "builtin-profile",
+    "name": "MK 17 TKL ANSI (template, unverified)",
+    "units": "u",
+    "canvas": {
+      "margin": 0.6
+    },
+    "case": {
+      "x": -0.55,
+      "y": -0.55,
+      "w": 19.55,
+      "h": 8.05,
+      "rx": 0.4
+    },
+    "keys": [
+      {
+        "id": "k0000",
+        "code": "Escape",
+        "label": "Esc",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 0.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0001",
+        "code": "F1",
+        "label": "F1",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 2.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0002",
+        "code": "F2",
+        "label": "F2",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 3.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0003",
+        "code": "F3",
+        "label": "F3",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 4.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0004",
+        "code": "F4",
+        "label": "F4",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 5.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0005",
+        "code": "F5",
+        "label": "F5",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 6.5,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0006",
+        "code": "F6",
+        "label": "F6",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 7.5,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0007",
+        "code": "F7",
+        "label": "F7",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 8.5,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0008",
+        "code": "F8",
+        "label": "F8",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 9.5,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0009",
+        "code": "F9",
+        "label": "F9",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 11.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0010",
+        "code": "F10",
+        "label": "F10",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 12.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0011",
+        "code": "F11",
+        "label": "F11",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 13.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0012",
+        "code": "F12",
+        "label": "F12",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 14.0,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0013",
+        "code": "PrintScreen",
+        "label": "PrtSc",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 15.75,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0014",
+        "code": "ScrollLock",
+        "label": "ScrLk",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 16.75,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0015",
+        "code": "Pause",
+        "label": "Pause",
+        "group": "function-row",
+        "geometry": {
+          "type": "rect",
+          "x": 17.75,
+          "y": 0.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0100",
+        "code": "Backquote",
+        "label": "`",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 0.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0101",
+        "code": "Digit1",
+        "label": "1",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 1.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0102",
+        "code": "Digit2",
+        "label": "2",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 2.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0103",
+        "code": "Digit3",
+        "label": "3",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 3.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0104",
+        "code": "Digit4",
+        "label": "4",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 4.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0105",
+        "code": "Digit5",
+        "label": "5",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 5.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0106",
+        "code": "Digit6",
+        "label": "6",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 6.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0107",
+        "code": "Digit7",
+        "label": "7",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 7.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0108",
+        "code": "Digit8",
+        "label": "8",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 8.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0109",
+        "code": "Digit9",
+        "label": "9",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 9.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0110",
+        "code": "Digit0",
+        "label": "0",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 10.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0111",
+        "code": "Minus",
+        "label": "-",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 11.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0112",
+        "code": "Equal",
+        "label": "=",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 12.0,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0113",
+        "code": "Backspace",
+        "label": "Backspace",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 13.0,
+          "y": 1.5,
+          "w": 2,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0114",
+        "code": "Insert",
+        "label": "Ins",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 15.75,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0115",
+        "code": "Home",
+        "label": "Home",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 16.75,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0116",
+        "code": "PageUp",
+        "label": "PgUp",
+        "group": "number-row",
+        "geometry": {
+          "type": "rect",
+          "x": 17.75,
+          "y": 1.5,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0200",
+        "code": "Tab",
+        "label": "Tab",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 0.0,
+          "y": 2.75,
+          "w": 1.5,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0201",
+        "code": "KeyQ",
+        "label": "Q",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 1.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0202",
+        "code": "KeyW",
+        "label": "W",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 2.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0203",
+        "code": "KeyE",
+        "label": "E",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 3.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0204",
+        "code": "KeyR",
+        "label": "R",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 4.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0205",
+        "code": "KeyT",
+        "label": "T",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 5.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0206",
+        "code": "KeyY",
+        "label": "Y",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 6.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0207",
+        "code": "KeyU",
+        "label": "U",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 7.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0208",
+        "code": "KeyI",
+        "label": "I",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 8.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0209",
+        "code": "KeyO",
+        "label": "O",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 9.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0210",
+        "code": "KeyP",
+        "label": "P",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 10.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0211",
+        "code": "BracketLeft",
+        "label": "[",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 11.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0212",
+        "code": "BracketRight",
+        "label": "]",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 12.5,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0213",
+        "code": "Backslash",
+        "label": "\\",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 13.5,
+          "y": 2.75,
+          "w": 1.5,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0214",
+        "code": "Delete",
+        "label": "Del",
+        "group": "nav",
+        "geometry": {
+          "type": "rect",
+          "x": 15.75,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0215",
+        "code": "End",
+        "label": "End",
+        "group": "nav",
+        "geometry": {
+          "type": "rect",
+          "x": 16.75,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0216",
+        "code": "PageDown",
+        "label": "PgDn",
+        "group": "nav",
+        "geometry": {
+          "type": "rect",
+          "x": 17.75,
+          "y": 2.75,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0300",
+        "code": "CapsLock",
+        "label": "Caps",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 0.0,
+          "y": 4.0,
+          "w": 1.75,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0301",
+        "code": "KeyA",
+        "label": "A",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 1.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0302",
+        "code": "KeyS",
+        "label": "S",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 2.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0303",
+        "code": "KeyD",
+        "label": "D",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 3.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0304",
+        "code": "KeyF",
+        "label": "F",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 4.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0305",
+        "code": "KeyG",
+        "label": "G",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 5.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0306",
+        "code": "KeyH",
+        "label": "H",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 6.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0307",
+        "code": "KeyJ",
+        "label": "J",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 7.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0308",
+        "code": "KeyK",
+        "label": "K",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 8.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0309",
+        "code": "KeyL",
+        "label": "L",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 9.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0310",
+        "code": "Semicolon",
+        "label": ";",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 10.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0311",
+        "code": "Quote",
+        "label": "'",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 11.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0312",
+        "code": "Enter",
+        "label": "Enter",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 12.75,
+          "y": 4.0,
+          "w": 2.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0313",
+        "code": "ArrowUp",
+        "label": "\u2191",
+        "group": "nav",
+        "geometry": {
+          "type": "rect",
+          "x": 16.75,
+          "y": 4.0,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0400",
+        "code": "ShiftLeft",
+        "label": "Shift",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 0.0,
+          "y": 5.25,
+          "w": 2.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0401",
+        "code": "KeyZ",
+        "label": "Z",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 2.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0402",
+        "code": "KeyX",
+        "label": "X",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 3.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0403",
+        "code": "KeyC",
+        "label": "C",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 4.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0404",
+        "code": "KeyV",
+        "label": "V",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 5.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0405",
+        "code": "KeyB",
+        "label": "B",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 6.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0406",
+        "code": "KeyN",
+        "label": "N",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 7.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0407",
+        "code": "KeyM",
+        "label": "M",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 8.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0408",
+        "code": "Comma",
+        "label": ",",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 9.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0409",
+        "code": "Period",
+        "label": ".",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 10.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0410",
+        "code": "Slash",
+        "label": "/",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 11.25,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0411",
+        "code": "ShiftRight",
+        "label": "Shift",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 12.25,
+          "y": 5.25,
+          "w": 2.75,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0412",
+        "code": "ArrowLeft",
+        "label": "\u2190",
+        "group": "nav",
+        "geometry": {
+          "type": "rect",
+          "x": 15.75,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0413",
+        "code": "ArrowDown",
+        "label": "\u2193",
+        "group": "nav",
+        "geometry": {
+          "type": "rect",
+          "x": 16.75,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0414",
+        "code": "ArrowRight",
+        "label": "\u2192",
+        "group": "nav",
+        "geometry": {
+          "type": "rect",
+          "x": 17.75,
+          "y": 5.25,
+          "w": 1,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0500",
+        "code": "ControlLeft",
+        "label": "Ctrl",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 0.0,
+          "y": 6.5,
+          "w": 1.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0501",
+        "code": "MetaLeft",
+        "label": "Win",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 1.25,
+          "y": 6.5,
+          "w": 1.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0502",
+        "code": "AltLeft",
+        "label": "Alt",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 2.5,
+          "y": 6.5,
+          "w": 1.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0503",
+        "code": "Space",
+        "label": "Space",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 3.75,
+          "y": 6.5,
+          "w": 6.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0504",
+        "code": "AltRight",
+        "label": "Alt",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 10.0,
+          "y": 6.5,
+          "w": 1.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0505",
+        "code": "MetaRight",
+        "label": "Win",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 11.25,
+          "y": 6.5,
+          "w": 1.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0506",
+        "code": "ContextMenu",
+        "label": "Menu",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 12.5,
+          "y": 6.5,
+          "w": 1.25,
+          "h": 1
+        }
+      },
+      {
+        "id": "k0507",
+        "code": "ControlRight",
+        "label": "Ctrl",
+        "group": "alphas",
+        "geometry": {
+          "type": "rect",
+          "x": 13.75,
+          "y": 6.5,
+          "w": 1.25,
+          "h": 1
+        }
+      }
+    ],
+    "lamps": [],
+    "zones": [],
+    "meta": {
+      "provenance": [
+        "https://gitlab.com/CalcProgrammer1/OpenRGB/-/issues/4148",
+        "https://github.com/lephilousophe/icl01-tools"
+      ],
+      "assumptions": [
+        "geometry is a standard ANSI TKL template, hand-authored",
+        "no lamp identity is claimed"
+      ]
+    }
+  }
+}

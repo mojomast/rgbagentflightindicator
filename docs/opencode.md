@@ -101,7 +101,7 @@ mark carry the lamps' colours: green in flight, white complete, red for needs a
 human, dim for idle.
 
 ```
-⌨ rgbafi v0.6
+⌨ rgbafi v0.7
 ▸0| opencode(▶) Keyboard status: LED daemon…
  7| hermes-3(!) Verify the nightly artifacts
  3| opencode(✔) OpenCode2 updates and n…
@@ -190,7 +190,7 @@ sidebar does not pick the change up.
 ## What it draws
 
 ```
-⌨ rgbafi v0.6
+⌨ rgbafi v0.7
 ▸1| hermes(▶)
     nightly sync
  2| build-box(✔)

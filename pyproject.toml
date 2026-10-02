@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rgbagentflightindicator"
-version = "0.6.0"
+version = "0.7.0"
 description = "Turn an RGB keyboard into an agent status panel"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,9 +42,10 @@ ms-agent = ["agent-framework>=1.19"]
 rgi = "rgi.cli:main"
 
 [tool.setuptools]
-packages = ["rgi", "rgi.backends", "rgi.watchers", "rgi.integrations"]
+packages = ["rgi", "rgi.backends", "rgi.watchers", "rgi.integrations", "rgi.profiles"]
 
 [tool.setuptools.package-data]
 rgi = ["../prompts/*.md", "../plugin/*",
        "webui/*", "webui/lib/*", "webui/views/*", "webui/components/*",
-       "webui/tests/fixtures/*"]
+       "webui/tests/fixtures/*",
+       "profiles/data/*.json"]
